@@ -250,6 +250,7 @@
           <div class="field"><label>NÚMERO DA CNH</label><input type="tel" id="f-cnh" placeholder="00000000000" autocomplete="off"></div>
           <div class="field"><label>PLACA DO VEÍCULO</label><input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8" autocomplete="off"></div>
           <div class="field"><label>EMPRESA / TRANSPORTADORA</label><input type="text" id="f-empresa" placeholder="Nome da empresa" autocomplete="off"></div>
+          <div class="field"><label>WHATSAPP DO MOTORISTA</label><input type="tel" id="f-whats" placeholder="(62) 99999-9999" autocomplete="off"></div>
           <div class="field">
             <label>FOTO DO MOTORISTA</label>
             <div class="photo-picker">
@@ -319,6 +320,12 @@
     <p id="qrSub"></p>
     <div class="qr-code-wrap"><div id="qrCode"></div></div>
     <p style="font-size:12px;color:var(--text3);margin-bottom:20px">Tire um print ou salve a imagem para entregar ao motorista</p>
+    <div id="qrWhatsBtn" style="display:none;margin-bottom:8px">
+      <button onclick="" style="width:100%;padding:13px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+        Enviar QR Code pelo WhatsApp
+      </button>
+    </div>
     <button class="btn btn-ghost" onclick="document.getElementById('qrModal').classList.remove('open')">Fechar</button>
   </div>
 </div>
@@ -471,7 +478,7 @@ async function startScan() {
     document.getElementById('scanCorners').classList.add('visible');
     document.getElementById('scanLine').style.display='block';
     document.getElementById('btnStopScan').style.display='block';
-    scanInterval = setInterval(scanFrame, 250);
+    scanInterval = setInterval(scanFrame, 400);
   } catch(e) {
     document.getElementById('scanResult').innerHTML='<div class="result-box fail"><svg viewBox="0 0 24 24" style="width:40px;height:40px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><h3 style="color:var(--red)">Câmera indisponível</h3><p style="color:var(--text2);font-size:13px;margin-top:4px">Verifique as permissões de câmera nas configurações do navegador.</p></div>';
   }
@@ -489,14 +496,22 @@ function stopScan() {
 }
 
 function scanFrame() {
-  const v=document.getElementById('scanVideo');
-  if(v.readyState!==v.HAVE_ENOUGH_DATA) return;
-  const c=document.getElementById('scanCanvas');
-  c.width=v.videoWidth; c.height=v.videoHeight;
-  const ctx=c.getContext('2d'); ctx.drawImage(v,0,0);
-  const img=ctx.getImageData(0,0,c.width,c.height);
-  const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
-  if(code){stopScan();processQR(code.data);}
+  const v = document.getElementById('scanVideo');
+  if (v.readyState !== v.HAVE_ENOUGH_DATA) return;
+  if (v.videoWidth === 0 || v.videoHeight === 0) return;
+  const c = document.getElementById('scanCanvas');
+  // Limitar resolução para melhorar performance no celular
+  const maxW = 640;
+  const scale = Math.min(1, maxW / v.videoWidth);
+  c.width = Math.floor(v.videoWidth * scale);
+  c.height = Math.floor(v.videoHeight * scale);
+  const ctx = c.getContext('2d');
+  ctx.drawImage(v, 0, 0, c.width, c.height);
+  try {
+    const img = ctx.getImageData(0, 0, c.width, c.height);
+    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data) { stopScan(); processQR(code.data); }
+  } catch(e) { console.warn('scanFrame erro:', e); }
 }
 
 async function processQR(id) {
@@ -552,6 +567,7 @@ async function cadastrar() {
     cnh: document.getElementById('f-cnh').value.trim(),
     placa: document.getElementById('f-placa').value.trim().toUpperCase(),
     empresa: document.getElementById('f-empresa').value.trim(),
+    whatsapp: document.getElementById('f-whats').value.replace(/\D/g,''),
     status: document.getElementById('f-status').value
   };
   const { data, error } = await supa.from('motoristas').insert(novo).select().single();
@@ -562,8 +578,8 @@ async function cadastrar() {
     if(url) await supa.from('motoristas').update({foto_url: url}).eq('id', data.id);
   }
   btn.disabled = false; btn.textContent = 'Cadastrar e gerar QR Code';
-  showQRFor(data.id, data.nome, data.placa, data.empresa);
-  ['f-nome','f-cpf','f-cnh','f-placa','f-empresa'].forEach(f=>document.getElementById(f).value='');
+  showQRFor(data.id, data.nome, data.placa, data.empresa, data.whatsapp);
+  ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats'].forEach(f=>document.getElementById(f).value='');
   document.getElementById('f-status').value='autorizado';
   fotoFile = null;
   document.getElementById('f-foto').value = '';
@@ -572,18 +588,40 @@ async function cadastrar() {
 }
 
 // ============ QR MODAL ============
-function showQRFor(id, nome, placa, empresa) {
+function showQRFor(id, nome, placa, empresa, whatsapp) {
   if(!nome) {
     const m = cacheMotoristas.find(x=>x.id===id);
     if(!m) return;
-    nome = m.nome; placa = m.placa; empresa = m.empresa;
+    nome = m.nome; placa = m.placa; empresa = m.empresa; whatsapp = m.whatsapp;
   }
   document.getElementById('qrNome').textContent=nome;
   document.getElementById('qrSub').textContent=[placa, empresa].filter(Boolean).join(' · ');
   const qrDiv=document.getElementById('qrCode'); qrDiv.innerHTML='';
   new QRCode(qrDiv,{text:id,width:200,height:200,colorDark:'#ffffff',colorLight:'#16161c',correctLevel:QRCode.CorrectLevel.H});
+  // Botão WhatsApp
+  const btnWrap = document.getElementById('qrWhatsBtn');
+  if(whatsapp) {
+    btnWrap.style.display = 'block';
+    btnWrap.onclick = () => enviarQRWhatsapp(id, nome, whatsapp);
+  } else {
+    btnWrap.style.display = 'none';
+  }
   document.getElementById('qrModal').classList.add('open');
   document.getElementById('detailModal').classList.remove('open');
+}
+
+async function enviarQRWhatsapp(id, nome, whatsapp) {
+  // Gera a imagem do QR Code e envia link pelo WhatsApp
+  const canvas = document.querySelector('#qrCode canvas');
+  if(!canvas) { alert('QR Code ainda carregando, tente novamente.'); return; }
+  // Monta link do app com o ID do motorista e envia pelo WhatsApp
+  const appUrl = window.location.href.split('?')[0];
+  const msg = encodeURIComponent(
+    `Olá ${nome}! 🚛\n\nSeu QR Code de acesso está pronto.\n\nApresente este código na portaria para entrada/saída.\n\nSeu código de identificação: ${id}\n\n(Salve esta mensagem)`
+  );
+  const tel = whatsapp.replace(/\D/g,'');
+  const link = `https://wa.me/55${tel}?text=${msg}`;
+  window.open(link, '_blank');
 }
 function closeQR(e) { if(e.target===document.getElementById('qrModal')) document.getElementById('qrModal').classList.remove('open'); }
 function closeDetail(e) { if(e.target===document.getElementById('detailModal')) document.getElementById('detailModal').classList.remove('open'); }
@@ -612,7 +650,7 @@ async function renderLista() {
         <div class="driver-sub">${m.placa||'Sem placa'} · ${m.empresa||'Sem empresa'}</div>
       </div>
       <span class="badge ${m.status==='autorizado'?'badge-green':m.status==='bloqueado'?'badge-red':'badge-amber'}">${m.status}</span>
-      <button class="icon-btn" onclick="event.stopPropagation();showQRFor('${m.id}')" title="Ver QR Code">
+      <button class="icon-btn" onclick="event.stopPropagation();showQRFor('${m.id}','${(m.nome||'').replace(/'/g,"\\'")}','${m.placa||''}','${m.empresa||''}','${m.whatsapp||''}')" title="Ver QR Code">
         <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></svg>
       </button>
     </div>
