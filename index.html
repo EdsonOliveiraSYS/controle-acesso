@@ -353,8 +353,8 @@
 // CONFIGURAÇÃO DO SUPABASE
 // Substitua pelos valores do seu projeto: Settings > API
 // ============================================
-const SUPABASE_URL = 'https://wqzbmlfiwmjhkjprnzrv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxemJtbGZpd21qaGtqcHJuenJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDA0MjEsImV4cCI6MjA5NzY3NjQyMX0.vza4qGtnkwq4LMM8HNCoHrfOPb8gzC4wse-qk9Yax9M';
+const SUPABASE_URL = 'https://zvanpkuwjptfesliagxr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2YW5wa3V3anB0ZmVzbGlhZ3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTQ1NTEsImV4cCI6MjA5NzI5MDU1MX0.JNFz25BINrcdQCqGXEu-3DCibOaXRGNMrlZNe3fbTAs';
 // ============================================
 
 let supa = null;
@@ -469,19 +469,16 @@ async function startScan() {
   if(stream) return;
   document.getElementById('scanResult').innerHTML='';
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { exact: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-    }).catch(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }));
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
     const v = document.getElementById('scanVideo');
     v.style.display='block'; v.srcObject=stream; v.play();
     document.getElementById('scanPlaceholder').style.display='none';
     document.getElementById('scanCorners').classList.add('visible');
     document.getElementById('scanLine').style.display='block';
     document.getElementById('btnStopScan').style.display='block';
-    v.addEventListener('loadedmetadata', () => { scanInterval = setInterval(scanFrame, 250); }, { once: true });
-    setTimeout(() => { if(!scanInterval) scanInterval = setInterval(scanFrame, 250); }, 2000);
+    scanInterval = setInterval(scanFrame, 400);
   } catch(e) {
-    document.getElementById('scanResult').innerHTML='<div class="result-box fail"><h3 style="color:var(--red)">Câmera indisponível</h3><p style="color:var(--text2);font-size:13px;margin-top:4px">Verifique as permissões nas configurações do navegador.</p></div>';
+    document.getElementById('scanResult').innerHTML='<div class="result-box fail"><svg viewBox="0 0 24 24" style="width:40px;height:40px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><h3 style="color:var(--red)">Câmera indisponível</h3><p style="color:var(--text2);font-size:13px;margin-top:4px">Verifique as permissões de câmera nas configurações do navegador.</p></div>';
   }
 }
 
@@ -501,43 +498,31 @@ function scanFrame() {
   if (v.readyState !== v.HAVE_ENOUGH_DATA) return;
   if (!v.videoWidth || !v.videoHeight) return;
   const c = document.getElementById('scanCanvas');
-  const ctx = c.getContext('2d', { willReadFrequently: true });
-
-  // Tenta 3 resoluções diferentes para maximizar chance de leitura
-  const scales = [1, 0.75, 0.5];
-  for (const scale of scales) {
-    c.width  = Math.floor(v.videoWidth  * scale);
-    c.height = Math.floor(v.videoHeight * scale);
-    ctx.drawImage(v, 0, 0, c.width, c.height);
-    try {
-      const img = ctx.getImageData(0, 0, c.width, c.height);
-      // Tenta normal
-      let code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-      if (code && code.data) { stopScan(); processQR(code.data); return; }
-      // Tenta com contraste aumentado
-      const boosted = boostContrast(img);
-      code = jsQR(boosted.data, boosted.width, boosted.height, { inversionAttempts: 'attemptBoth' });
-      if (code && code.data) { stopScan(); processQR(code.data); return; }
-    } catch(e) { /* ignora */ }
-  }
+  // Reduz resolução para melhorar leitura no celular
+  const scale = Math.min(1, 640 / v.videoWidth);
+  c.width  = Math.floor(v.videoWidth  * scale);
+  c.height = Math.floor(v.videoHeight * scale);
+  const ctx = c.getContext('2d');
+  ctx.drawImage(v, 0, 0, c.width, c.height);
+  try {
+    const img  = ctx.getImageData(0, 0, c.width, c.height);
+    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data) { stopScan(); processQR(code.data); }
+  } catch(e) { /* ignora erros de frame */ }
 }
 
-function boostContrast(imageData) {
-  const d = new Uint8ClampedArray(imageData.data);
-  for (let i = 0; i < d.length; i += 4) {
-    const avg = (d[i] + d[i+1] + d[i+2]) / 3;
-    const v = avg > 128 ? 255 : 0;
-    d[i] = d[i+1] = d[i+2] = v;
-  }
-  const out = new ImageData(d, imageData.width, imageData.height);
-  return out;
-}
-
-async function processQR(id) {
+async function processQR(codigo) {
   const div=document.getElementById('scanResult');
   div.innerHTML = '<p style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0">Verificando...</p>';
   const portaria = getPortaria();
-  const { data: m, error } = await supa.from('motoristas').select('*').eq('id', id).maybeSingle();
+  // Tenta buscar por codigo_qr curto primeiro, depois por id (compatibilidade)
+  let m = null, error = null;
+  const r1 = await supa.from('motoristas').select('*').eq('codigo_qr', codigo).maybeSingle();
+  if(r1.data) { m = r1.data; error = null; }
+  else {
+    const r2 = await supa.from('motoristas').select('*').eq('id', codigo).maybeSingle();
+    m = r2.data; error = r2.error;
+  }
   const dt = new Date().toISOString();
   const foto = (m && m.foto_url) ? `<img class="result-photo" src="${m.foto_url}">` : '';
 
@@ -581,13 +566,18 @@ async function cadastrar() {
   if(!nome||!cpf){alert('Nome e CPF são obrigatórios.');return;}
   const btn = document.getElementById('btnCadastrar');
   btn.disabled = true; btn.textContent = 'Salvando...';
+  // Gera código curto de 6 letras para o QR Code (mais fácil de ler)
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let codigoQr = '';
+  for(let i=0; i<6; i++) codigoQr += chars[Math.floor(Math.random()*chars.length)];
   const novo = {
     nome, cpf,
     cnh: document.getElementById('f-cnh').value.trim(),
     placa: document.getElementById('f-placa').value.trim().toUpperCase(),
     empresa: document.getElementById('f-empresa').value.trim(),
     whatsapp: document.getElementById('f-whats').value.replace(/\D/g,''),
-    status: document.getElementById('f-status').value
+    status: document.getElementById('f-status').value,
+    codigo_qr: codigoQr
   };
   const { data, error } = await supa.from('motoristas').insert(novo).select().single();
   if(error) { btn.disabled = false; btn.textContent = 'Cadastrar e gerar QR Code'; alert('Erro ao salvar: ' + error.message); console.error(error); return; }
@@ -597,6 +587,8 @@ async function cadastrar() {
     if(url) await supa.from('motoristas').update({foto_url: url}).eq('id', data.id);
   }
   btn.disabled = false; btn.textContent = 'Cadastrar e gerar QR Code';
+  // Adiciona ao cache para o showQRFor encontrar o codigo_qr
+  cacheMotoristas.push(data);
   showQRFor(data.id, data.nome, data.placa, data.empresa, data.whatsapp||'');
   ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats'].forEach(f=>document.getElementById(f).value='');
   document.getElementById('f-status').value='autorizado';
@@ -620,7 +612,10 @@ function showQRFor(id, nome, placa, empresa, whatsapp) {
   document.getElementById('qrSub').textContent = [placa, empresa].filter(Boolean).join(' · ');
   const qrDiv = document.getElementById('qrCode');
   qrDiv.innerHTML = '';
-  new QRCode(qrDiv, {text:id, width:220, height:220, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.H});
+  // Usa codigo_qr curto se disponível, senão usa o id completo
+  const m_qr = cacheMotoristas.find(x=>x.id===id);
+  const qrText = (m_qr && m_qr.codigo_qr) ? m_qr.codigo_qr : id;
+  new QRCode(qrDiv, {text:qrText, width:280, height:280, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
   // Mostrar ou esconder botão WhatsApp
   const btnW = document.getElementById('btnEnviarWhats');
   btnW.style.display = qrWhatsAtual ? 'flex' : 'none';
