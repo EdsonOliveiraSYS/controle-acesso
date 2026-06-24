@@ -6,9 +6,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Acesso">
-<meta name="theme-color" content="#0f0f13">
-<title>Controle de Acesso</title>
+<meta name="apple-mobile-web-app-title" content="TransZilli">
+<meta name="theme-color" content="#1a7a2e">
+<title>TransZilli — Controle de Acesso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -19,7 +19,7 @@
     --bg: #0f0f13; --bg2: #16161c; --bg3: #1e1e27;
     --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
     --text: #f0f0f5; --text2: #8888a0; --text3: #555568;
-    --accent: #7c6ff7; --accent2: #a99ef9;
+    --accent: #1a7a2e; --accent2: #2ecc5a;
     --green: #34c98a; --green-bg: rgba(52,201,138,0.12);
     --red: #f05b5b; --red-bg: rgba(240,91,91,0.12);
     --amber: #f0a93a; --amber-bg: rgba(240,169,58,0.12);
@@ -34,17 +34,17 @@
 
   /* LOGIN */
   .login-screen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding: 24px; text-align:center; }
-  .login-icon { width:64px; height:64px; background: linear-gradient(135deg, var(--accent), #5b4fd4); border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:30px; margin-bottom:20px; }
+  .login-icon { width:64px; height:64px; background: linear-gradient(135deg, #1a7a2e, #145c22); border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:30px; margin-bottom:20px; }
   .login-screen h1 { font-size:20px; font-weight:600; margin-bottom:6px; }
   .login-screen p { font-size:13px; color:var(--text2); margin-bottom:28px; }
   .login-screen input { width:100%; max-width:280px; padding:16px; text-align:center; font-size:24px; letter-spacing:8px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-family:'DM Mono',monospace; outline:none; margin-bottom:16px; }
-  .login-screen input:focus { border-color: var(--accent); }
+  .login-screen input:focus { border-color: #1a7a2e; }
   .login-error { color: var(--red); font-size:13px; margin-bottom:12px; min-height:18px; }
   .login-loading { color: var(--text2); font-size:13px; margin-top:16px; }
 
   /* HEADER */
   .header { display:flex; align-items:center; gap:10px; padding:14px 20px 12px; flex-shrink:0; border-bottom:1px solid var(--border); }
-  .header-icon { width:34px; height:34px; background: linear-gradient(135deg, var(--accent), #5b4fd4); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .header-icon { width:34px; height:34px; background: linear-gradient(135deg, #1a7a2e, #145c22); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
   .header-title { font-size:16px; font-weight:600; letter-spacing:-0.3px; }
   .header-sub { font-size:12px; color:var(--text2); }
   .header-badge { margin-left:auto; background:var(--bg3); border:1px solid var(--border2); border-radius:20px; padding:4px 10px; font-size:11px; color:var(--text2); font-family:'DM Mono',monospace; cursor:pointer; }
@@ -57,8 +57,8 @@
   .nav { display:flex; border-top:1px solid var(--border); background:var(--bg); padding-bottom:var(--safe-bottom); flex-shrink:0; }
   .nav-btn { flex:1; padding:10px 4px 8px; background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--text3); transition:color 0.15s; font-family:'DM Sans',sans-serif; font-size:10px; letter-spacing:0.2px; }
   .nav-btn svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  .nav-btn.active { color: var(--accent2); }
-  .nav-btn.active svg { stroke: var(--accent2); }
+  .nav-btn.active { color: #2ecc5a; }
+  .nav-btn.active svg { stroke: #2ecc5a; }
 
   .section-title { font-size:11px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:var(--text3); margin-bottom:12px; }
   .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
@@ -76,7 +76,7 @@
   .corner-tr { top:16px; right:16px; border-top:3px solid var(--accent2); border-right:3px solid var(--accent2); border-radius:0 6px 0 0; }
   .corner-bl { bottom:16px; left:16px; border-bottom:3px solid var(--accent2); border-left:3px solid var(--accent2); border-radius:0 0 0 6px; }
   .corner-br { bottom:16px; right:16px; border-bottom:3px solid var(--accent2); border-right:3px solid var(--accent2); border-radius:0 0 6px 0; }
-  .scan-line { position:absolute; left:12%; right:12%; height:2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); z-index:3; display:none; top:20%; animation: scanMove 2s ease-in-out infinite; }
+  .scan-line { position:absolute; left:12%; right:12%; height:2px; background: linear-gradient(90deg, transparent, #2ecc5a, transparent); z-index:3; display:none; top:20%; animation: scanMove 2s ease-in-out infinite; }
   @keyframes scanMove { 0%,100%{top:20%;} 50%{top:78%;} }
 
   .result-box { border-radius:var(--radius); padding:20px; text-align:center; margin-top:12px; }
@@ -90,13 +90,13 @@
   .btn { width:100%; padding:14px; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500; cursor:pointer; border:none; transition:opacity 0.15s, transform 0.1s; }
   .btn:active { opacity:0.8; transform:scale(0.98); }
   .btn:disabled { opacity:0.5; }
-  .btn-primary { background: var(--accent); color:#fff; }
+  .btn-primary { background: #1a7a2e; color:#fff; }
   .btn-ghost { background: var(--bg3); color: var(--text2); border:1px solid var(--border2); margin-top:8px; }
 
   .field { margin-bottom:14px; }
   .field label { display:block; font-size:12px; color:var(--text2); margin-bottom:6px; font-weight:500; letter-spacing:0.3px; }
   .field input, .field select { width:100%; padding:12px 14px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-family:'DM Sans',sans-serif; font-size:15px; outline:none; transition:border-color 0.15s; -webkit-appearance:none; }
-  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field input:focus, .field select:focus { border-color: #1a7a2e; }
   .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%238888a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
   .field select option { background:#1e1e27; }
 
@@ -112,7 +112,7 @@
 
   .driver-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); cursor:pointer; }
   .driver-item:last-child { border-bottom:none; }
-  .avatar { width:40px; height:40px; border-radius:12px; background: linear-gradient(135deg, #2d2a4e, #3d3870); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--accent2); flex-shrink:0; letter-spacing:0.5px; }
+  .avatar { width:40px; height:40px; border-radius:12px; background: linear-gradient(135deg, #163d1e, #1a7a2e); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--accent2); flex-shrink:0; letter-spacing:0.5px; }
   .driver-info { flex:1; min-width:0; }
   .driver-name { font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .driver-sub { font-size:12px; color:var(--text2); margin-top:1px; }
@@ -155,7 +155,7 @@
   .status-btn.s-green { background:var(--green-bg); color:var(--green); border-color:rgba(52,201,138,0.3); }
   .status-btn.s-red { background:var(--red-bg); color:var(--red); border-color:rgba(240,91,91,0.3); }
   .status-btn.s-amber { background:var(--amber-bg); color:var(--amber); border-color:rgba(240,169,58,0.3); }
-  .qr-mini-btn { width:100%; margin-top:8px; padding:11px; background:rgba(124,111,247,0.12); color:var(--accent2); border:1px solid rgba(124,111,247,0.25); border-radius:var(--radius-sm); font-size:13px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .qr-mini-btn { width:100%; margin-top:8px; padding:11px; background:rgba(26,122,46,0.15); color:var(--accent2); border:1px solid rgba(26,122,46,0.35); border-radius:var(--radius-sm); font-size:13px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; }
   .handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 20px; }
 
   .toast { position:fixed; bottom:calc(80px + var(--safe-bottom)); left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg3); border:1px solid var(--border2); padding:10px 18px; border-radius:99px; font-size:13px; opacity:0; transition: all 0.25s; z-index:200; max-width:90%; text-align:center; }
@@ -183,7 +183,7 @@
   .dir-btns { display:flex; gap:10px; margin-top:14px; }
   .dir-btn { flex:1; padding:14px; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; border:1px solid; font-family:'DM Sans',sans-serif; transition:opacity 0.15s; }
   .dir-btn:active { opacity:0.7; }
-  .dir-btn.entrada { background:rgba(124,111,247,0.12); color:var(--accent2); border-color:rgba(124,111,247,0.3); }
+  .dir-btn.entrada { background:rgba(26,122,46,0.15); color:var(--accent2); border-color:rgba(26,122,46,0.35); }
   .dir-btn.saida { background:var(--bg3); color:var(--text2); border-color:var(--border2); }
 
   /* ROLE VISIBILITY */
@@ -200,9 +200,9 @@
 
   <!-- LOGIN -->
   <div class="login-screen" id="loginScreen" style="display:none">
-    <div class="login-icon">🛡️</div>
-    <h1>Controle de Acesso</h1>
-    <p>Digite o código da sua portaria para entrar</p>
+    <div class="login-icon">🚛</div>
+    <h1 style="font-size:28px;font-weight:800;letter-spacing:-1px">TRANS<span style="color:#2ecc5a">ZILLI</span></h1>
+    <p style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-top:-12px;margin-bottom:6px">Expresso e Logística</p><p>Digite o código da sua portaria para entrar</p>
     <div class="login-error" id="loginError"></div>
     <input type="tel" id="loginCodigo" placeholder="••••" maxlength="8" inputmode="numeric">
     <button class="btn btn-primary" style="max-width:280px" onclick="fazerLogin()">Entrar</button>
@@ -212,9 +212,9 @@
   <!-- APP -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
-      <div class="header-icon">🛡️</div>
+      <div class="header-icon">🚛</div>
       <div>
-        <div class="header-title">Acesso</div>
+        <div class="header-title" style="font-weight:800;letter-spacing:-0.5px">TRANS<span style="color:#2ecc5a">ZILLI</span></div>
         <div class="header-sub" id="portariaNome">—</div>
       </div>
       <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
@@ -223,7 +223,7 @@
     <div class="pages">
       <!-- VALIDAR -->
       <div class="page active" id="page-scan">
-        <p class="section-title">Validação por QR Code</p>
+        <p class="section-title">Validação de motorista</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
           <video id="scanVideo" playsinline></video>
           <canvas id="scanCanvas"></canvas>
