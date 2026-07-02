@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -18,28 +18,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
   /* ============================================
-     TEMA TRANSZILLI - VERDE LOGO (#1b6333)
+     TEMAS - ESCURO (padrão) E CLARO
      ============================================ */
   :root {
+    /* Cores base (não mudam com o tema) */
     --primary: #1b6333;
     --primary-dark: #124a25;
     --primary-light: #2d8a4a;
     --primary-glow: rgba(27,99,51,0.15);
     --accent: #2d8a4a;
     --accent-glow: rgba(27,99,51,0.15);
-    
-    --bg: #0A0E0D;
-    --bg2: #111A15;
-    --bg3: #1A261E;
-    --bg-card: #0E1712;
-    
-    --border: rgba(27,99,51,0.15);
-    --border2: rgba(27,99,51,0.25);
-    --border-glow: rgba(27,99,51,0.3);
-    
-    --text: #E8F0EA;
-    --text2: #8CA99A;
-    --text3: #4A6A58;
     
     --green: #34C98A;
     --green-bg: rgba(52,201,138,0.12);
@@ -53,11 +41,56 @@
     --radius-full: 999px;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-top: env(safe-area-inset-top, 0px);
-    --shadow-card: 0 4px 24px rgba(0,0,0,0.5);
-    --shadow-glow: 0 0 40px rgba(27,99,51,0.05);
     
     --transition-fast: 0.15s ease;
     --transition-medium: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* TEMA ESCURO (PADRÃO) */
+  [data-theme="dark"] {
+    --bg: #0A0E0D;
+    --bg2: #111A15;
+    --bg3: #1A261E;
+    --bg-card: #0E1712;
+    
+    --border: rgba(27,99,51,0.15);
+    --border2: rgba(27,99,51,0.25);
+    --border-glow: rgba(27,99,51,0.3);
+    
+    --text: #E8F0EA;
+    --text2: #8CA99A;
+    --text3: #4A6A58;
+    
+    --shadow-card: 0 4px 24px rgba(0,0,0,0.5);
+    --shadow-glow: 0 0 40px rgba(27,99,51,0.05);
+  }
+
+  /* TEMA CLARO */
+  [data-theme="light"] {
+    --bg: #F0F4F0;
+    --bg2: #FFFFFF;
+    --bg3: #E8EDE8;
+    --bg-card: #F8FAF8;
+    
+    --border: rgba(27,99,51,0.15);
+    --border2: rgba(27,99,51,0.25);
+    --border-glow: rgba(27,99,51,0.2);
+    
+    --text: #1A2A1A;
+    --text2: #3A5A4A;
+    --text3: #6A8A78;
+    
+    --shadow-card: 0 4px 24px rgba(0,0,0,0.08);
+    --shadow-glow: 0 0 40px rgba(27,99,51,0.03);
+  }
+
+  /* Transição suave para todas as cores */
+  * {
+    transition: background-color var(--transition-medium), 
+                color var(--transition-medium), 
+                border-color var(--transition-medium),
+                box-shadow var(--transition-medium),
+                fill var(--transition-medium);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -74,10 +107,10 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { font-size: 14px; color: var(--text2); font-weight: 500; }
 
-  .login-screen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:32px 24px; text-align:center; background: radial-gradient(ellipse at 50% 30%, rgba(27,99,51,0.06) 0%, transparent 70%); }
+  .login-screen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:32px 24px; text-align:center; background: var(--bg); }
   .login-logo { width:80px; height:80px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; color:#fff; margin-bottom:20px; box-shadow:0 8px 32px rgba(27,99,51,0.3); letter-spacing:-1px; font-family:'Inter',sans-serif; }
   .login-logo small { font-size:14px; font-weight:500; opacity:0.7; }
-  .login-screen h1 { font-size:22px; font-weight:700; margin-bottom:4px; background: linear-gradient(135deg, #fff 60%, var(--text2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .login-screen h1 { font-size:22px; font-weight:700; margin-bottom:4px; background: linear-gradient(135deg, var(--text) 60%, var(--text2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
   .login-screen .subtitle { font-size:13px; color:var(--text2); margin-bottom:28px; letter-spacing:0.3px; }
   .login-screen input { width:100%; max-width:280px; padding:16px; text-align:center; font-size:24px; letter-spacing:10px; background:var(--bg2); border:2px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-family:'JetBrains Mono',monospace; outline:none; margin-bottom:16px; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
   .login-screen input:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(27,99,51,0.15); }
@@ -85,13 +118,40 @@
   .login-error { color:var(--red); font-size:13px; margin-bottom:12px; min-height:18px; }
   .login-loading { color:var(--text2); font-size:13px; margin-top:16px; }
 
-  .header { display:flex; align-items:center; gap:12px; padding:14px 20px 12px; flex-shrink:0; border-bottom:1px solid var(--border); background:rgba(10,14,13,0.8); backdrop-filter:blur(8px); }
+  .header { display:flex; align-items:center; gap:12px; padding:14px 20px 12px; flex-shrink:0; border-bottom:1px solid var(--border); background:var(--bg2); backdrop-filter:blur(8px); }
   .header-logo { width:38px; height:38px; background:linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#fff; flex-shrink:0; letter-spacing:-0.5px; font-family:'Inter',sans-serif; }
-  .header-title { font-size:16px; font-weight:700; letter-spacing:-0.3px; color:#fff; }
+  .header-title { font-size:16px; font-weight:700; letter-spacing:-0.3px; color:var(--text); }
   .header-sub { font-size:11px; color:var(--text2); font-weight:400; }
-  .header-badge { margin-left:auto; background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius-full); padding:5px 14px; font-size:11px; color:var(--text2); font-family:'Inter',sans-serif; cursor:pointer; transition:all var(--transition-fast); }
+  .header-actions { display:flex; align-items:center; gap:8px; margin-left:auto; }
+  .header-badge { background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-full); padding:5px 14px; font-size:11px; color:var(--text2); font-family:'Inter',sans-serif; cursor:pointer; transition:all var(--transition-fast); }
   .header-badge:hover { background:var(--bg3); border-color:var(--primary); color:var(--text); }
   .header-badge:active { transform:scale(0.95); }
+
+  /* ===== BOTÃO DE TEMA ===== */
+  .theme-toggle {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-full);
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+    color: var(--text2);
+    font-family: 'Inter', sans-serif;
+  }
+  .theme-toggle:hover {
+    border-color: var(--primary);
+    background: var(--bg3);
+    transform: scale(1.05);
+  }
+  .theme-toggle:active {
+    transform: scale(0.95);
+  }
 
   .pages { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:0 4px; }
   .pages::-webkit-scrollbar { width:3px; }
@@ -101,7 +161,7 @@
   .page.active { display:block; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
 
-  .nav { display:flex; border-top:1px solid var(--border); background:rgba(10,14,13,0.9); backdrop-filter:blur(8px); padding-bottom:var(--safe-bottom); flex-shrink:0; }
+  .nav { display:flex; border-top:1px solid var(--border); background:var(--bg2); backdrop-filter:blur(8px); padding-bottom:var(--safe-bottom); flex-shrink:0; }
   .nav-btn { flex:1; padding:10px 4px 8px; background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--text3); transition:color var(--transition-fast), transform 0.1s; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.2px; font-weight:500; position:relative; }
   .nav-btn svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; transition:stroke var(--transition-fast); }
   .nav-btn.active { color:var(--primary-light); }
@@ -204,7 +264,7 @@
 
   .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
   .stat { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 10px; text-align:center; }
-  .stat-num { font-size:20px; font-weight:700; font-family:'JetBrains Mono',monospace; color:#fff; }
+  .stat-num { font-size:20px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--text); }
   .stat-label { font-size:10px; color:var(--text3); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
 
   .detail-sheet h3 { font-size:18px; font-weight:700; margin-bottom:4px; }
@@ -272,7 +332,6 @@
 </head>
 <body>
 
-<!-- LOADING GLOBAL -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Carregando...</div>
@@ -282,7 +341,6 @@
   <div class="status-bar"></div>
   <div id="configCheck"></div>
 
-  <!-- LOGIN -->
   <div class="login-screen" id="loginScreen" style="display:none">
     <div class="login-logo">TZ</div>
     <h1>Controle de Acesso</h1>
@@ -293,7 +351,6 @@
     <div class="login-loading" id="loginLoading"></div>
   </div>
 
-  <!-- APP -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
       <div class="header-logo">TZ</div>
@@ -301,11 +358,15 @@
         <div class="header-title">Transzilli</div>
         <div class="header-sub" id="portariaNome">—</div>
       </div>
-      <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Alternar tema" title="Alternar tema">
+          🌙
+        </button>
+        <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
+      </div>
     </div>
 
     <div class="pages">
-      <!-- VALIDAR -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -325,20 +386,11 @@
         <div id="scanResult"></div>
       </div>
 
-      <!-- CADASTRAR -->
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
-          <div class="field">
-            <label>NOME COMPLETO *</label>
-            <input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off">
-            <div class="error-msg" id="err-nome">Nome é obrigatório</div>
-          </div>
-          <div class="field">
-            <label>CPF *</label>
-            <input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off">
-            <div class="error-msg" id="err-cpf">CPF inválido</div>
-          </div>
+          <div class="field"><label>NOME COMPLETO *</label><input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off"><div class="error-msg" id="err-nome">Nome é obrigatório</div></div>
+          <div class="field"><label>CPF *</label><input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off"><div class="error-msg" id="err-cpf">CPF inválido</div></div>
           <div class="field"><label>NÚMERO DA CNH</label><input type="tel" id="f-cnh" placeholder="00000000000" autocomplete="off"></div>
           <div class="field"><label>PLACA DO VEÍCULO</label><input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8" autocomplete="off"></div>
           <div class="field"><label>EMPRESA / TRANSPORTADORA</label><input type="text" id="f-empresa" placeholder="Nome da empresa" autocomplete="off"></div>
@@ -346,9 +398,7 @@
           <div class="field">
             <label>FOTO DO MOTORISTA</label>
             <div class="photo-picker">
-              <div class="photo-preview" id="fotoPreview">
-                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              </div>
+              <div class="photo-preview" id="fotoPreview"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
               <label class="photo-btn" for="f-foto">Tirar foto / escolher</label>
               <input type="file" id="f-foto" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(event)">
             </div>
@@ -364,7 +414,6 @@
         </div>
       </div>
 
-      <!-- MOTORISTAS -->
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
@@ -380,7 +429,6 @@
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
-      <!-- LOG -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">Histórico de validações</p>
@@ -479,9 +527,7 @@
       </div>
       <div class="field"><label>NOVA FOTO</label>
         <div class="photo-picker">
-          <div class="photo-preview" id="e-fotoPreview">
-            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          </div>
+          <div class="photo-preview" id="e-fotoPreview"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
           <label class="photo-btn" for="e-foto">Tirar foto / escolher</label>
           <input type="file" id="e-foto" accept="image/*" capture="environment" style="display:none" onchange="previewEditFoto(event)">
         </div>
@@ -496,13 +542,48 @@
 
 <script>
 // ============================================================
-// CONFIGURAÇÃO - CHAVES DIRETAS (VERSÃO FUNCIONAL NA VERCEL)
+// CONFIGURAÇÃO - CHAVES DIRETAS
 // ============================================================
 const SUPABASE_URL = 'https://wqzbmlfiwmjhkjprnzrv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxemJtbGZpd21qaGtqcHJuenJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDA0MjEsImV4cCI6MjA5NzY3NjQyMX0.vza4qGtnkwq4LMM8HNCoHrfOPb8gzC4wse-qk9Yax9M';
 
 console.log('🔑 SUPABASE_URL:', SUPABASE_URL);
 console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
+
+// ============================================================
+// TEMA ESCURO/CLARO
+// ============================================================
+
+// Carregar tema salvo ou usar o padrão (escuro)
+function loadTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+}
+
+// Atualizar ícone do botão
+function updateThemeIcon(theme) {
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    toggle.setAttribute('aria-label', theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro');
+  }
+}
+
+// Alternar tema
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon(newTheme);
+  
+  showToast(newTheme === 'light' ? '☀️ Tema claro ativado' : '🌙 Tema escuro ativado', 1500);
+}
+
+// Carregar tema ao iniciar
+document.addEventListener('DOMContentLoaded', loadTheme);
 
 // ============================================================
 // UTILITÁRIOS
@@ -576,8 +657,8 @@ let selectedServico = null;
 // ============================================================
 // LOADING
 // ============================================================
-function showLoading(text = 'Carregando...') {
-  document.getElementById('loadingText').textContent = text;
+function showLoading(text) {
+  document.getElementById('loadingText').textContent = text || 'Carregando...';
   document.getElementById('loadingOverlay').classList.add('active');
 }
 
@@ -589,16 +670,6 @@ function hideLoading() {
 // SUPABASE
 // ============================================================
 function initSupabase() {
-  // Verifica se as variáveis estão configuradas
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    document.getElementById('configCheck').innerHTML = `
-      <div class="config-warning">
-        <h2>⚠️ Configuração necessária</h2>
-        <p>As chaves do Supabase não foram configuradas.</p>
-      </div>`;
-    return false;
-  }
-  
   try {
     supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('✅ Supabase conectado com sucesso!');
@@ -618,12 +689,12 @@ function initSupabase() {
 // ============================================================
 // TOAST
 // ============================================================
-function showToast(msg, duration = 2500) {
+function showToast(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._timeout);
-  t._timeout = setTimeout(() => t.classList.remove('show'), duration);
+  t._timeout = setTimeout(() => t.classList.remove('show'), duration || 2500);
 }
 
 // ============================================================
@@ -1495,28 +1566,14 @@ function exportarMotoristasCSV() {
     (m.placa || '').toLowerCase().includes(busca) ||
     (m.empresa || '').toLowerCase().includes(busca)
   );
-  
-  if (!filtrados.length) {
-    showToast('Nenhum motorista para exportar');
-    return;
-  }
-
-  const headers = [
-    'Nº', 'NOME COMPLETO', 'CPF', 'CNH',
-    'PLACA DO VEÍCULO', 'EMPRESA/TRANSPORTADORA',
-    'WHATSAPP', 'STATUS', 'CADASTRO'
-  ];
-
+  if (!filtrados.length) { showToast('Nenhum motorista para exportar'); return; }
+  const headers = ['Nº', 'NOME COMPLETO', 'CPF', 'CNH', 'PLACA DO VEÍCULO', 'EMPRESA/TRANSPORTADORA', 'WHATSAPP', 'STATUS', 'CADASTRO'];
   const rows = filtrados.map((m, index) => [
-    index + 1, m.nome || '', m.cpf || '', m.cnh || '',
-    m.placa || '', m.empresa || '',
-    m.whatsapp ? Utils.formatPhone(m.whatsapp) : '',
-    m.status ? m.status.toUpperCase() : '',
+    index + 1, m.nome || '', m.cpf || '', m.cnh || '', m.placa || '', m.empresa || '',
+    m.whatsapp ? Utils.formatPhone(m.whatsapp) : '', m.status ? m.status.toUpperCase() : '',
     m.criado_em ? new Date(m.criado_em).toLocaleDateString('pt-BR') : ''
   ]);
-
-  const csvLines = [];
-  csvLines.push(headers.join(';'));
+  const csvLines = [headers.join(';')];
   rows.forEach(row => {
     const escapedRow = row.map(cell => {
       if (typeof cell === 'string' && (cell.includes(';') || cell.includes('"') || cell.includes('\n'))) {
@@ -1526,67 +1583,45 @@ function exportarMotoristasCSV() {
     });
     csvLines.push(escapedRow.join(';'));
   });
-
   const csvContent = csvLines.join('\n');
   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   const dataStr = new Date().toISOString().slice(0,10);
   link.download = `RELATORIO_MOTORISTAS_${dataStr}.csv`;
   link.click();
   URL.revokeObjectURL(link.href);
-  
   showToast(`CSV exportado com ${filtrados.length} motoristas ✓`);
 }
 
 function exportarMotoristasPDF() {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtrados = allMotoristas.filter(m =>
-    m.nome.toLowerCase().includes(busca) ||
-    (m.placa || '').toLowerCase().includes(busca) ||
-    (m.empresa || '').toLowerCase().includes(busca)
+    m.nome.toLowerCase().includes(busca) || (m.placa || '').toLowerCase().includes(busca) || (m.empresa || '').toLowerCase().includes(busca)
   );
-  
-  if (!filtrados.length) {
-    showToast('Nenhum motorista para exportar');
-    return;
-  }
-
+  if (!filtrados.length) { showToast('Nenhum motorista para exportar'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('l', 'pt', 'a4');
-
   doc.setFillColor(27, 99, 51);
   doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
-  
   doc.setFontSize(18);
   doc.setTextColor(255, 255, 255);
   doc.text('🚛 TRANSZILLI - RELATÓRIO DE MOTORISTAS', 40, 35);
-  
   doc.setFontSize(9);
   doc.setTextColor(200, 220, 200);
   doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
-  
   const total = filtrados.length;
   const autorizados = filtrados.filter(x => x.status === 'autorizado').length;
   const pendentes = filtrados.filter(x => x.status === 'pendente').length;
   const bloqueados = filtrados.filter(x => x.status === 'bloqueado').length;
-
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
   doc.text(`Total: ${total} motoristas`, 40, 90);
   doc.text(`✓ Autorizados: ${autorizados}`, 190, 90);
   doc.text(`⏳ Pendentes: ${pendentes}`, 340, 90);
   doc.text(`✗ Bloqueados: ${bloqueados}`, 490, 90);
-
   const headers = [['#', 'Nome', 'CPF', 'Placa', 'Empresa', 'WhatsApp', 'Status']];
-  const data = filtrados.map((m, i) => [
-    i + 1, m.nome || '', m.cpf || '',
-    m.placa || '', m.empresa || '',
-    m.whatsapp ? Utils.formatPhone(m.whatsapp) : '',
-    m.status ? m.status.toUpperCase() : ''
-  ]);
-
+  const data = filtrados.map((m, i) => [i + 1, m.nome || '', m.cpf || '', m.placa || '', m.empresa || '', m.whatsapp ? Utils.formatPhone(m.whatsapp) : '', m.status ? m.status.toUpperCase() : '']);
   doc.autoTable({
     startY: 105,
     head: headers,
@@ -1595,18 +1630,9 @@ function exportarMotoristasPDF() {
     styles: { fontSize: 8, cellPadding: 4, halign: 'left', valign: 'middle' },
     headStyles: { fillColor: [27, 99, 51], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: [245, 248, 245] },
-    columnStyles: {
-      0: { cellWidth: 30, halign: 'center' },
-      1: { cellWidth: 120 },
-      2: { cellWidth: 80 },
-      3: { cellWidth: 70 },
-      4: { cellWidth: 100 },
-      5: { cellWidth: 80 },
-      6: { cellWidth: 70, halign: 'center' }
-    },
+    columnStyles: { 0: { cellWidth: 30, halign: 'center' }, 1: { cellWidth: 120 }, 2: { cellWidth: 80 }, 3: { cellWidth: 70 }, 4: { cellWidth: 100 }, 5: { cellWidth: 80 }, 6: { cellWidth: 70, halign: 'center' } },
     margin: { left: 30, right: 30 }
   });
-
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -1616,7 +1642,6 @@ function exportarMotoristasPDF() {
     doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
     doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
   }
-
   const dataStr = new Date().toISOString().slice(0,10);
   doc.save(`RELATORIO_MOTORISTAS_${dataStr}.pdf`);
   showToast('PDF exportado com sucesso ✓');
@@ -1625,51 +1650,35 @@ function exportarMotoristasPDF() {
 function exportarMotoristasCompleto() {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtrados = allMotoristas.filter(m =>
-    m.nome.toLowerCase().includes(busca) ||
-    (m.placa || '').toLowerCase().includes(busca) ||
-    (m.empresa || '').toLowerCase().includes(busca)
+    m.nome.toLowerCase().includes(busca) || (m.placa || '').toLowerCase().includes(busca) || (m.empresa || '').toLowerCase().includes(busca)
   );
-  
-  if (!filtrados.length) {
-    showToast('Nenhum motorista para exportar');
-    return;
-  }
-
+  if (!filtrados.length) { showToast('Nenhum motorista para exportar'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('l', 'pt', 'a4');
-
   doc.setFillColor(27, 99, 51);
   doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
-  
   doc.setFontSize(18);
   doc.setTextColor(255, 255, 255);
   doc.text('📋 TRANSZILLI - RELATÓRIO COMPLETO', 40, 35);
-  
   doc.setFontSize(9);
   doc.setTextColor(200, 220, 200);
   doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
-
   const total = filtrados.length;
   const autorizados = filtrados.filter(x => x.status === 'autorizado').length;
   const pendentes = filtrados.filter(x => x.status === 'pendente').length;
   const bloqueados = filtrados.filter(x => x.status === 'bloqueado').length;
-
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
   doc.text(`Total: ${total} motoristas`, 40, 90);
   doc.text(`✓ Autorizados: ${autorizados}`, 190, 90);
   doc.text(`⏳ Pendentes: ${pendentes}`, 340, 90);
   doc.text(`✗ Bloqueados: ${bloqueados}`, 490, 90);
-
   const headers = [['#', 'Nome', 'CPF', 'CNH', 'Placa', 'Empresa', 'WhatsApp', 'Status', 'Cadastro']];
   const data = filtrados.map((m, i) => [
-    i + 1, m.nome || '', m.cpf || '', m.cnh || '',
-    m.placa || '', m.empresa || '',
-    m.whatsapp ? Utils.formatPhone(m.whatsapp) : '',
-    m.status ? m.status.toUpperCase() : '',
+    i + 1, m.nome || '', m.cpf || '', m.cnh || '', m.placa || '', m.empresa || '',
+    m.whatsapp ? Utils.formatPhone(m.whatsapp) : '', m.status ? m.status.toUpperCase() : '',
     m.criado_em ? new Date(m.criado_em).toLocaleDateString('pt-BR') : ''
   ]);
-
   doc.autoTable({
     startY: 105,
     head: headers,
@@ -1690,7 +1699,6 @@ function exportarMotoristasCompleto() {
     },
     margin: { left: 25, right: 25 }
   });
-
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -1700,7 +1708,6 @@ function exportarMotoristasCompleto() {
     doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
     doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
   }
-
   const dataStr = new Date().toISOString().slice(0,10);
   doc.save(`RELATORIO_COMPLETO_${dataStr}.pdf`);
   showToast('Relatório completo exportado ✓');
@@ -1710,53 +1717,24 @@ function exportarMotoristasCompleto() {
 // RELATÓRIOS DE HISTÓRICO
 // ============================================================
 async function exportarLogCSV() {
-  if (!Utils.isOnline()) {
-    showToast('Sem conexão com a internet');
-    return;
-  }
-  
+  if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   const portaria = getPortaria();
   if (!portaria) { showToast('Sessão expirada'); return; }
-  
   try {
-    let query = supa
-      .from('validacoes')
-      .select('*')
-      .order('dt', { ascending: false })
-      .limit(500);
-    
-    if (portaria.tipo !== 'admin') {
-      query = query.eq('portaria_id', portaria.id);
-    }
-    
+    let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(500);
+    if (portaria.tipo !== 'admin') { query = query.eq('portaria_id', portaria.id); }
     const { data, error } = await query;
     if (error) throw new Error(error.message);
-    
-    if (!data.length) {
-      showToast('Nenhum registro para exportar');
-      return;
-    }
-
-    const headers = [
-      'DATA/HORA', 'MOTORISTA', 'CPF', 'PLACA', 'EMPRESA',
-      'TIPO', 'SERVIÇO', 'EMPRESA SERVIÇO', 'PORTARIA', 'STATUS'
-    ];
-
+    if (!data.length) { showToast('Nenhum registro para exportar'); return; }
+    const headers = ['DATA/HORA', 'MOTORISTA', 'CPF', 'PLACA', 'EMPRESA', 'TIPO', 'SERVIÇO', 'EMPRESA SERVIÇO', 'PORTARIA', 'STATUS'];
     const rows = data.map(l => [
-      new Date(l.dt).toLocaleString('pt-BR'),
-      l.motorista_nome || '',
-      l.motorista_cpf || '',
-      l.motorista_placa || '',
-      l.motorista_empresa || '',
+      new Date(l.dt).toLocaleString('pt-BR'), l.motorista_nome || '', l.motorista_cpf || '',
+      l.motorista_placa || '', l.motorista_empresa || '',
       l.tipo === 'entrada' ? 'ENTRADA' : l.tipo === 'saida' ? 'SAÍDA' : '—',
-      l.servico ? l.servico.toUpperCase() : '—',
-      l.empresa_servico || '—',
-      l.portaria_nome || '',
-      l.ok ? '✓ AUTORIZADO' : '✗ NEGADO'
+      l.servico ? l.servico.toUpperCase() : '—', l.empresa_servico || '—',
+      l.portaria_nome || '', l.ok ? '✓ AUTORIZADO' : '✗ NEGADO'
     ]);
-
-    const csvLines = [];
-    csvLines.push(headers.join(';'));
+    const csvLines = [headers.join(';')];
     rows.forEach(row => {
       const escapedRow = row.map(cell => {
         if (typeof cell === 'string' && (cell.includes(';') || cell.includes('"') || cell.includes('\n'))) {
@@ -1766,19 +1744,15 @@ async function exportarLogCSV() {
       });
       csvLines.push(escapedRow.join(';'));
     });
-
     const csvContent = csvLines.join('\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     const dataStr = new Date().toISOString().slice(0,10);
     link.download = `HISTORICO_VALIDACOES_${dataStr}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-    
     showToast(`Histórico CSV exportado com ${data.length} registros ✓`);
-    
   } catch (e) {
     console.error('Erro ao exportar log:', e);
     showToast('Erro ao exportar: ' + e.message);
@@ -1786,55 +1760,32 @@ async function exportarLogCSV() {
 }
 
 async function exportarLogPDF() {
-  if (!Utils.isOnline()) {
-    showToast('Sem conexão com a internet');
-    return;
-  }
-  
+  if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   const portaria = getPortaria();
   if (!portaria) { showToast('Sessão expirada'); return; }
-  
   try {
-    let query = supa
-      .from('validacoes')
-      .select('*')
-      .order('dt', { ascending: false })
-      .limit(300);
-    
-    if (portaria.tipo !== 'admin') {
-      query = query.eq('portaria_id', portaria.id);
-    }
-    
+    let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(300);
+    if (portaria.tipo !== 'admin') { query = query.eq('portaria_id', portaria.id); }
     const { data, error } = await query;
     if (error) throw new Error(error.message);
-    
-    if (!data.length) {
-      showToast('Nenhum registro para exportar');
-      return;
-    }
-
+    if (!data.length) { showToast('Nenhum registro para exportar'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'pt', 'a4');
-
     doc.setFillColor(27, 99, 51);
     doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
-    
     doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
     doc.text('📊 TRANZILLI - HISTÓRICO DE VALIDAÇÕES', 40, 35);
-    
     doc.setFontSize(9);
     doc.setTextColor(200, 220, 200);
     doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
     doc.text(`Portaria: ${portaria.nome}`, 400, 55);
-
     const total = data.length;
     const entradas = data.filter(x => x.tipo === 'entrada').length;
     const saidas = data.filter(x => x.tipo === 'saida').length;
     const autorizados = data.filter(x => x.ok === true).length;
     const negados = data.filter(x => x.ok === false).length;
     const servicos = data.filter(x => x.servico).length;
-
     doc.setFontSize(10);
     doc.setTextColor(50, 50, 50);
     let yPos = 90;
@@ -1842,23 +1793,15 @@ async function exportarLogPDF() {
     doc.text(`↓ Entradas: ${entradas}`, 180, yPos);
     doc.text(`↑ Saídas: ${saidas}`, 310, yPos);
     doc.text(`✓ Autorizados: ${autorizados}`, 440, yPos);
-    
     yPos = 110;
     doc.text(`✗ Negados: ${negados}`, 40, yPos);
     doc.text(`📦 Com serviço: ${servicos}`, 180, yPos);
-
     const headers = [['Data/Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Serviço', 'Empresa Serv.', 'Status']];
     const tableData = data.slice(0, 100).map(l => [
-      new Date(l.dt).toLocaleString('pt-BR'),
-      l.motorista_nome || '',
-      l.motorista_placa || '',
-      l.motorista_empresa || '',
-      l.tipo === 'entrada' ? 'ENTRADA' : l.tipo === 'saida' ? 'SAÍDA' : '—',
-      l.servico ? l.servico.toUpperCase() : '—',
-      l.empresa_servico || '—',
-      l.ok ? '✓ OK' : '✗ NEGADO'
+      new Date(l.dt).toLocaleString('pt-BR'), l.motorista_nome || '', l.motorista_placa || '',
+      l.motorista_empresa || '', l.tipo === 'entrada' ? 'ENTRADA' : l.tipo === 'saida' ? 'SAÍDA' : '—',
+      l.servico ? l.servico.toUpperCase() : '—', l.empresa_servico || '', l.ok ? '✓ OK' : '✗ NEGADO'
     ]);
-
     doc.autoTable({
       startY: 130,
       head: headers,
@@ -1868,18 +1811,13 @@ async function exportarLogPDF() {
       headStyles: { fillColor: [27, 99, 51], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [245, 248, 245] },
       columnStyles: {
-        0: { cellWidth: 120 },
-        1: { cellWidth: 130 },
-        2: { cellWidth: 70 },
-        3: { cellWidth: 100 },
-        4: { cellWidth: 60, halign: 'center' },
-        5: { cellWidth: 60, halign: 'center' },
-        6: { cellWidth: 100 },
+        0: { cellWidth: 120 }, 1: { cellWidth: 130 }, 2: { cellWidth: 70 },
+        3: { cellWidth: 100 }, 4: { cellWidth: 60, halign: 'center' },
+        5: { cellWidth: 60, halign: 'center' }, 6: { cellWidth: 100 },
         7: { cellWidth: 70, halign: 'center' }
       },
       margin: { left: 25, right: 25 }
     });
-
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -1889,11 +1827,9 @@ async function exportarLogPDF() {
       doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
       doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
     }
-
     const dataStr = new Date().toISOString().slice(0,10);
     doc.save(`HISTORICO_VALIDACOES_${dataStr}.pdf`);
     showToast(`Histórico PDF exportado com ${data.length} registros ✓`);
-
   } catch (e) {
     console.error('Erro ao exportar log PDF:', e);
     showToast('Erro ao exportar: ' + e.message);
@@ -1913,9 +1849,7 @@ async function renderLog() {
   }
   try {
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(80);
-    if (portaria.tipo !== 'admin') {
-      query = query.eq('portaria_id', portaria.id);
-    }
+    if (portaria.tipo !== 'admin') { query = query.eq('portaria_id', portaria.id); }
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) {
