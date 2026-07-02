@@ -16,7 +16,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
 <style>
   /* ============================================
      TEMA TRANSZILLI - VERDE LOGO (#1b6333)
@@ -495,30 +494,15 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- ============================================================
-     SCRIPT PARA CARREGAR VARIÁVEIS DO .env (COM type="module")
-     ============================================================ -->
-<script type="module">
-    // Carrega as variáveis do .env e expõe globalmente
-    window.SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-    window.SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    console.log('🔑 SUPABASE_URL:', window.SUPABASE_URL);
-    console.log('🔑 SUPABASE_ANON_KEY:', window.SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
-    
-    // Dispara um evento para avisar que as variáveis foram carregadas
-    window.dispatchEvent(new Event('env-loaded'));
-</script>
-
-<!-- ============================================================
-     SCRIPT PRINCIPAL (SEM type="module")
-     ============================================================ -->
 <script>
 // ============================================================
-// CONFIGURAÇÃO - Usa variáveis do window
+// CONFIGURAÇÃO - CHAVES DIRETAS (VERSÃO FUNCIONAL NA VERCEL)
 // ============================================================
-const SUPABASE_URL = window.SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+const SUPABASE_URL = 'https://wqzbmlfiwmjhkjprnzrv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxemJtbGZpd21qaGtqcHJuenJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDA0MjEsImV4cCI6MjA5NzY3NjQyMX0.vza4qGtnkwq4LMM8HNCoHrfOPb8gzC4wse-qk9Yax9M';
+
+console.log('🔑 SUPABASE_URL:', SUPABASE_URL);
+console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
 
 // ============================================================
 // UTILITÁRIOS
@@ -610,8 +594,7 @@ function initSupabase() {
     document.getElementById('configCheck').innerHTML = `
       <div class="config-warning">
         <h2>⚠️ Configuração necessária</h2>
-        <p>O arquivo <code>.env</code> não foi configurado.</p>
-        <p>Copie o arquivo <code>.env.example</code> para <code>.env</code> e preencha com suas chaves.</p>
+        <p>As chaves do Supabase não foram configuradas.</p>
       </div>`;
     return false;
   }
@@ -1967,52 +1950,17 @@ window.addEventListener('online', () => { showToast('Conexão restaurada ✓', 1
 window.addEventListener('offline', () => { showToast('Sem conexão com a internet ⚠', 3000); });
 
 // ============================================================
-// INICIAR APLICAÇÃO
+// START
 // ============================================================
-console.log('🔑 SUPABASE_URL:', SUPABASE_URL);
-console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
-
-// Inicia a aplicação se as variáveis já estiverem carregadas
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-    if (initSupabase()) {
-        console.log('✅ Supabase conectado com sucesso!');
-        const p = getPortaria();
-        if (p) {
-            iniciarApp();
-        } else {
-            document.getElementById('loginScreen').style.display = 'flex';
-        }
-    }
-} else {
-    // Aguarda o evento de carregamento das variáveis
-    window.addEventListener('env-loaded', function() {
-        // Recarrega as variáveis do window
-        const SUPABASE_URL = window.SUPABASE_URL || '';
-        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
-        
-        console.log('🔑 SUPABASE_URL (após evento):', SUPABASE_URL);
-        console.log('🔑 SUPABASE_ANON_KEY (após evento):', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
-        
-        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-            if (initSupabase()) {
-                console.log('✅ Supabase conectado com sucesso!');
-                const p = getPortaria();
-                if (p) {
-                    iniciarApp();
-                } else {
-                    document.getElementById('loginScreen').style.display = 'flex';
-                }
-            }
-        } else {
-            document.getElementById('configCheck').innerHTML = `
-                <div class="config-warning">
-                    <h2>⚠️ Configuração necessária</h2>
-                    <p>O arquivo <code>.env</code> não foi configurado.</p>
-                    <p>Copie o arquivo <code>.env.example</code> para <code>.env</code> e preencha com suas chaves.</p>
-                </div>`;
-        }
-    });
-}
+(function start() {
+  if (!initSupabase()) return;
+  const p = getPortaria();
+  if (p) {
+    iniciarApp();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+})();
 </script>
 </body>
 </html>
