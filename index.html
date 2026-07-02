@@ -2046,6 +2046,8 @@ window.addEventListener('offline', () => { showToast('Sem conexão com a interne
     document.getElementById('loginScreen').style.display = 'flex';
   }
 })();
+console.log('🔑 SUPABASE_URL:', SUPABASE_URL);
+console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
 </script>
 </body>
 </html>
