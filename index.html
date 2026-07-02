@@ -2093,6 +2093,16 @@ window.addEventListener('offline', () => { showToast('Sem conexão com a interne
 })();
 console.log('🔑 SUPABASE_URL:', SUPABASE_URL);
 console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
+// Adicione no final do arquivo, antes do </script>
+console.log('🌐 URL do Supabase:', SUPABASE_URL);
+console.log('🔑 Chave configurada:', SUPABASE_ANON_KEY ? '✅ Sim' : '❌ Não');
+
+// Teste rápido de conexão
+if (supa) {
+  console.log('✅ Supabase conectado!');
+} else {
+  console.log('❌ Supabase NÃO conectado!');
+}
 </script>
 </body>
 </html>
