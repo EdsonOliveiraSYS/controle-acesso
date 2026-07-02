@@ -14,7 +14,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- PDF e CSV -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
@@ -264,9 +263,9 @@
   .servico-btn.selected { border-color:var(--primary); background:rgba(27,99,51,0.1); color:var(--primary-light); }
   .servico-btn:active { transform:scale(0.95); }
 
-  .report-btns { display:flex; gap:8px; margin-bottom:12px; }
-  .report-btn { flex:1; padding:10px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:12px; cursor:pointer; transition:all var(--transition-fast); font-family:'Inter',sans-serif; font-weight:600; }
-  .report-btn:hover { border-color:var(--primary); color:var(--text); }
+  .report-btns { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .report-btn { flex:1; min-width:80px; padding:10px 8px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:11px; cursor:pointer; transition:all var(--transition-fast); font-family:'Inter',sans-serif; font-weight:600; }
+  .report-btn:hover { border-color:var(--primary); color:var(--text); background:rgba(27,99,51,0.05); }
 
   .edit-sheet .field textarea { resize:vertical; min-height:60px; }
 </style>
@@ -369,9 +368,9 @@
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
-          <button class="report-btn" onclick="exportarCSV()">📊 CSV</button>
-          <button class="report-btn" onclick="exportarPDF()">📄 PDF</button>
-          <button class="report-btn" onclick="exportarRelatorioCompleto()">📋 Completo</button>
+          <button class="report-btn" onclick="exportarMotoristasCSV()">📊 CSV</button>
+          <button class="report-btn" onclick="exportarMotoristasPDF()">📄 PDF</button>
+          <button class="report-btn" onclick="exportarMotoristasCompleto()">📋 Completo</button>
         </div>
         <div class="search-wrap">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -385,9 +384,10 @@
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">Histórico de validações</p>
-          <div style="display:flex;gap:8px;">
-            <button onclick="renderLog()" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">Atualizar</button>
-            <button onclick="exportarLogCSV()" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">📊 CSV</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="renderLog()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">🔄 Atualizar</button>
+            <button onclick="exportarLogCSV()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">📊 CSV</button>
+            <button onclick="exportarLogPDF()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">📄 PDF</button>
           </div>
         </div>
         <div class="card" id="logList"></div>
@@ -716,7 +716,6 @@ function showPage(id) {
     document.getElementById('cadastroTitle').textContent = 'Novo motorista';
     document.getElementById('btnCadastrar').textContent = 'Cadastrar e gerar QR Code';
     document.getElementById('btnCadastrar').onclick = cadastrar;
-    // Limpar campos de edição se houver
     document.querySelectorAll('#page-cadastro .field input').forEach(inp => inp.value = '');
     document.getElementById('f-status').value = 'autorizado';
     fotoFile = null;
@@ -731,13 +730,11 @@ function showPage(id) {
 function previewFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
-  
   if (file.size > 5 * 1024 * 1024) {
     showToast('A foto deve ter no máximo 5MB');
     e.target.value = '';
     return;
   }
-  
   fotoFile = file;
   const reader = new FileReader();
   reader.onload = ev => {
@@ -749,13 +746,11 @@ function previewFoto(e) {
 function previewEditFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
-  
   if (file.size > 5 * 1024 * 1024) {
     showToast('A foto deve ter no máximo 5MB');
     e.target.value = '';
     return;
   }
-  
   editFotoFile = file;
   const reader = new FileReader();
   reader.onload = ev => {
@@ -766,23 +761,16 @@ function previewEditFoto(e) {
 
 async function uploadFoto(driverId, file) {
   if (!file) return null;
-  
   try {
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const path = `${driverId}.${ext}`;
-    
     const { error } = await supa.storage
       .from('fotos-motoristas')
-      .upload(path, file, { 
-        upsert: true, 
-        contentType: file.type 
-      });
-    
+      .upload(path, file, { upsert: true, contentType: file.type });
     if (error) {
       console.error('Erro ao enviar foto:', error);
       return null;
     }
-    
     const { data } = supa.storage.from('fotos-motoristas').getPublicUrl(path);
     return data.publicUrl;
   } catch (e) {
@@ -800,53 +788,37 @@ async function startScan() {
     showToast('Sem conexão com a internet');
     return;
   }
-  
   document.getElementById('scanResult').innerHTML = '';
-  
   try {
     isScanning = true;
-    
     if (!window.ZXing) {
       showToast('Carregando leitor...');
       await loadZxingLibrary();
     }
-    
     if (!zxingReader) {
       zxingReader = new ZXing.BrowserMultiFormatReader();
     }
-    
     document.getElementById('scanPlaceholder').style.display = 'none';
     document.getElementById('scanCorners').classList.add('visible');
     document.getElementById('scanLine').style.display = 'block';
     document.getElementById('btnStopScan').style.display = 'block';
-    
     const video = document.getElementById('scanVideo');
     video.style.display = 'block';
-    
     const constraints = {
       video: {
         facingMode: 'environment',
         width: { ideal: 1280 },
         height: { ideal: 720 },
-        advanced: [
-          { focusMode: 'continuous' },
-          { exposureMode: 'continuous' }
-        ]
+        advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }]
       }
     };
-    
-    await zxingReader.decodeFromConstraints(
-      constraints,
-      video,
-      (result, err) => {
-        if (result) {
-          if (navigator.vibrate) navigator.vibrate(100);
-          stopScan();
-          processQR(result.getText());
-        }
+    await zxingReader.decodeFromConstraints(constraints, video, (result, err) => {
+      if (result) {
+        if (navigator.vibrate) navigator.vibrate(100);
+        stopScan();
+        processQR(result.getText());
       }
-    );
-    
+    });
     try {
       const stream = video.srcObject;
       if (stream) {
@@ -860,22 +832,15 @@ async function startScan() {
           }
         }
       }
-    } catch (e) {
-      console.log('Zoom não disponível:', e);
-    }
-    
+    } catch (e) { console.log('Zoom não disponível:', e); }
   } catch (e) {
     console.error('Erro câmera:', e);
     document.getElementById('scanPlaceholder').style.display = 'block';
     document.getElementById('scanResult').innerHTML = `
       <div class="result-box fail">
         <h3 style="color:var(--red)">Câmera indisponível</h3>
-        <p style="color:var(--text2);font-size:13px;margin-top:4px">
-          Verifique as permissões de câmera e tente novamente.
-        </p>
-        <button class="btn btn-ghost" style="margin-top:12px" onclick="startScan()">
-          🔄 Tentar novamente
-        </button>
+        <p style="color:var(--text2);font-size:13px;margin-top:4px">Verifique as permissões de câmera.</p>
+        <button class="btn btn-ghost" style="margin-top:12px" onclick="startScan()">🔄 Tentar novamente</button>
       </div>`;
     isScanning = false;
   }
@@ -886,11 +851,9 @@ function stopScan() {
   if (zxingReader) {
     try { zxingReader.reset(); } catch(e) {}
   }
-  
   const v = document.getElementById('scanVideo');
   v.style.display = 'none';
   v.srcObject = null;
-  
   document.getElementById('scanPlaceholder').style.display = 'block';
   document.getElementById('scanCorners').classList.remove('visible');
   document.getElementById('scanLine').style.display = 'none';
@@ -916,86 +879,33 @@ async function processQR(id) {
     showToast('Sem conexão com a internet');
     return;
   }
-  
   const div = document.getElementById('scanResult');
   div.innerHTML = '<p style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0">Verificando...</p>';
-  
   const portaria = getPortaria();
   if (!portaria) {
     div.innerHTML = '<div class="result-box fail"><h3 style="color:var(--red)">Sessão expirada</h3><p class="result-sub">Faça login novamente</p></div>';
     return;
   }
-  
   try {
     const { data: m, error } = await supa
       .from('motoristas')
       .select('*')
       .eq('id', id)
       .maybeSingle();
-    
     const dt = Utils.now();
     const foto = (m && m.foto_url) ? `<img class="result-photo" src="${m.foto_url}">` : '';
-    
     if (error || !m) {
-      div.innerHTML = `
-        <div class="result-box fail">
-          <svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <h3 style="color:var(--red)">QR Code inválido</h3>
-          <p class="result-sub">Motorista não encontrado no sistema</p>
-        </div>`;
-      
-      await supa.from('validacoes').insert({
-        motorista_id: null,
-        motorista_nome: 'QR inválido',
-        motorista_placa: '',
-        motorista_empresa: '',
-        portaria_id: portaria.id,
-        portaria_nome: portaria.nome,
-        tipo: null,
-        servico: null,
-        empresa_servico: null,
-        ok: false,
-        dt
-      });
+      div.innerHTML = `<div class="result-box fail"><svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><h3 style="color:var(--red)">QR Code inválido</h3><p class="result-sub">Motorista não encontrado</p></div>`;
+      await supa.from('validacoes').insert({ motorista_id: null, motorista_nome: 'QR inválido', motorista_placa: '', motorista_empresa: '', portaria_id: portaria.id, portaria_nome: portaria.nome, tipo: null, servico: null, empresa_servico: null, ok: false, dt });
       return;
     }
-    
     if (m.status === 'bloqueado') {
-      div.innerHTML = `
-        <div class="result-box fail">
-          ${foto}
-          <svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-          </svg>
-          <h3 style="color:var(--red)">Acesso negado</h3>
-          <p class="result-name">${m.nome}</p>
-          <p class="result-sub">Status: bloqueado</p>
-        </div>`;
-      
-      await supa.from('validacoes').insert({
-        motorista_id: m.id,
-        motorista_nome: m.nome,
-        motorista_placa: m.placa || '',
-        motorista_empresa: m.empresa || '',
-        portaria_id: portaria.id,
-        portaria_nome: portaria.nome,
-        tipo: null,
-        servico: null,
-        empresa_servico: null,
-        ok: false,
-        dt
-      });
+      div.innerHTML = `<div class="result-box fail">${foto}<svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3 style="color:var(--red)">Acesso negado</h3><p class="result-name">${m.nome}</p><p class="result-sub">Status: bloqueado</p></div>`;
+      await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa || '', motorista_empresa: m.empresa || '', portaria_id: portaria.id, portaria_nome: portaria.nome, tipo: null, servico: null, empresa_servico: null, ok: false, dt });
       return;
     }
-    
     pendingValidation = { motorista: m, portaria, ok: m.status === 'autorizado' };
     const corStatus = m.status === 'autorizado' ? 'var(--green)' : 'var(--amber)';
-    
     div.innerHTML = `
       <div class="result-box ok">
         ${foto}
@@ -1019,14 +929,9 @@ async function processQR(id) {
           <button class="dir-btn saida" onclick="registrarDirecao('saida')">↑ Saída</button>
         </div>
       </div>`;
-      
   } catch (e) {
     console.error('Erro ao processar QR:', e);
-    div.innerHTML = `
-      <div class="result-box fail">
-        <h3 style="color:var(--red)">Erro</h3>
-        <p class="result-sub">Não foi possível processar o QR Code</p>
-      </div>`;
+    div.innerHTML = `<div class="result-box fail"><h3 style="color:var(--red)">Erro</h3><p class="result-sub">Não foi possível processar o QR Code</p></div>`;
   }
 }
 
@@ -1046,12 +951,10 @@ async function registrarDirecao(tipo) {
     showToast('Sem conexão com a internet');
     return;
   }
-  
   const { motorista: m, portaria, ok } = pendingValidation;
   const dt = Utils.now();
   const servicoEmpresa = document.getElementById('servicoEmpresa')?.value?.trim() || '';
   const servico = (tipo === 'entrada') ? selectedServico : null;
-  
   try {
     await supa.from('validacoes').insert({
       motorista_id: m.id,
@@ -1066,12 +969,10 @@ async function registrarDirecao(tipo) {
       ok,
       dt
     });
-    
     const corStatus = ok ? 'var(--green)' : 'var(--amber)';
     const foto = m.foto_url ? `<img class="result-photo" src="${m.foto_url}">` : '';
     const servicoLabel = servico ? ` · ${servico.charAt(0).toUpperCase() + servico.slice(1)}` : '';
     const empresaLabel = servicoEmpresa ? ` · ${servicoEmpresa}` : '';
-    
     document.getElementById('scanResult').innerHTML = `
       <div class="result-box ok">
         ${foto}
@@ -1079,7 +980,6 @@ async function registrarDirecao(tipo) {
         <p class="result-name">${m.nome}</p>
         <p class="result-sub">${m.placa || '—'} · ${m.empresa || '—'}${empresaLabel}</p>
       </div>`;
-    
     pendingValidation = null;
     selectedServico = null;
     showToast(tipo === 'entrada' ? 'Entrada registrada ✓' : 'Saída registrada ✓');
@@ -1096,22 +996,18 @@ function validarCadastro() {
   const nome = document.getElementById('f-nome').value.trim();
   const cpf = document.getElementById('f-cpf').value.trim();
   let isValid = true;
-  
   document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
-  
   if (!nome || nome.length < 3) {
     document.getElementById('err-nome').classList.add('show');
     document.getElementById('f-nome').classList.add('error');
     isValid = false;
   }
-  
   if (!Utils.validateCPF(cpf)) {
     document.getElementById('err-cpf').classList.add('show');
     document.getElementById('f-cpf').classList.add('error');
     isValid = false;
   }
-  
   return isValid;
 }
 
@@ -1120,16 +1016,13 @@ async function cadastrar() {
     showToast('Sem conexão com a internet');
     return;
   }
-  
   if (!validarCadastro()) {
     showToast('Corrija os campos destacados');
     return;
   }
-  
   const btn = document.getElementById('btnCadastrar');
   btn.disabled = true;
   btn.textContent = 'Salvando...';
-  
   try {
     const novo = {
       nome: document.getElementById('f-nome').value.trim(),
@@ -1140,15 +1033,8 @@ async function cadastrar() {
       whatsapp: document.getElementById('f-whats').value.replace(/\D/g,''),
       status: document.getElementById('f-status').value
     };
-    
-    const { data, error } = await supa
-      .from('motoristas')
-      .insert(novo)
-      .select()
-      .single();
-    
+    const { data, error } = await supa.from('motoristas').insert(novo).select().single();
     if (error) throw new Error(error.message);
-    
     if (fotoFile) {
       btn.textContent = 'Enviando foto...';
       const url = await uploadFoto(data.id, fotoFile);
@@ -1156,26 +1042,17 @@ async function cadastrar() {
         await supa.from('motoristas').update({ foto_url: url }).eq('id', data.id);
       }
     }
-    
-    ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats'].forEach(f => 
-      document.getElementById(f).value = ''
-    );
+    ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('f-status').value = 'autorizado';
     fotoFile = null;
     document.getElementById('f-foto').value = '';
-    document.getElementById('fotoPreview').innerHTML = `
-      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
-    
+    document.getElementById('fotoPreview').innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
     document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
     document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
-    
     showToast('Motorista cadastrado com sucesso ✓');
     showQRFor(data.id, data.nome, data.placa, data.empresa, data.whatsapp || '');
-    
-    // Recarregar lista
     await carregarTodosMotoristas();
     renderLista();
-    
   } catch (e) {
     console.error('Erro ao cadastrar:', e);
     showToast('Erro: ' + e.message);
@@ -1185,17 +1062,9 @@ async function cadastrar() {
   }
 }
 
-document.getElementById('f-cpf').addEventListener('input', function() {
-  this.value = Utils.formatCPF(this.value);
-});
-
-document.getElementById('f-placa').addEventListener('input', function() {
-  this.value = this.value.toUpperCase();
-});
-
-document.getElementById('f-whats').addEventListener('input', function() {
-  this.value = Utils.formatPhone(this.value);
-});
+document.getElementById('f-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
+document.getElementById('f-placa').addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+document.getElementById('f-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
 // ============================================================
 // QR CODE MODAL
@@ -1211,24 +1080,13 @@ function showQRFor(id, nome, placa, empresa, whatsapp) {
     empresa = m.empresa;
     whatsapp = m.whatsapp || '';
   }
-  
   qrWhatsAtual = (whatsapp || '').replace(/\D/g, '');
   document.getElementById('qrNome').textContent = nome;
   document.getElementById('qrSub').textContent = [placa, empresa].filter(Boolean).join(' · ');
-  
   const qrDiv = document.getElementById('qrCode');
   qrDiv.innerHTML = '';
-  
   try {
-    new QRCode(qrDiv, {
-      text: id,
-      width: 280,
-      height: 280,
-      colorDark: '#000000',
-      colorLight: '#FFFFFF',
-      correctLevel: QRCode.CorrectLevel.H
-    });
-    
+    new QRCode(qrDiv, { text: id, width: 280, height: 280, colorDark: '#000000', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.H });
     const canvas = qrDiv.querySelector('canvas');
     if (canvas) {
       const newCanvas = document.createElement('canvas');
@@ -1242,109 +1100,63 @@ function showQRFor(id, nome, placa, empresa, whatsapp) {
       qrDiv.innerHTML = '';
       qrDiv.appendChild(newCanvas);
     }
-    
   } catch (e) {
     console.error('Erro ao gerar QR:', e);
     qrDiv.innerHTML = '<p style="color:var(--red)">Erro ao gerar QR Code</p>';
   }
-  
   const btnW = document.getElementById('btnEnviarWhats');
   btnW.style.display = qrWhatsAtual ? 'flex' : 'none';
-  
   document.getElementById('qrModal').classList.add('open');
   document.getElementById('detailModal').classList.remove('open');
 }
 
-function closeQR(e) {
-  if (e.target === document.getElementById('qrModal')) {
-    document.getElementById('qrModal').classList.remove('open');
-  }
-}
-
-function closeDetail(e) {
-  if (e.target === document.getElementById('detailModal')) {
-    document.getElementById('detailModal').classList.remove('open');
-  }
-}
-
-function closeEdit(e) {
-  if (e.target === document.getElementById('editModal')) {
-    document.getElementById('editModal').classList.remove('open');
-  }
-}
+function closeQR(e) { if (e.target === document.getElementById('qrModal')) { document.getElementById('qrModal').classList.remove('open'); } }
+function closeDetail(e) { if (e.target === document.getElementById('detailModal')) { document.getElementById('detailModal').classList.remove('open'); } }
+function closeEdit(e) { if (e.target === document.getElementById('editModal')) { document.getElementById('editModal').classList.remove('open'); } }
 
 // ============================================================
 // COMPARTILHAMENTO
 // ============================================================
 async function enviarImagemWhatsapp() {
-  if (!qrWhatsAtual) {
-    showToast('Número de WhatsApp não cadastrado');
-    return;
-  }
-
+  if (!qrWhatsAtual) { showToast('Número de WhatsApp não cadastrado'); return; }
   const nome = document.getElementById('qrNome').textContent;
   const canvas = document.querySelector('#qrCode canvas');
   if (!canvas) { showToast('Aguarde o QR Code carregar'); return; }
-
   const confirmar = confirm(`📱 Enviar QR Code para WhatsApp?\n\n👤 ${nome}\n📱 ${qrWhatsAtual}`);
   if (!confirmar) return;
-
   showLoading('Preparando imagem...');
-
   try {
     canvas.toBlob(async (blob) => {
       if (!blob) { hideLoading(); showToast('Erro ao gerar imagem'); return; }
-
       if (navigator.share && navigator.canShare) {
         const file = new File([blob], `qrcode-${nome.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
-        const shareData = {
-          title: 'QR Code de Acesso - Transzilli',
-          text: `🚛 QR Code de acesso para ${nome}`,
-          files: [file]
-        };
+        const shareData = { title: 'QR Code de Acesso - Transzilli', text: `🚛 QR Code de acesso para ${nome}`, files: [file] };
         if (navigator.canShare(shareData)) {
-          try {
-            await navigator.share(shareData);
-            hideLoading();
-            showToast('Compartilhado com sucesso! ✓');
-            return;
-          } catch (e) {
-            if (e.name === 'AbortError') { hideLoading(); return; }
-          }
+          try { await navigator.share(shareData); hideLoading(); showToast('Compartilhado com sucesso! ✓'); return; } 
+          catch (e) { if (e.name === 'AbortError') { hideLoading(); return; } }
         }
       }
-
       const imageUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `qrcode-${nome.replace(/\s+/g, '-')}.png`;
       link.href = imageUrl;
       link.click();
-
       setTimeout(() => {
-        const msg = encodeURIComponent(
-          `🚛 *QR Code de Acesso - Transzilli*\n\nOlá *${nome}*! Segue seu QR Code de acesso.\nApresente na portaria.`
-        );
+        const msg = encodeURIComponent(`🚛 *QR Code de Acesso - Transzilli*\n\nOlá *${nome}*! Segue seu QR Code de acesso.\nApresente na portaria.`);
         window.open(`https://wa.me/55${qrWhatsAtual}?text=${msg}`, '_blank');
         hideLoading();
         showToast('QR Code baixado e WhatsApp aberto ✓');
       }, 500);
     }, 'image/png');
-  } catch (e) {
-    console.error('Erro:', e);
-    hideLoading();
-    showToast('Erro ao enviar');
-  }
+  } catch (e) { console.error('Erro:', e); hideLoading(); showToast('Erro ao enviar'); }
 }
 
 async function copiarQRCode() {
   const canvas = document.querySelector('#qrCode canvas');
   if (!canvas) { showToast('Aguarde o QR Code carregar'); return; }
-
   try {
     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    await navigator.clipboard.write([
-      new ClipboardItem({ 'image/png': blob })
-    ]);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
     showToast('QR Code copiado! ✓');
   } catch (e) {
     const link = document.createElement('a');
@@ -1378,17 +1190,12 @@ function enviarPorEmail() {
 }
 
 // ============================================================
-// CARREGAR MOTORISTAS (TODOS PARA CACHE)
+// CARREGAR MOTORISTAS
 // ============================================================
 async function carregarTodosMotoristas() {
   try {
-    const { data, error } = await supa
-      .from('motoristas')
-      .select('*')
-      .order('nome');
-    
+    const { data, error } = await supa.from('motoristas').select('*').order('nome');
     if (error) throw new Error(error.message);
-    
     allMotoristas = data || [];
     cacheMotoristas = [...allMotoristas];
     cacheTimestamp = Date.now();
@@ -1407,43 +1214,28 @@ async function carregarTodosMotoristas() {
 function renderLista() {
   const div = document.getElementById('listaMotoristas');
   const busca = (document.getElementById('busca').value || '').toLowerCase();
-  
-  // Filtrar
   let filtrados = allMotoristas.filter(m =>
     m.nome.toLowerCase().includes(busca) ||
     (m.placa || '').toLowerCase().includes(busca) ||
     (m.empresa || '').toLowerCase().includes(busca)
   );
-  
-  // Atualizar stats
   const total = allMotoristas.length;
   const aut = allMotoristas.filter(x => x.status === 'autorizado').length;
   const bloq = allMotoristas.filter(x => x.status === 'bloqueado').length;
-  
   document.getElementById('statsRow').innerHTML = `
     <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">Total</div></div>
     <div class="stat"><div class="stat-num" style="color:var(--green)">${aut}</div><div class="stat-label">Ativos</div></div>
     <div class="stat"><div class="stat-num" style="color:var(--red)">${bloq}</div><div class="stat-label">Bloqueados</div></div>
   `;
-  
   if (!filtrados.length) {
-    div.innerHTML = `
-      <div class="empty">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        <p>${busca ? 'Nenhum motorista encontrado' : 'Nenhum motorista cadastrado'}</p>
-      </div>`;
+    div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg><p>${busca ? 'Nenhum motorista encontrado' : 'Nenhum motorista cadastrado'}</p></div>`;
     return;
   }
-  
-  // Paginação: mostrar apenas os primeiros PAGE_SIZE
   const start = 0;
   const end = Math.min(PAGE_SIZE, filtrados.length);
   const paginados = filtrados.slice(start, end);
-  
-  // Verificar se tem mais dados
   hasMoreData = end < filtrados.length;
   currentPage = 1;
-  
   div.innerHTML = paginados.map(m => `
     <div class="driver-item" onclick="openDetail('${m.id}')">
       <div class="avatar">${m.foto_url ? `<img class="detail-photo" src="${m.foto_url}">` : Utils.initials(m.nome)}</div>
@@ -1457,8 +1249,6 @@ function renderLista() {
       </button>
     </div>
   `).join('');
-  
-  // Adicionar indicador de loading se tiver mais dados
   if (hasMoreData) {
     const loadMoreDiv = document.createElement('div');
     loadMoreDiv.id = 'loadMoreIndicator';
@@ -1468,17 +1258,11 @@ function renderLista() {
   }
 }
 
-// ============================================================
-// SCROLL INFINITO
-// ============================================================
 function setupInfiniteScroll() {
   const trigger = document.getElementById('scrollTrigger');
   if (!trigger) return;
-  
-  // Remover listeners antigos
   const newTrigger = trigger.cloneNode(true);
   trigger.parentNode.replaceChild(newTrigger, trigger);
-  
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting && hasMoreData && !isLoadingMore) {
@@ -1486,41 +1270,27 @@ function setupInfiniteScroll() {
       }
     });
   }, { root: document.querySelector('.pages'), rootMargin: '0px 0px 100px 0px' });
-  
   observer.observe(newTrigger);
 }
 
 async function carregarMais() {
   if (isLoadingMore || !hasMoreData) return;
   isLoadingMore = true;
-  
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtrados = allMotoristas.filter(m =>
     m.nome.toLowerCase().includes(busca) ||
     (m.placa || '').toLowerCase().includes(busca) ||
     (m.empresa || '').toLowerCase().includes(busca)
   );
-  
   const start = currentPage * PAGE_SIZE;
   const end = Math.min(start + PAGE_SIZE, filtrados.length);
-  
-  if (start >= filtrados.length) {
-    hasMoreData = false;
-    isLoadingMore = false;
-    return;
-  }
-  
+  if (start >= filtrados.length) { hasMoreData = false; isLoadingMore = false; return; }
   const mais = filtrados.slice(start, end);
   currentPage++;
   hasMoreData = end < filtrados.length;
-  
   const div = document.getElementById('listaMotoristas');
   const loadIndicator = document.getElementById('loadMoreIndicator');
-  
-  // Remover indicador de loading
   if (loadIndicator) loadIndicator.remove();
-  
-  // Adicionar novos itens
   mais.forEach(m => {
     const item = document.createElement('div');
     item.className = 'driver-item';
@@ -1538,8 +1308,6 @@ async function carregarMais() {
     `;
     div.appendChild(item);
   });
-  
-  // Adicionar indicador de loading se tiver mais dados
   if (hasMoreData) {
     const loadMoreDiv = document.createElement('div');
     loadMoreDiv.id = 'loadMoreIndicator';
@@ -1547,7 +1315,6 @@ async function carregarMais() {
     loadMoreDiv.innerHTML = '<div class="spinner-small"></div> Carregando mais...';
     div.appendChild(loadMoreDiv);
   }
-  
   isLoadingMore = false;
 }
 
@@ -1557,7 +1324,6 @@ const renderListaDebounced = Utils.debounce(() => {
   renderLista();
   setupInfiniteScroll();
 }, 300);
-
 document.getElementById('busca').addEventListener('input', renderListaDebounced);
 
 // ============================================================
@@ -1566,9 +1332,7 @@ document.getElementById('busca').addEventListener('input', renderListaDebounced)
 function openEditModal(id) {
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { showToast('Motorista não encontrado'); return; }
-  
   editDriverId = id;
-  
   document.getElementById('e-nome').value = m.nome || '';
   document.getElementById('e-cpf').value = m.cpf || '';
   document.getElementById('e-cnh').value = m.cnh || '';
@@ -1576,21 +1340,13 @@ function openEditModal(id) {
   document.getElementById('e-empresa').value = m.empresa || '';
   document.getElementById('e-whats').value = Utils.formatPhone(m.whatsapp || '');
   document.getElementById('e-status').value = m.status || 'autorizado';
-  
-  // Mostrar foto atual
   const preview = document.getElementById('e-fotoPreview');
-  if (m.foto_url) {
-    preview.innerHTML = `<img src="${m.foto_url}">`;
-  } else {
-    preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
-  }
-  
+  if (m.foto_url) { preview.innerHTML = `<img src="${m.foto_url}">`; } 
+  else { preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`; }
   editFotoFile = null;
   document.getElementById('e-foto').value = '';
-  
   document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
-  
   document.getElementById('editModal').classList.add('open');
   document.getElementById('detailModal').classList.remove('open');
 }
@@ -1599,22 +1355,18 @@ function validarEdicao() {
   const nome = document.getElementById('e-nome').value.trim();
   const cpf = document.getElementById('e-cpf').value.trim();
   let isValid = true;
-  
   document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
-  
   if (!nome || nome.length < 3) {
     document.getElementById('err-e-nome').classList.add('show');
     document.getElementById('e-nome').classList.add('error');
     isValid = false;
   }
-  
   if (!Utils.validateCPF(cpf)) {
     document.getElementById('err-e-cpf').classList.add('show');
     document.getElementById('e-cpf').classList.add('error');
     isValid = false;
   }
-  
   return isValid;
 }
 
@@ -1623,14 +1375,11 @@ async function salvarEdicao() {
     showToast('Sem conexão com a internet');
     return;
   }
-  
   if (!validarEdicao()) {
     showToast('Corrija os campos destacados');
     return;
   }
-  
   showLoading('Salvando alterações...');
-  
   try {
     const dados = {
       nome: document.getElementById('e-nome').value.trim(),
@@ -1641,34 +1390,21 @@ async function salvarEdicao() {
       whatsapp: document.getElementById('e-whats').value.replace(/\D/g,''),
       status: document.getElementById('e-status').value
     };
-    
-    const { error } = await supa
-      .from('motoristas')
-      .update(dados)
-      .eq('id', editDriverId);
-    
+    const { error } = await supa.from('motoristas').update(dados).eq('id', editDriverId);
     if (error) throw new Error(error.message);
-    
-    // Se tiver nova foto
     if (editFotoFile) {
       const url = await uploadFoto(editDriverId, editFotoFile);
       if (url) {
         await supa.from('motoristas').update({ foto_url: url }).eq('id', editDriverId);
       }
     }
-    
     document.getElementById('editModal').classList.remove('open');
     showToast('Motorista atualizado com sucesso ✓');
-    
-    // Recarregar dados
     await carregarTodosMotoristas();
     renderLista();
-    
-    // Atualizar detalhe se estiver aberto
     if (document.getElementById('detailModal').classList.contains('open')) {
       openDetail(editDriverId);
     }
-    
   } catch (e) {
     console.error('Erro ao atualizar:', e);
     showToast('Erro: ' + e.message);
@@ -1677,17 +1413,9 @@ async function salvarEdicao() {
   }
 }
 
-document.getElementById('e-cpf').addEventListener('input', function() {
-  this.value = Utils.formatCPF(this.value);
-});
-
-document.getElementById('e-placa').addEventListener('input', function() {
-  this.value = this.value.toUpperCase();
-});
-
-document.getElementById('e-whats').addEventListener('input', function() {
-  this.value = Utils.formatPhone(this.value);
-});
+document.getElementById('e-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
+document.getElementById('e-placa').addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+document.getElementById('e-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
 // ============================================================
 // DETAIL MODAL
@@ -1695,16 +1423,10 @@ document.getElementById('e-whats').addEventListener('input', function() {
 function openDetail(id) {
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { showToast('Motorista não encontrado'); return; }
-  
   currentDriverId = id;
-  
-  document.getElementById('detailAvatar').innerHTML = m.foto_url ? 
-    `<img class="detail-photo" src="${m.foto_url}">` : 
-    Utils.initials(m.nome);
-  
+  document.getElementById('detailAvatar').innerHTML = m.foto_url ? `<img class="detail-photo" src="${m.foto_url}">` : Utils.initials(m.nome);
   document.getElementById('detailNome').textContent = m.nome;
   document.getElementById('detailEmpresa').textContent = m.empresa || 'Sem empresa';
-  
   document.getElementById('detailRows').innerHTML = `
     <div class="detail-row"><span>CPF</span><span>${m.cpf || '—'}</span></div>
     <div class="detail-row"><span>CNH</span><span>${m.cnh || '—'}</span></div>
@@ -1713,30 +1435,18 @@ function openDetail(id) {
     <div class="detail-row"><span>Status</span><span class="${m.status === 'autorizado' ? 'badge badge-green' : m.status === 'bloqueado' ? 'badge badge-red' : 'badge badge-amber'}" style="font-family:'Inter',sans-serif">${m.status}</span></div>
     <div class="detail-row"><span>Cadastrado em</span><span>${new Date(m.criado_em).toLocaleDateString('pt-BR')}</span></div>
   `;
-  
   document.getElementById('detailModal').classList.add('open');
 }
 
 async function setStatus(status) {
-  if (!Utils.isOnline()) {
-    showToast('Sem conexão com a internet');
-    return;
-  }
-  
+  if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   try {
-    const { error } = await supa
-      .from('motoristas')
-      .update({ status })
-      .eq('id', currentDriverId);
-    
+    const { error } = await supa.from('motoristas').update({ status }).eq('id', currentDriverId);
     if (error) throw new Error(error.message);
-    
     document.getElementById('detailModal').classList.remove('open');
     showToast('Status atualizado ✓');
-    
     await carregarTodosMotoristas();
     renderLista();
-    
   } catch (e) {
     console.error('Erro ao atualizar status:', e);
     showToast('Erro: ' + e.message);
@@ -1745,25 +1455,14 @@ async function setStatus(status) {
 
 async function deleteDriver() {
   if (!confirm('Tem certeza que deseja remover este motorista?')) return;
-  if (!Utils.isOnline()) {
-    showToast('Sem conexão com a internet');
-    return;
-  }
-  
+  if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   try {
-    const { error } = await supa
-      .from('motoristas')
-      .delete()
-      .eq('id', currentDriverId);
-    
+    const { error } = await supa.from('motoristas').delete().eq('id', currentDriverId);
     if (error) throw new Error(error.message);
-    
     document.getElementById('detailModal').classList.remove('open');
     showToast('Motorista removido ✓');
-    
     await carregarTodosMotoristas();
     renderLista();
-    
   } catch (e) {
     console.error('Erro ao remover:', e);
     showToast('Erro: ' + e.message);
@@ -1771,9 +1470,16 @@ async function deleteDriver() {
 }
 
 // ============================================================
-// EXPORTAÇÃO DE RELATÓRIOS
 // ============================================================
-function exportarCSV() {
+// RELATÓRIOS DE MOTORISTAS (CSV e PDF MELHORADOS)
+// ============================================================
+// ============================================================
+
+/**
+ * EXPORTAÇÃO CSV - MOTORISTAS
+ * Versão melhorada com cabeçalhos claros e formatação
+ */
+function exportarMotoristasCSV() {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtrados = allMotoristas.filter(m =>
     m.nome.toLowerCase().includes(busca) ||
@@ -1785,30 +1491,65 @@ function exportarCSV() {
     showToast('Nenhum motorista para exportar');
     return;
   }
-  
-  const headers = ['Nome', 'CPF', 'CNH', 'Placa', 'Empresa', 'WhatsApp', 'Status', 'Cadastrado em'];
-  const rows = filtrados.map(m => [
+
+  // Cabeçalhos em português claro e organizado
+  const headers = [
+    'Nº',
+    'NOME COMPLETO',
+    'CPF',
+    'CNH',
+    'PLACA DO VEÍCULO',
+    'EMPRESA/TRANSPORTADORA',
+    'WHATSAPP',
+    'STATUS',
+    'CADASTRO'
+  ];
+
+  // Dados formatados
+  const rows = filtrados.map((m, index) => [
+    index + 1,
     m.nome || '',
     m.cpf || '',
     m.cnh || '',
     m.placa || '',
     m.empresa || '',
     m.whatsapp ? Utils.formatPhone(m.whatsapp) : '',
-    m.status || '',
+    m.status ? m.status.toUpperCase() : '',
     m.criado_em ? new Date(m.criado_em).toLocaleDateString('pt-BR') : ''
   ]);
-  
-  const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+
+  // Construir CSV com separador ; para melhor compatibilidade
+  const csvLines = [];
+  csvLines.push(headers.join(';'));
+  rows.forEach(row => {
+    // Escapar campos que contenham ; ou "
+    const escapedRow = row.map(cell => {
+      if (typeof cell === 'string' && (cell.includes(';') || cell.includes('"') || cell.includes('\n'))) {
+        return `"${cell.replace(/"/g, '""')}"`;
+      }
+      return cell;
+    });
+    csvLines.push(escapedRow.join(';'));
+  });
+
+  const csvContent = csvLines.join('\n');
+  // Adicionar BOM para suporte a acentos no Excel
   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `motoristas_${new Date().toISOString().slice(0,10)}.csv`;
+  const dataStr = new Date().toISOString().slice(0,10);
+  link.download = `RELATORIO_MOTORISTAS_${dataStr}.csv`;
   link.click();
   URL.revokeObjectURL(link.href);
-  showToast('CSV exportado com sucesso ✓');
+  
+  showToast(`CSV exportado com ${filtrados.length} motoristas ✓`);
 }
 
-function exportarPDF() {
+/**
+ * EXPORTAÇÃO PDF - MOTORISTAS (SIMPLES E BONITO)
+ */
+function exportarMotoristasPDF() {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtrados = allMotoristas.filter(m =>
     m.nome.toLowerCase().includes(busca) ||
@@ -1820,38 +1561,99 @@ function exportarPDF() {
     showToast('Nenhum motorista para exportar');
     return;
   }
-  
+
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'pt', 'a4');
+  const doc = new jsPDF('l', 'pt', 'a4'); // Landscape para mais colunas
+
+  // ===== CABEÇALHO =====
+  doc.setFillColor(27, 99, 51);
+  doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
   
-  doc.setFontSize(16);
-  doc.text('Relatório de Motoristas - Transzilli', 40, 40);
+  doc.setFontSize(18);
+  doc.setTextColor(255, 255, 255);
+  doc.text('🚛 TRANSZILLI - RELATÓRIO DE MOTORISTAS', 40, 35);
+  
+  doc.setFontSize(9);
+  doc.setTextColor(200, 220, 200);
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+  
+  // ===== ESTATÍSTICAS =====
+  const total = filtrados.length;
+  const autorizados = filtrados.filter(x => x.status === 'autorizado').length;
+  const pendentes = filtrados.filter(x => x.status === 'pendente').length;
+  const bloqueados = filtrados.filter(x => x.status === 'bloqueado').length;
+
   doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 60);
-  doc.text(`Total: ${filtrados.length} motoristas`, 40, 75);
-  
-  const headers = ['Nome', 'Placa', 'Empresa', 'Status'];
-  const data = filtrados.map(m => [
+  doc.setTextColor(50, 50, 50);
+  doc.text(`Total: ${total} motoristas`, 40, 90);
+  doc.text(`✓ Autorizados: ${autorizados}`, 190, 90);
+  doc.text(`⏳ Pendentes: ${pendentes}`, 340, 90);
+  doc.text(`✗ Bloqueados: ${bloqueados}`, 490, 90);
+
+  // ===== TABELA =====
+  const headers = [['#', 'Nome', 'CPF', 'Placa', 'Empresa', 'WhatsApp', 'Status']];
+  const data = filtrados.map((m, i) => [
+    i + 1,
     m.nome || '',
+    m.cpf || '',
     m.placa || '',
     m.empresa || '',
-    m.status || ''
+    m.whatsapp ? Utils.formatPhone(m.whatsapp) : '',
+    m.status ? m.status.toUpperCase() : ''
   ]);
-  
+
   doc.autoTable({
-    startY: 90,
-    head: [headers],
+    startY: 105,
+    head: headers,
     body: data,
     theme: 'striped',
-    styles: { fontSize: 9, cellPadding: 4 },
-    headStyles: { fillColor: [27, 99, 51], textColor: [255, 255, 255] }
+    styles: { 
+      fontSize: 8, 
+      cellPadding: 4,
+      halign: 'left',
+      valign: 'middle'
+    },
+    headStyles: { 
+      fillColor: [27, 99, 51], 
+      textColor: [255, 255, 255],
+      fontSize: 9,
+      fontStyle: 'bold'
+    },
+    alternateRowStyles: {
+      fillColor: [245, 248, 245]
+    },
+    columnStyles: {
+      0: { cellWidth: 30, halign: 'center' },
+      1: { cellWidth: 120 },
+      2: { cellWidth: 80 },
+      3: { cellWidth: 70 },
+      4: { cellWidth: 100 },
+      5: { cellWidth: 80 },
+      6: { cellWidth: 70, halign: 'center' }
+    },
+    margin: { left: 30, right: 30 }
   });
-  
-  doc.save(`motoristas_${new Date().toISOString().slice(0,10)}.pdf`);
+
+  // ===== RODAPÉ =====
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    const pageWidth = doc.internal.pageSize.width;
+    doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
+    doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
+  }
+
+  const dataStr = new Date().toISOString().slice(0,10);
+  doc.save(`RELATORIO_MOTORISTAS_${dataStr}.pdf`);
   showToast('PDF exportado com sucesso ✓');
 }
 
-function exportarRelatorioCompleto() {
+/**
+ * EXPORTAÇÃO RELATÓRIO COMPLETO - MOTORISTAS (COM TODOS OS CAMPOS)
+ */
+function exportarMotoristasCompleto() {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtrados = allMotoristas.filter(m =>
     m.nome.toLowerCase().includes(busca) ||
@@ -1863,51 +1665,106 @@ function exportarRelatorioCompleto() {
     showToast('Nenhum motorista para exportar');
     return;
   }
-  
+
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'pt', 'a4');
+  const doc = new jsPDF('l', 'pt', 'a4');
+
+  // ===== CABEÇALHO =====
+  doc.setFillColor(27, 99, 51);
+  doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
   
-  doc.setFontSize(16);
-  doc.text('Relatório Completo - Transzilli', 40, 40);
+  doc.setFontSize(18);
+  doc.setTextColor(255, 255, 255);
+  doc.text('📋 TRANSZILLI - RELATÓRIO COMPLETO', 40, 35);
+  
+  doc.setFontSize(9);
+  doc.setTextColor(200, 220, 200);
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+
+  // ===== ESTATÍSTICAS =====
+  const total = filtrados.length;
+  const autorizados = filtrados.filter(x => x.status === 'autorizado').length;
+  const pendentes = filtrados.filter(x => x.status === 'pendente').length;
+  const bloqueados = filtrados.filter(x => x.status === 'bloqueado').length;
+
   doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 60);
-  doc.text(`Total: ${filtrados.length} motoristas`, 40, 75);
-  
-  const headers = ['Nome', 'CPF', 'CNH', 'Placa', 'Empresa', 'WhatsApp', 'Status'];
-  const data = filtrados.map(m => [
+  doc.setTextColor(50, 50, 50);
+  doc.text(`Total: ${total} motoristas`, 40, 90);
+  doc.text(`✓ Autorizados: ${autorizados}`, 190, 90);
+  doc.text(`⏳ Pendentes: ${pendentes}`, 340, 90);
+  doc.text(`✗ Bloqueados: ${bloqueados}`, 490, 90);
+
+  // ===== TABELA COMPLETA =====
+  const headers = [['#', 'Nome', 'CPF', 'CNH', 'Placa', 'Empresa', 'WhatsApp', 'Status', 'Cadastro']];
+  const data = filtrados.map((m, i) => [
+    i + 1,
     m.nome || '',
     m.cpf || '',
     m.cnh || '',
     m.placa || '',
     m.empresa || '',
     m.whatsapp ? Utils.formatPhone(m.whatsapp) : '',
-    m.status || ''
+    m.status ? m.status.toUpperCase() : '',
+    m.criado_em ? new Date(m.criado_em).toLocaleDateString('pt-BR') : ''
   ]);
-  
+
   doc.autoTable({
-    startY: 90,
-    head: [headers],
+    startY: 105,
+    head: headers,
     body: data,
     theme: 'grid',
-    styles: { fontSize: 8, cellPadding: 3 },
-    headStyles: { fillColor: [27, 99, 51], textColor: [255, 255, 255] }
+    styles: { 
+      fontSize: 7, 
+      cellPadding: 3,
+      halign: 'left',
+      valign: 'middle'
+    },
+    headStyles: { 
+      fillColor: [27, 99, 51], 
+      textColor: [255, 255, 255],
+      fontSize: 8,
+      fontStyle: 'bold'
+    },
+    columnStyles: {
+      0: { cellWidth: 25, halign: 'center' },
+      1: { cellWidth: 110 },
+      2: { cellWidth: 70 },
+      3: { cellWidth: 65 },
+      4: { cellWidth: 60 },
+      5: { cellWidth: 90 },
+      6: { cellWidth: 70 },
+      7: { cellWidth: 60, halign: 'center' },
+      8: { cellWidth: 65, halign: 'center' }
+    },
+    margin: { left: 25, right: 25 }
   });
-  
-  // Adicionar estatísticas
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
+
+  // ===== RODAPÉ =====
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.setFontSize(8);
-    doc.text(`Página ${i} de ${totalPages}`, doc.internal.pageSize.width - 60, doc.internal.pageSize.height - 20);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    const pageWidth = doc.internal.pageSize.width;
+    doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
+    doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
   }
-  
-  doc.save(`relatorio_completo_${new Date().toISOString().slice(0,10)}.pdf`);
+
+  const dataStr = new Date().toISOString().slice(0,10);
+  doc.save(`RELATORIO_COMPLETO_${dataStr}.pdf`);
   showToast('Relatório completo exportado ✓');
 }
 
 // ============================================================
-// EXPORTAR LOG CSV
 // ============================================================
+// RELATÓRIOS DE HISTÓRICO (CSV e PDF MELHORADOS)
+// ============================================================
+// ============================================================
+
+/**
+ * EXPORTAÇÃO CSV - HISTÓRICO DE VALIDAÇÕES
+ * Versão melhorada com todos os campos e formatação clara
+ */
 async function exportarLogCSV() {
   if (!Utils.isOnline()) {
     showToast('Sem conexão com a internet');
@@ -1935,31 +1792,195 @@ async function exportarLogCSV() {
       showToast('Nenhum registro para exportar');
       return;
     }
-    
-    const headers = ['Data/Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Serviço', 'Empresa Serviço', 'Portaria', 'Status'];
+
+    // Cabeçalhos claros e organizados
+    const headers = [
+      'DATA/HORA',
+      'MOTORISTA',
+      'CPF',
+      'PLACA',
+      'EMPRESA',
+      'TIPO',
+      'SERVIÇO',
+      'EMPRESA SERVIÇO',
+      'PORTARIA',
+      'STATUS'
+    ];
+
     const rows = data.map(l => [
+      new Date(l.dt).toLocaleString('pt-BR'),
+      l.motorista_nome || '',
+      l.motorista_cpf || '',
+      l.motorista_placa || '',
+      l.motorista_empresa || '',
+      l.tipo === 'entrada' ? 'ENTRADA' : l.tipo === 'saida' ? 'SAÍDA' : '—',
+      l.servico ? l.servico.toUpperCase() : '—',
+      l.empresa_servico || '—',
+      l.portaria_nome || '',
+      l.ok ? '✓ AUTORIZADO' : '✗ NEGADO'
+    ]);
+
+    const csvLines = [];
+    csvLines.push(headers.join(';'));
+    rows.forEach(row => {
+      const escapedRow = row.map(cell => {
+        if (typeof cell === 'string' && (cell.includes(';') || cell.includes('"') || cell.includes('\n'))) {
+          return `"${cell.replace(/"/g, '""')}"`;
+        }
+        return cell;
+      });
+      csvLines.push(escapedRow.join(';'));
+    });
+
+    const csvContent = csvLines.join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    const dataStr = new Date().toISOString().slice(0,10);
+    link.download = `HISTORICO_VALIDACOES_${dataStr}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    
+    showToast(`Histórico CSV exportado com ${data.length} registros ✓`);
+    
+  } catch (e) {
+    console.error('Erro ao exportar log:', e);
+    showToast('Erro ao exportar: ' + e.message);
+  }
+}
+
+/**
+ * EXPORTAÇÃO PDF - HISTÓRICO DE VALIDAÇÕES
+ * Com layout profissional, estatísticas e formatação bonita
+ */
+async function exportarLogPDF() {
+  if (!Utils.isOnline()) {
+    showToast('Sem conexão com a internet');
+    return;
+  }
+  
+  const portaria = getPortaria();
+  if (!portaria) { showToast('Sessão expirada'); return; }
+  
+  try {
+    let query = supa
+      .from('validacoes')
+      .select('*')
+      .order('dt', { ascending: false })
+      .limit(300);
+    
+    if (portaria.tipo !== 'admin') {
+      query = query.eq('portaria_id', portaria.id);
+    }
+    
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    
+    if (!data.length) {
+      showToast('Nenhum registro para exportar');
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'pt', 'a4');
+
+    // ===== CABEÇALHO =====
+    doc.setFillColor(27, 99, 51);
+    doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
+    
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.text('📊 TRANZILLI - HISTÓRICO DE VALIDAÇÕES', 40, 35);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(200, 220, 200);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+    doc.text(`Portaria: ${portaria.nome}`, 400, 55);
+
+    // ===== ESTATÍSTICAS =====
+    const total = data.length;
+    const entradas = data.filter(x => x.tipo === 'entrada').length;
+    const saidas = data.filter(x => x.tipo === 'saida').length;
+    const autorizados = data.filter(x => x.ok === true).length;
+    const negados = data.filter(x => x.ok === false).length;
+    const servicos = data.filter(x => x.servico).length;
+
+    doc.setFontSize(10);
+    doc.setTextColor(50, 50, 50);
+    let yPos = 90;
+    doc.text(`Total de registros: ${total}`, 40, yPos);
+    doc.text(`↓ Entradas: ${entradas}`, 180, yPos);
+    doc.text(`↑ Saídas: ${saidas}`, 310, yPos);
+    doc.text(`✓ Autorizados: ${autorizados}`, 440, yPos);
+    
+    yPos = 110;
+    doc.text(`✗ Negados: ${negados}`, 40, yPos);
+    doc.text(`📦 Com serviço: ${servicos}`, 180, yPos);
+
+    // ===== TABELA =====
+    const headers = [['Data/Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Serviço', 'Empresa Serv.', 'Status']];
+    const tableData = data.slice(0, 100).map(l => [
       new Date(l.dt).toLocaleString('pt-BR'),
       l.motorista_nome || '',
       l.motorista_placa || '',
       l.motorista_empresa || '',
-      l.tipo === 'entrada' ? 'Entrada' : l.tipo === 'saida' ? 'Saída' : '—',
-      l.servico || '—',
+      l.tipo === 'entrada' ? 'ENTRADA' : l.tipo === 'saida' ? 'SAÍDA' : '—',
+      l.servico ? l.servico.toUpperCase() : '—',
       l.empresa_servico || '—',
-      l.portaria_nome || '',
-      l.ok ? 'OK' : 'Negado'
+      l.ok ? '✓ OK' : '✗ NEGADO'
     ]);
-    
-    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `historico_${new Date().toISOString().slice(0,10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-    showToast('Histórico exportado com sucesso ✓');
-    
+
+    doc.autoTable({
+      startY: 130,
+      head: headers,
+      body: tableData,
+      theme: 'striped',
+      styles: { 
+        fontSize: 7, 
+        cellPadding: 4,
+        halign: 'left',
+        valign: 'middle'
+      },
+      headStyles: { 
+        fillColor: [27, 99, 51], 
+        textColor: [255, 255, 255],
+        fontSize: 8,
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [245, 248, 245]
+      },
+      columnStyles: {
+        0: { cellWidth: 120 },
+        1: { cellWidth: 130 },
+        2: { cellWidth: 70 },
+        3: { cellWidth: 100 },
+        4: { cellWidth: 60, halign: 'center' },
+        5: { cellWidth: 60, halign: 'center' },
+        6: { cellWidth: 100 },
+        7: { cellWidth: 70, halign: 'center' }
+      },
+      margin: { left: 25, right: 25 }
+    });
+
+    // ===== RODAPÉ =====
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      const pageWidth = doc.internal.pageSize.width;
+      doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
+      doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
+    }
+
+    const dataStr = new Date().toISOString().slice(0,10);
+    doc.save(`HISTORICO_VALIDACOES_${dataStr}.pdf`);
+    showToast(`Histórico PDF exportado com ${data.length} registros ✓`);
+
   } catch (e) {
-    console.error('Erro ao exportar log:', e);
+    console.error('Erro ao exportar log PDF:', e);
     showToast('Erro ao exportar: ' + e.message);
   }
 }
@@ -1970,37 +1991,22 @@ async function exportarLogCSV() {
 async function renderLog() {
   const div = document.getElementById('logList');
   div.innerHTML = '<p style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0">Carregando...</p>';
-  
   const portaria = getPortaria();
   if (!portaria) {
     div.innerHTML = '<p style="text-align:center;color:var(--red);font-size:13px;padding:20px 0">Sessão expirada</p>';
     return;
   }
-  
   try {
-    let query = supa
-      .from('validacoes')
-      .select('*')
-      .order('dt', { ascending: false })
-      .limit(80);
-    
+    let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(80);
     if (portaria.tipo !== 'admin') {
       query = query.eq('portaria_id', portaria.id);
     }
-    
     const { data, error } = await query;
-    
     if (error) throw new Error(error.message);
-    
     if (!data.length) {
-      div.innerHTML = `
-        <div class="empty">
-          <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
-          <p>Nenhuma validação ainda</p>
-        </div>`;
+      div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><p>Nenhuma validação ainda</p></div>`;
       return;
     }
-    
     div.innerHTML = data.map(l => {
       const dirLabel = l.tipo === 'entrada' ? 'Entrada' : l.tipo === 'saida' ? 'Saída' : '';
       const servicoLabel = l.servico ? ` · ${l.servico.charAt(0).toUpperCase() + l.servico.slice(1)}` : '';
@@ -2016,36 +2022,23 @@ async function renderLog() {
         </div>
       `;
     }).join('');
-    
   } catch (e) {
     console.error('Erro ao carregar log:', e);
-    div.innerHTML = `
-      <p style="text-align:center;color:var(--red);font-size:13px;padding:20px 0">
-        Erro ao carregar dados. 
-        <button onclick="renderLog()" style="background:none;border:none;color:var(--primary-light);cursor:pointer;text-decoration:underline;">
-          Tentar novamente
-        </button>
-      </p>`;
+    div.innerHTML = `<p style="text-align:center;color:var(--red);font-size:13px;padding:20px 0">Erro ao carregar dados. <button onclick="renderLog()" style="background:none;border:none;color:var(--primary-light);cursor:pointer;text-decoration:underline;">Tentar novamente</button></p>`;
   }
 }
 
 // ============================================================
 // MONITORAMENTO DE CONEXÃO
 // ============================================================
-window.addEventListener('online', () => {
-  showToast('Conexão restaurada ✓', 1500);
-});
-
-window.addEventListener('offline', () => {
-  showToast('Sem conexão com a internet ⚠', 3000);
-});
+window.addEventListener('online', () => { showToast('Conexão restaurada ✓', 1500); });
+window.addEventListener('offline', () => { showToast('Sem conexão com a internet ⚠', 3000); });
 
 // ============================================================
 // START
 // ============================================================
 (function start() {
   if (!initSupabase()) return;
-  
   const p = getPortaria();
   if (p) {
     iniciarApp();
