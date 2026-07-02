@@ -514,25 +514,11 @@
      SCRIPT PRINCIPAL (SEM type="module")
      ============================================================ -->
 <script>
-// Aguarda as variáveis serem carregadas
-function iniciarAplicacao() {
-    // Pega as variáveis do window
-    const SUPABASE_URL = window.SUPABASE_URL;
-    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
-    
-    // Verifica se as variáveis foram carregadas
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        console.error('❌ Variáveis não carregadas!');
-        document.getElementById('configCheck').innerHTML = `
-            <div class="config-warning">
-                <h2>⚠️ Configuração necessária</h2>
-                <p>O arquivo <code>.env</code> não foi configurado.</p>
-                <p>Copie o arquivo <code>.env.example</code> para <code>.env</code> e preencha com suas chaves.</p>
-            </div>`;
-        return;
-    }
-    
-    console.log('✅ Aplicação iniciando com variáveis carregadas');
+// ============================================================
+// CONFIGURAÇÃO - Usa variáveis do window
+// ============================================================
+const SUPABASE_URL = window.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
 
 // ============================================================
 // UTILITÁRIOS
@@ -1983,31 +1969,50 @@ window.addEventListener('offline', () => { showToast('Sem conexão com a interne
 // ============================================================
 // INICIAR APLICAÇÃO
 // ============================================================
-// Inicia a aplicação
-if (!initSupabase()) {
-    console.log('❌ Supabase NÃO conectado!');
-    return;
-}
+console.log('🔑 SUPABASE_URL:', SUPABASE_URL);
+console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
 
-console.log('✅ Supabase conectado com sucesso!');
-
-const p = getPortaria();
-if (p) {
-    iniciarApp();
+// Inicia a aplicação se as variáveis já estiverem carregadas
+if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    if (initSupabase()) {
+        console.log('✅ Supabase conectado com sucesso!');
+        const p = getPortaria();
+        if (p) {
+            iniciarApp();
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+    }
 } else {
-    document.getElementById('loginScreen').style.display = 'flex';
+    // Aguarda o evento de carregamento das variáveis
+    window.addEventListener('env-loaded', function() {
+        // Recarrega as variáveis do window
+        const SUPABASE_URL = window.SUPABASE_URL || '';
+        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+        
+        console.log('🔑 SUPABASE_URL (após evento):', SUPABASE_URL);
+        console.log('🔑 SUPABASE_ANON_KEY (após evento):', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
+        
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            if (initSupabase()) {
+                console.log('✅ Supabase conectado com sucesso!');
+                const p = getPortaria();
+                if (p) {
+                    iniciarApp();
+                } else {
+                    document.getElementById('loginScreen').style.display = 'flex';
+                }
+            }
+        } else {
+            document.getElementById('configCheck').innerHTML = `
+                <div class="config-warning">
+                    <h2>⚠️ Configuração necessária</h2>
+                    <p>O arquivo <code>.env</code> não foi configurado.</p>
+                    <p>Copie o arquivo <code>.env.example</code> para <code>.env</code> e preencha com suas chaves.</p>
+                </div>`;
+        }
+    });
 }
-
-} // FIM DA FUNÇÃO iniciarAplicacao
-
-// Se as variáveis já foram carregadas, inicia
-if (window.SUPABASE_URL) {
-    iniciarAplicacao();
-} else {
-    // Aguarda o evento de carregamento
-    window.addEventListener('env-loaded', iniciarAplicacao);
-}
-
 </script>
 </body>
 </html>
