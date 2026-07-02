@@ -1,0 +1,14 @@
+{
+  "name": "transzilli-controle-acesso",
+  "version": "1.0.0",
+  "description": "Sistema de controle de acesso com QR Code",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.5.0",
+    "vite-plugin-html": "^3.2.0"
+  }
+}
