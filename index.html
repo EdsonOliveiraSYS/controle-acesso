@@ -235,6 +235,14 @@
   .last-access .la-name { font-weight: 500; }
   .last-access .la-time { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; float: right; }
 
+  /* Garantir que a página do Dashboard só apareça para admin */
+  #page-dashboard {
+    display: none !important;
+  }
+  .role-admin #page-dashboard {
+    display: block !important;
+  }
+
   .scan-zone { position:relative; background:#000000; border:2px solid var(--border); border-radius:var(--radius); overflow:hidden; aspect-ratio:1; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:12px; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
   .scan-zone:active { transform:scale(0.99); }
   .scan-zone video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; filter: contrast(1.2) brightness(1.1); }
@@ -909,7 +917,7 @@ async function iniciarApp() {
     await carregarTodosMotoristas();
     renderLista();
     setupInfiniteScroll();
-    carregarDashboard();
+    // NÃO carregar Dashboard aqui - será carregado apenas quando clicar na aba
   }
 }
 
@@ -935,7 +943,7 @@ function showPage(id) {
   }
   if (id === 'log') renderLog();
   if (id === 'dashboard') {
-    carregarDashboard();
+    carregarDashboard(); // Só carrega o Dashboard quando clicar na aba
   }
   if (id === 'cadastro') {
     document.getElementById('cadastroTitle').textContent = 'Novo motorista';
