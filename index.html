@@ -11,6 +11,10 @@
 <title>Transzilli - Controle de Acesso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Chart.js para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -63,6 +67,8 @@
     
     --shadow-card: 0 4px 24px rgba(0,0,0,0.5);
     --shadow-glow: 0 0 40px rgba(27,99,51,0.05);
+    
+    --chart-grid: rgba(255,255,255,0.1);
   }
 
   /* TEMA CLARO */
@@ -82,6 +88,8 @@
     
     --shadow-card: 0 4px 24px rgba(0,0,0,0.08);
     --shadow-glow: 0 0 40px rgba(27,99,51,0.03);
+    
+    --chart-grid: rgba(0,0,0,0.1);
   }
 
   /* Transição suave para todas as cores */
@@ -172,6 +180,60 @@
   .section-title { font-size:11px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:var(--text3); margin-bottom:12px; }
   .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; box-shadow:var(--shadow-card); transition:border-color var(--transition-fast); }
   .card:hover { border-color:var(--border2); }
+
+  /* ===== DASHBOARD ===== */
+  .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .dash-stat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 12px;
+    text-align: center;
+    transition: border-color var(--transition-fast);
+  }
+  .dash-stat:hover { border-color: var(--border2); }
+  .dash-stat .dash-icon { font-size: 22px; margin-bottom: 4px; }
+  .dash-stat .dash-number { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+  .dash-stat .dash-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  .dash-stat.green .dash-number { color: var(--green); }
+  .dash-stat.red .dash-number { color: var(--red); }
+  .dash-stat.amber .dash-number { color: var(--amber); }
+
+  .chart-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .chart-container canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 200px;
+  }
+  .chart-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  .last-access {
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .last-access:last-child { border-bottom: none; }
+  .last-access .la-name { font-weight: 500; }
+  .last-access .la-time { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; float: right; }
 
   .scan-zone { position:relative; background:#000000; border:2px solid var(--border); border-radius:var(--radius); overflow:hidden; aspect-ratio:1; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:12px; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
   .scan-zone:active { transform:scale(0.99); }
@@ -367,6 +429,7 @@
     </div>
 
     <div class="pages">
+      <!-- VALIDAR -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -386,6 +449,7 @@
         <div id="scanResult"></div>
       </div>
 
+      <!-- CADASTRAR -->
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
@@ -414,6 +478,7 @@
         </div>
       </div>
 
+      <!-- MOTORISTAS -->
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
@@ -429,6 +494,7 @@
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
+      <!-- LOG -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">Histórico de validações</p>
@@ -439,6 +505,64 @@
           </div>
         </div>
         <div class="card" id="logList"></div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="page admin-only" id="page-dashboard">
+        <p class="section-title">📊 Dashboard</p>
+        
+        <!-- Cards de estatísticas -->
+        <div class="dashboard-stats" id="dashStats">
+          <div class="dash-stat">
+            <div class="dash-icon">🧑‍🤝‍🧑</div>
+            <div class="dash-number" id="dashTotal">0</div>
+            <div class="dash-label">Total Motoristas</div>
+          </div>
+          <div class="dash-stat green">
+            <div class="dash-icon">✅</div>
+            <div class="dash-number" id="dashAtivos">0</div>
+            <div class="dash-label">Autorizados</div>
+          </div>
+          <div class="dash-stat amber">
+            <div class="dash-icon">⏳</div>
+            <div class="dash-number" id="dashPendentes">0</div>
+            <div class="dash-label">Pendentes</div>
+          </div>
+          <div class="dash-stat red">
+            <div class="dash-icon">❌</div>
+            <div class="dash-number" id="dashBloqueados">0</div>
+            <div class="dash-label">Bloqueados</div>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="chart-container">
+          <div class="chart-title">📈 Acessos por dia da semana</div>
+          <canvas id="chartAcessosSemana"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">🥧 Distribuição de Status</div>
+          <canvas id="chartStatus"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">📦 Tipos de Serviço</div>
+          <canvas id="chartServicos"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">📊 Evolução de Acessos (últimos 7 dias)</div>
+          <canvas id="chartEvolucao"></canvas>
+        </div>
+
+        <!-- Últimos acessos -->
+        <div class="card">
+          <p class="section-title" style="margin-bottom:8px;">🔄 Últimos acessos</p>
+          <div id="dashUltimosAcessos">
+            <div class="empty"><p>Carregando...</p></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -454,6 +578,10 @@
       <button class="nav-btn admin-only" onclick="showPage('lista')" id="nav-lista" aria-label="Lista de motoristas" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Motoristas
+      </button>
+      <button class="nav-btn admin-only" onclick="showPage('dashboard')" id="nav-dashboard" aria-label="Dashboard" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
       </button>
       <button class="nav-btn" onclick="showPage('log')" id="nav-log" aria-label="Histórico" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
@@ -654,6 +782,12 @@ let currentPage = 0;
 const PAGE_SIZE = 20;
 let selectedServico = null;
 
+// Variáveis para gráficos
+let chartAcessosSemana = null;
+let chartStatus = null;
+let chartServicos = null;
+let chartEvolucao = null;
+
 // ============================================================
 // LOADING
 // ============================================================
@@ -775,6 +909,7 @@ async function iniciarApp() {
     await carregarTodosMotoristas();
     renderLista();
     setupInfiniteScroll();
+    carregarDashboard();
   }
 }
 
@@ -799,6 +934,9 @@ function showPage(id) {
     setupInfiniteScroll();
   }
   if (id === 'log') renderLog();
+  if (id === 'dashboard') {
+    carregarDashboard();
+  }
   if (id === 'cadastro') {
     document.getElementById('cadastroTitle').textContent = 'Novo motorista';
     document.getElementById('btnCadastrar').textContent = 'Cadastrar e gerar QR Code';
@@ -810,6 +948,275 @@ function showPage(id) {
     document.getElementById('fotoPreview').innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
   }
 }
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function carregarDashboard() {
+  try {
+    // Estatísticas dos motoristas
+    const total = allMotoristas.length;
+    const ativos = allMotoristas.filter(x => x.status === 'autorizado').length;
+    const pendentes = allMotoristas.filter(x => x.status === 'pendente').length;
+    const bloqueados = allMotoristas.filter(x => x.status === 'bloqueado').length;
+    
+    document.getElementById('dashTotal').textContent = total;
+    document.getElementById('dashAtivos').textContent = ativos;
+    document.getElementById('dashPendentes').textContent = pendentes;
+    document.getElementById('dashBloqueados').textContent = bloqueados;
+    
+    // Buscar validações dos últimos 7 dias
+    const hoje = new Date();
+    const seteDiasAtras = new Date();
+    seteDiasAtras.setDate(hoje.getDate() - 7);
+    
+    const { data: validacoes, error } = await supa
+      .from('validacoes')
+      .select('*')
+      .gte('dt', seteDiasAtras.toISOString())
+      .order('dt', { ascending: false })
+      .limit(100);
+    
+    if (error) throw new Error(error.message);
+    
+    // Dados para gráficos
+    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const acessosPorDia = Array(7).fill(0);
+    const servicosCount = { carga: 0, descarga: 0, pernoite: 0 };
+    let entradas = 0;
+    let saidas = 0;
+    
+    validacoes.forEach(v => {
+      const data = new Date(v.dt);
+      const dia = data.getDay();
+      if (v.tipo === 'entrada') entradas++;
+      if (v.tipo === 'saida') saidas++;
+      if (v.servico) {
+        const serv = v.servico.toLowerCase();
+        if (servicosCount[serv] !== undefined) servicosCount[serv]++;
+      }
+    });
+    
+    // Preencher acessos por dia (últimos 7 dias)
+    for (let i = 0; i < 7; i++) {
+      const data = new Date();
+      data.setDate(data.getDate() - i);
+      const dia = data.getDay();
+      const count = validacoes.filter(v => {
+        const d = new Date(v.dt);
+        return d.getDate() === data.getDate() && 
+               d.getMonth() === data.getMonth() && 
+               d.getFullYear() === data.getFullYear();
+      }).length;
+      acessosPorDia[dia] = count;
+    }
+    
+    // Criar gráficos
+    criarGraficoAcessosSemana(diasSemana, acessosPorDia);
+    criarGraficoStatus([ativos, pendentes, bloqueados]);
+    criarGraficoServicos(Object.values(servicosCount));
+    criarGraficoEvolucao(validacoes);
+    
+    // Últimos acessos
+    const ultimos = validacoes.slice(0, 5);
+    const container = document.getElementById('dashUltimosAcessos');
+    if (ultimos.length === 0) {
+      container.innerHTML = '<div class="empty"><p>Nenhum acesso recente</p></div>';
+    } else {
+      container.innerHTML = ultimos.map(v => `
+        <div class="last-access">
+          <span class="la-name">${v.motorista_nome || 'Desconhecido'}</span>
+          <span class="la-time">${new Date(v.dt).toLocaleString('pt-BR')}</span>
+          <span style="font-size:11px;color:${v.ok ? 'var(--green)' : 'var(--red)'}">
+            ${v.ok ? '✅' : '❌'} ${v.tipo === 'entrada' ? 'Entrada' : v.tipo === 'saida' ? 'Saída' : '—'}
+          </span>
+        </div>
+      `).join('');
+    }
+    
+  } catch (e) {
+    console.error('Erro ao carregar dashboard:', e);
+    showToast('Erro ao carregar dashboard');
+  }
+}
+
+function criarGraficoAcessosSemana(labels, data) {
+  const ctx = document.getElementById('chartAcessosSemana').getContext('2d');
+  if (chartAcessosSemana) chartAcessosSemana.destroy();
+  
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#E8F0EA' : '#1A2A1A';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  
+  chartAcessosSemana = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Acessos',
+        data: data,
+        backgroundColor: 'rgba(27,99,51,0.6)',
+        borderColor: '#1b6333',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: textColor, stepSize: 1 },
+          grid: { color: gridColor }
+        },
+        x: {
+          ticks: { color: textColor },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function criarGraficoStatus(data) {
+  const ctx = document.getElementById('chartStatus').getContext('2d');
+  if (chartStatus) chartStatus.destroy();
+  
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#E8F0EA' : '#1A2A1A';
+  
+  chartStatus = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Autorizados', 'Pendentes', 'Bloqueados'],
+      datasets: [{
+        data: data,
+        backgroundColor: ['#34C98A', '#F0A93A', '#F05B5B'],
+        borderColor: 'var(--bg2)',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: textColor, padding: 8, usePointStyle: true }
+        }
+      }
+    }
+  });
+}
+
+function criarGraficoServicos(data) {
+  const ctx = document.getElementById('chartServicos').getContext('2d');
+  if (chartServicos) chartServicos.destroy();
+  
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#E8F0EA' : '#1A2A1A';
+  
+  chartServicos = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['📦 Carga', '📤 Descarga', '🌙 Pernoite'],
+      datasets: [{
+        label: 'Quantidade',
+        data: data,
+        backgroundColor: ['rgba(52,201,138,0.6)', 'rgba(240,169,58,0.6)', 'rgba(240,91,91,0.6)'],
+        borderColor: ['#34C98A', '#F0A93A', '#F05B5B'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: textColor, stepSize: 1 },
+          grid: { color: 'var(--chart-grid)' }
+        },
+        x: {
+          ticks: { color: textColor },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function criarGraficoEvolucao(validacoes) {
+  const ctx = document.getElementById('chartEvolucao').getContext('2d');
+  if (chartEvolucao) chartEvolucao.destroy();
+  
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#E8F0EA' : '#1A2A1A';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  
+  // Agrupar por dia (últimos 7 dias)
+  const dias = [];
+  const dados = [];
+  for (let i = 6; i >= 0; i--) {
+    const data = new Date();
+    data.setDate(data.getDate() - i);
+    const label = data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    dias.push(label);
+    const count = validacoes.filter(v => {
+      const d = new Date(v.dt);
+      return d.getDate() === data.getDate() && 
+             d.getMonth() === data.getMonth() && 
+             d.getFullYear() === data.getFullYear();
+    }).length;
+    dados.push(count);
+  }
+  
+  chartEvolucao = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dias,
+      datasets: [{
+        label: 'Acessos',
+        data: dados,
+        borderColor: '#1b6333',
+        backgroundColor: 'rgba(27,99,51,0.1)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: textColor, stepSize: 1 },
+          grid: { color: gridColor }
+        },
+        x: {
+          ticks: { color: textColor },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// Atualizar gráficos quando o tema mudar
+document.addEventListener('themeChanged', () => {
+  if (document.getElementById('page-dashboard').classList.contains('active')) {
+    carregarDashboard();
+  }
+});
 
 // ============================================================
 // FOTO
@@ -1070,6 +1477,10 @@ async function registrarDirecao(tipo) {
     pendingValidation = null;
     selectedServico = null;
     showToast(tipo === 'entrada' ? 'Entrada registrada ✓' : 'Saída registrada ✓');
+    // Atualizar dashboard se estiver visível
+    if (document.getElementById('page-dashboard').classList.contains('active')) {
+      carregarDashboard();
+    }
   } catch (e) {
     console.error('Erro ao registrar:', e);
     showToast('Erro ao registrar. Tente novamente.');
