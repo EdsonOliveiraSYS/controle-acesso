@@ -494,12 +494,19 @@
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
 // ============================================================
 // CONFIGURAÇÃO
 // ============================================================
-const SUPABASE_URL = 'https://wqzbmlfiwmjhkjprnzrv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxemJtbGZpd21qaGtqcHJuenJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDA0MjEsImV4cCI6MjA5NzY3NjQyMX0.vza4qGtnkwq4LMM8HNCoHrfOPb8gzC4wse-qk9Yax9M';
+// ============================================================
+// CONFIGURAÇÃO - VARIÁVEIS DE AMBIENTE
+// ============================================================
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Log de verificação (ajuda a saber se carregou)
+console.log('🔑 SUPABASE_URL:', SUPABASE_URL);
+console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada');
 
 // ============================================================
 // UTILITÁRIOS
