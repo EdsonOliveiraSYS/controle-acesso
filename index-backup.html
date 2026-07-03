@@ -9,6 +9,17 @@
 <meta name="apple-mobile-web-app-title" content="PortariaPro">
 <meta name="theme-color" content="#060D10">
 <title>PortariaPro - Controle de Acesso</title>
+
+<!-- ========================================================== -->
+<!-- PWA / SERVICE WORKER - CORRIGIDO                           -->
+<!-- ========================================================== -->
+<link rel="manifest" href="/controle-acesso/manifest.json">
+<link rel="apple-touch-icon" href="/controle-acesso/icons/icon-192x192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<!-- ========================================================== -->
+<!-- FONTES E BIBLIOTECAS                                       -->
+<!-- ========================================================== -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -16,9 +27,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
 <style>
+  /* ========================================================== */
+  /* 🌊 TEMA AZUL PETRÓLEO KROMA                               */
+  /* ========================================================== */
   :root {
-    /* 🌊 Tema Azul Petróleo Kroma */
     --primary: #0B3B4A;
     --primary-dark: #072A35;
     --primary-light: #1A5B6E;
@@ -88,9 +102,14 @@
   .header-logo { font-size:24px; flex-shrink:0; }
   .header-title { font-size:16px; font-weight:700; letter-spacing:-0.3px; color:#fff; }
   .header-sub { font-size:11px; color:var(--text2); font-weight:400; }
-  .header-badge { margin-left:auto; background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius-full); padding:5px 14px; font-size:11px; color:var(--text2); font-family:'Inter',sans-serif; cursor:pointer; transition:all var(--transition-fast); }
+  .header-right { display:flex; gap:6px; align-items:center; margin-left:auto; }
+  .header-badge { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius-full); padding:5px 14px; font-size:11px; color:var(--text2); font-family:'Inter',sans-serif; cursor:pointer; transition:all var(--transition-fast); }
   .header-badge:hover { background:var(--bg3); border-color:var(--cyan); color:var(--text); }
   .header-badge:active { transform:scale(0.95); }
+  
+  .btn-update { background:none; border:none; color:var(--cyan); cursor:pointer; font-size:18px; padding:4px 8px; border-radius:6px; transition:all var(--transition-fast); display:flex; align-items:center; justify-content:center; }
+  .btn-update:hover { background:rgba(64,212,224,0.1); transform:scale(1.1); }
+  .btn-update:active { transform:scale(0.9); }
 
   .pages { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:0 4px; }
   .pages::-webkit-scrollbar { width:3px; }
@@ -271,15 +290,22 @@
 </head>
 <body>
 
+<!-- ========================================================== -->
+<!-- LOADING OVERLAY                                            -->
+<!-- ========================================================== -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Carregando...</div>
 </div>
 
+<!-- ========================================================== -->
+<!-- APP PRINCIPAL                                              -->
+<!-- ========================================================== -->
 <div class="app" id="app">
   <div class="status-bar"></div>
   <div id="configCheck"></div>
 
+  <!-- TELA DE LOGIN -->
   <div class="login-screen" id="loginScreen" style="display:none">
     <span class="login-logo">🚛</span>
     <h1>PortariaPro</h1>
@@ -290,6 +316,7 @@
     <div class="login-loading" id="loginLoading"></div>
   </div>
 
+  <!-- APP PRINCIPAL -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
       <span class="header-logo">🚛</span>
@@ -297,10 +324,17 @@
         <div class="header-title">PortariaPro</div>
         <div class="header-sub" id="portariaNome">—</div>
       </div>
-      <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
+      <div class="header-right">
+        <!-- BOTÃO DE ATUALIZAÇÃO FORÇADA -->
+        <button class="btn-update" onclick="forceUpdate()" title="Forçar atualização do aplicativo">
+          🔄
+        </button>
+        <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
+      </div>
     </div>
 
     <div class="pages">
+      <!-- PÁGINA: SCAN -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -320,6 +354,7 @@
         <div id="scanResult"></div>
       </div>
 
+      <!-- PÁGINA: CADASTRO -->
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
@@ -348,6 +383,7 @@
         </div>
       </div>
 
+      <!-- PÁGINA: LISTA -->
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
@@ -363,6 +399,7 @@
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
+      <!-- PÁGINA: HISTÓRICO -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">Histórico de validações</p>
@@ -376,6 +413,7 @@
       </div>
     </div>
 
+    <!-- NAVEGAÇÃO INFERIOR -->
     <nav class="nav">
       <button class="nav-btn active" onclick="showPage('scan')" id="nav-scan" aria-label="Validar QR Code" role="tab" aria-selected="true">
         <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></svg>
@@ -397,7 +435,9 @@
   </div>
 </div>
 
-<!-- QR MODAL -->
+<!-- ========================================================== -->
+<!-- QR MODAL                                                   -->
+<!-- ========================================================== -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -418,7 +458,9 @@
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
+<!-- ========================================================== -->
+<!-- DETAIL MODAL                                               -->
+<!-- ========================================================== -->
 <div class="detail-modal" id="detailModal" onclick="closeDetail(event)" role="dialog" aria-label="Detalhes do motorista">
   <div class="detail-sheet">
     <div class="handle"></div>
@@ -440,7 +482,9 @@
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+<!-- ========================================================== -->
+<!-- EDIT MODAL                                                 -->
+<!-- ========================================================== -->
 <div class="edit-modal" id="editModal" onclick="closeEdit(event)" role="dialog" aria-label="Editar motorista">
   <div class="edit-sheet">
     <div class="handle"></div>
@@ -472,11 +516,105 @@
   </div>
 </div>
 
+<!-- ========================================================== -->
+<!-- TOAST                                                      -->
+<!-- ========================================================== -->
 <div class="toast" id="toast"></div>
 
+<!-- ========================================================== -->
+<!-- JAVASCRIPT PRINCIPAL                                       -->
+<!-- ========================================================== -->
 <script>
 // ============================================================
-// CONFIGURAÇÃO - CHAVES DIRETAS
+// VERSÃO DO APLICATIVO
+// ============================================================
+const APP_VERSION = '2.1.0';
+
+// ============================================================
+// REGISTRO DO SERVICE WORKER - CORRIGIDO
+// ============================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    // CAMINHO CORRIGIDO: /controle-acesso/sw.js com scope correto
+    navigator.serviceWorker.register('/controle-acesso/sw.js', { 
+      scope: '/controle-acesso/' 
+    })
+      .then(function(registration) {
+        console.log('✅ Service Worker registrado com sucesso!', registration.scope);
+        
+        // Verifica atualizações a cada 60 segundos
+        setInterval(() => {
+          registration.update();
+        }, 60000);
+      })
+      .catch(function(err) {
+        console.log('❌ Falha ao registrar Service Worker:', err);
+        console.log('💡 Verifique se o arquivo sw.js existe em: /controle-acesso/sw.js');
+        console.log('💡 O scope deve ser: /controle-acesso/');
+      });
+  });
+}
+
+// ============================================================
+// DETECTA ATUALIZAÇÃO DO SERVICE WORKER
+// ============================================================
+let isRefreshing = false;
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      console.log('🔄 Service Worker atualizado. Recarregando...');
+      showToast('🔄 Nova versão disponível! Recarregando...', 1500);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  });
+}
+
+// ============================================================
+// FORÇAR ATUALIZAÇÃO PARA USUÁRIOS (OPÇÃO 7)
+// ============================================================
+async function forceUpdate() {
+  console.log('🔄 Iniciando atualização forçada...');
+  
+  if (!('serviceWorker' in navigator)) {
+    console.log('⚠️ Service Worker não suportado neste navegador');
+    showToast('⚠️ Seu navegador não suporta atualização automática', 3000);
+    return;
+  }
+
+  try {
+    showToast('🔄 Atualizando aplicação...', 3000);
+    
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    
+    if (registrations.length === 0) {
+      console.log('ℹ️ Nenhum Service Worker registrado');
+      showToast('ℹ️ Nenhuma atualização disponível', 2000);
+      return;
+    }
+
+    for (let registration of registrations) {
+      await registration.unregister();
+      console.log('🗑️ Service Worker desregistrado:', registration.scope);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    console.log('🔄 Recarregando página...');
+    window.location.reload(true);
+
+  } catch (error) {
+    console.error('❌ Erro ao forçar atualização:', error);
+    showToast('❌ Erro ao atualizar. Tente recarregar manualmente (F5).', 4000);
+  }
+}
+
+window.forceUpdate = forceUpdate;
+
+// ============================================================
+// CONFIGURAÇÃO - SUPABASE
 // ============================================================
 const SUPABASE_URL = 'https://wqzbmlfiwmjhkjprnzrv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxemJtbGZpd21qaGtqcHJuenJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDA0MjEsImV4cCI6MjA5NzY3NjQyMX0.vza4qGtnkwq4LMM8HNCoHrfOPb8gzC4wse-qk9Yax9M';
@@ -1783,9 +1921,28 @@ window.addEventListener('online', () => { showToast('Conexão restaurada ✓', 1
 window.addEventListener('offline', () => { showToast('Sem conexão com a internet ⚠', 3000); });
 
 // ============================================================
-// START
+// START - COM VERIFICAÇÃO DE VERSÃO
 // ============================================================
 (function start() {
+  // VERIFICA SE A VERSÃO MUDOU
+  const storedVersion = localStorage.getItem('portariapro_version');
+  if (storedVersion && storedVersion !== APP_VERSION) {
+    console.log(`📦 Versão atualizada: ${storedVersion} → ${APP_VERSION}`);
+    localStorage.setItem('portariapro_version', APP_VERSION);
+    
+    // Se já estiver logado, força atualização
+    if (getPortaria()) {
+      showToast('🔄 Nova versão disponível! Atualizando...', 2000);
+      setTimeout(() => {
+        forceUpdate();
+      }, 1000);
+      return;
+    }
+  } else if (!storedVersion) {
+    // Primeira execução: salva a versão
+    localStorage.setItem('portariapro_version', APP_VERSION);
+  }
+
   if (!initSupabase()) return;
   const p = getPortaria();
   if (p) {
