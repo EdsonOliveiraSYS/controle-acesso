@@ -525,6 +525,7 @@
 <!-- JAVASCRIPT PRINCIPAL                                       -->
 <!-- ========================================================== -->
 <script>
+<script>
 // ============================================================
 // VERSÃO DO APLICATIVO
 // ============================================================
@@ -535,8 +536,10 @@ const APP_VERSION = '2.1.0';
 // ============================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    // CAMINHO CORRIGIDO: /controle-acesso/sw.js
-    navigator.serviceWorker.register('/controle-acesso/sw.js', { scope: '/' })
+    // CAMINHO CORRIGIDO: /controle-acesso/sw.js com scope correto
+    navigator.serviceWorker.register('/controle-acesso/sw.js', { 
+      scope: '/controle-acesso/' 
+    })
       .then(function(registration) {
         console.log('✅ Service Worker registrado com sucesso!', registration.scope);
         
@@ -548,6 +551,7 @@ if ('serviceWorker' in navigator) {
       .catch(function(err) {
         console.log('❌ Falha ao registrar Service Worker:', err);
         console.log('💡 Verifique se o arquivo sw.js existe em: /controle-acesso/sw.js');
+        console.log('💡 O scope deve ser: /controle-acesso/');
       });
   });
 }
