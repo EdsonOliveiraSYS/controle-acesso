@@ -10,8 +10,6 @@ const OFFLINE_URL = 'index.html';
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
-  // CSS e JS são embutidos no HTML, mas vamos cachear a página principal
-  // Bibliotecas externas (CDN) - opcional, mas recomendado
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://unpkg.com/@zxing/library@latest/umd/index.min.js',
@@ -71,7 +69,6 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Ignorar requisições para o Supabase (dados dinâmicos)
   if (event.request.url.includes('supabase.co')) {
-    // Estratégia: Network First (sempre buscar do servidor)
     event.respondWith(
       fetch(event.request)
         .catch(() => {
@@ -88,10 +85,8 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
-        // Se encontrou no cache, devolve imediatamente
         const fetchPromise = fetch(event.request)
           .then(networkResponse => {
-            // Atualiza o cache com a versão mais recente
             if (networkResponse && networkResponse.status === 200) {
               const responseClone = networkResponse.clone();
               caches.open(CACHE_NAME)
@@ -103,18 +98,15 @@ self.addEventListener('fetch', event => {
           })
           .catch(err => {
             console.log('[SW] Erro ao buscar rede:', err);
-            // Se falhar na rede e não tiver cache, tenta offline page
             if (!cachedResponse) {
               return caches.match(OFFLINE_URL);
             }
             return null;
           });
 
-        // Devolve o cache primeiro, depois atualiza em background
         return cachedResponse || fetchPromise;
       })
       .catch(() => {
-        // Fallback: tenta carregar a página offline
         return caches.match(OFFLINE_URL);
       })
   );
@@ -127,30 +119,4 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-});
-
-//============================================================
-// PUSH NOTIFICATIONS (opcional)
-// ============================================================
-self.addEventListener('push', event => {
-const data = event.data.json();
-const options = {
-body: data.body || 'Nova validação registrada!',
-icon: '/icons/icon-192x192.png',
-badge: '/icons/badge-72x72.png',
-vibrate: [200, 100, 200],
-data: {
-url: data.url || '/'
-}
-};
-event.waitUntil(
-self.registration.showNotification('PortariaPro', options)
-);
-});
-
-self.addEventListener('notificationclick', event => {
-event.notification.close();
-event.waitUntil(
-clients.openWindow(event.notification.data.url)
-);
 });
