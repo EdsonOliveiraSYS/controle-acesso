@@ -17,9 +17,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
-  /* ============================================
-     TEMAS
-     ============================================ */
   :root {
     --primary: #1b6333;
     --primary-dark: #124a25;
@@ -64,18 +61,13 @@
   .app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; max-width: 480px; margin: 0 auto; background: var(--bg); position: relative; }
   .status-bar { height: var(--safe-top); background: var(--bg); flex-shrink: 0; }
 
-  /* ============================================
-     LOADING OVERLAY
-     ============================================ */
   .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
   .loading-overlay.active { display: flex; }
   .spinner { width: 40px; height: 40px; border: 3px solid var(--border2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { font-size: 14px; color: var(--text2); font-weight: 500; }
 
-  /* ============================================
-     TOAST SUTIL (NÃO QUEBRA O LAYOUT)
-     ============================================ */
+  /* ===== TOAST SIMPLES ===== */
   .toast-container {
     position: fixed;
     bottom: calc(80px + var(--safe-bottom));
@@ -83,7 +75,6 @@
     transform: translateX(-50%);
     z-index: 200;
     max-width: 90%;
-    width: 100%;
     pointer-events: none;
     display: flex;
     flex-direction: column;
@@ -95,7 +86,7 @@
     border: 1px solid var(--border2);
     padding: 8px 18px;
     border-radius: var(--radius-full);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     pointer-events: auto;
@@ -105,20 +96,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    max-width: 100%;
   }
-  .toast.show {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  .toast.show { opacity: 1; transform: translateY(0) scale(1); }
   .toast-success { border-color: var(--green); color: var(--green); }
   .toast-error { border-color: var(--red); color: var(--red); }
   .toast-info { border-color: var(--primary-light); color: var(--text); }
-  .toast .toast-icon { font-size: 16px; }
 
-  /* ============================================
-     LOGIN
-     ============================================ */
   .login-screen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:32px 24px; text-align:center; background: var(--bg); }
   .login-logo { width:80px; height:80px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; color:#fff; margin-bottom:20px; box-shadow:0 8px 32px rgba(27,99,51,0.3); }
   .login-screen h1 { font-size:22px; font-weight:700; margin-bottom:4px; background: linear-gradient(135deg, var(--text) 60%, var(--text2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
@@ -128,9 +111,6 @@
   .login-error { color:var(--red); font-size:13px; margin-bottom:12px; min-height:18px; }
   .login-loading { color:var(--text2); font-size:13px; margin-top:16px; }
 
-  /* ============================================
-     HEADER
-     ============================================ */
   .header { display:flex; align-items:center; gap:12px; padding:14px 20px 12px; flex-shrink:0; border-bottom:1px solid var(--border); background:var(--bg2); }
   .header-logo { width:38px; height:38px; background:linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#fff; flex-shrink:0; }
   .header-title { font-size:16px; font-weight:700; color:var(--text); }
@@ -141,9 +121,6 @@
   .theme-toggle { background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-full); padding:5px 10px; font-size:16px; cursor:pointer; min-width:36px; min-height:36px; color:var(--text2); transition:all var(--transition-fast); }
   .theme-toggle:hover { border-color:var(--primary); }
 
-  /* ============================================
-     NAVEGAÇÃO
-     ============================================ */
   .pages { flex:1; overflow-y:auto; overflow-x:hidden; padding:0 4px; }
   .pages::-webkit-scrollbar { width:3px; }
   .pages::-webkit-scrollbar-thumb { background:var(--border2); border-radius:var(--radius-full); }
@@ -157,11 +134,7 @@
   .nav-btn.active { color:var(--primary-light); }
   .nav-btn.active svg { stroke:var(--primary-light); }
   .nav-btn.active::after { content:''; position:absolute; top:-1px; left:30%; right:30%; height:2px; background:linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius:0 0 2px 2px; }
-  .nav-btn:active { transform:scale(0.92); }
 
-  /* ============================================
-     SCAN
-     ============================================ */
   .section-title { font-size:11px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:var(--text3); margin-bottom:12px; }
   .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; box-shadow:var(--shadow-card); transition:border-color var(--transition-fast); }
   .card:hover { border-color:var(--border2); }
@@ -191,36 +164,23 @@
   .result-box .result-sub { font-size:13px; color:var(--text2); }
   .result-photo { width:64px; height:64px; border-radius:14px; object-fit:cover; margin-bottom:10px; border:2px solid var(--border2); }
 
-  /* ============================================
-     BOTÕES
-     ============================================ */
-  .btn { width:100%; padding:14px; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; border:none; transition:all var(--transition-fast); position:relative; overflow:hidden; }
-  .btn:active:not(:disabled) { transform:scale(0.96); }
-  .btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+  .btn { width:100%; padding:14px; border-radius:var(--radius-sm); font-family:'Inter',sans-serif; font-size:15px; font-weight:600; cursor:pointer; border:none; transition:all var(--transition-fast); }
+  .btn:active { transform:scale(0.97); }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
   .btn-primary { background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff; box-shadow:0 4px 16px rgba(27,99,51,0.3); }
   .btn-primary:hover:not(:disabled) { box-shadow:0 6px 24px rgba(27,99,51,0.4); transform:translateY(-1px); }
   .btn-ghost { background:var(--bg3); color:var(--text2); border:1px solid var(--border2); margin-top:8px; }
   .btn-ghost:hover:not(:disabled) { border-color:var(--primary); color:var(--text); }
-  .btn-spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
 
-  /* ============================================
-     FORMULÁRIO
-     ============================================ */
   .field { margin-bottom:14px; }
   .field label { display:block; font-size:11px; color:var(--text2); margin-bottom:5px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
-  .field input, .field select { width:100%; padding:12px 14px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-size:15px; outline:none; transition:all var(--transition-fast); font-family:'Inter',sans-serif; }
+  .field input, .field select { width:100%; padding:12px 14px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-size:15px; outline:none; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
   .field input:focus, .field select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(27,99,51,0.1); }
   .field input.error { border-color:var(--red); }
-  .field input.error:focus { box-shadow:0 0 0 3px rgba(240,91,91,0.15); }
-  .field input.valid { border-color:var(--green); }
-  .field input.valid:focus { box-shadow:0 0 0 3px rgba(52,201,138,0.15); }
-  .field .error-msg { font-size:11px; color:var(--red); margin-top:4px; display:none; animation:fadeIn 0.2s ease; }
+  .field .error-msg { font-size:11px; color:var(--red); margin-top:4px; display:none; }
   .field .error-msg.show { display:block; }
   .field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%238CA99A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
 
-  /* ============================================
-     QR MODAL
-     ============================================ */
   .qr-modal, .detail-modal, .edit-modal { display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); align-items:flex-end; justify-content:center; padding-bottom:var(--safe-bottom); }
   .qr-modal.open, .detail-modal.open, .edit-modal.open { display:flex; animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
   @keyframes slideUp { from{transform:translateY(60px);opacity:0;} to{transform:translateY(0);opacity:1;} }
@@ -232,12 +192,8 @@
   .qr-code-wrap canvas { border-radius:8px; max-width:100%; height:auto; }
   .share-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
 
-  /* ============================================
-     LISTA
-     ============================================ */
   .driver-item { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border); cursor:pointer; transition:background var(--transition-fast); border-radius:4px; }
   .driver-item:hover { background:rgba(27,99,51,0.04); }
-  .driver-item:active { transform:scale(0.98); }
   .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg, rgba(27,99,51,0.2), rgba(45,138,74,0.1)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--primary-light); flex-shrink:0; overflow:hidden; border:1px solid var(--border); }
   .avatar img { width:100%; height:100%; object-fit:cover; }
   .driver-name { font-size:14px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -246,43 +202,18 @@
   .badge-green { background:var(--green-bg); color:var(--green); }
   .badge-red { background:var(--red-bg); color:var(--red); }
   .badge-amber { background:var(--amber-bg); color:var(--amber); }
-  .icon-btn { background:none; border:none; cursor:pointer; color:var(--text3); padding:6px; border-radius:8px; transition:all var(--transition-fast); }
+  .icon-btn { background:none; border:none; cursor:pointer; color:var(--text3); padding:6px; border-radius:8px; transition:color var(--transition-fast), background var(--transition-fast); }
   .icon-btn:hover { color:var(--primary-light); background:rgba(27,99,51,0.08); }
-  .icon-btn:active { transform:scale(0.85); }
 
   .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
-  .stat { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 10px; text-align:center; transition:border-color var(--transition-fast); }
+  .stat { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 10px; text-align:center; }
   .stat-num { font-size:20px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--text); }
   .stat-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; }
 
   .search-wrap { position:relative; margin-bottom:14px; }
   .search-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:var(--text3); pointer-events:none; }
-  .search-wrap input { padding-left:38px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-size:14px; padding:10px 14px 10px 38px; width:100%; outline:none; transition:all var(--transition-fast); }
+  .search-wrap input { padding-left:38px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-size:14px; padding:10px 14px 10px 38px; width:100%; outline:none; transition:border-color var(--transition-fast); }
   .search-wrap input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(27,99,51,0.08); }
-
-  .photo-picker { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
-  .photo-preview { width:64px; height:64px; border-radius:14px; background:var(--bg3); border:1px solid var(--border2); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
-  .photo-preview img { width:100%; height:100%; object-fit:cover; }
-  .photo-preview svg { width:26px; height:26px; stroke:var(--text3); }
-  .photo-btn { flex:1; padding:11px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text2); font-size:13px; cursor:pointer; text-align:center; transition:all var(--transition-fast); }
-  .photo-btn:hover { border-color:var(--primary); color:var(--text); }
-
-  .dir-btns { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
-  .dir-btn { flex:1; padding:14px; border-radius:var(--radius-sm); font-size:15px; font-weight:700; cursor:pointer; border:1px solid; min-width:80px; transition:all var(--transition-fast); }
-  .dir-btn:active { transform:scale(0.96); }
-  .dir-btn.entrada { background:rgba(27,99,51,0.1); color:var(--primary-light); border-color:rgba(27,99,51,0.2); }
-  .dir-btn.entrada:hover { background:rgba(27,99,51,0.18); }
-  .dir-btn.saida { background:var(--bg3); color:var(--text2); border-color:var(--border2); }
-  .dir-btn.saida:hover { border-color:var(--text3); color:var(--text); }
-
-  .servico-options { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px; }
-  .servico-btn { padding:10px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:13px; cursor:pointer; transition:all var(--transition-fast); }
-  .servico-btn.selected { border-color:var(--primary); background:rgba(27,99,51,0.1); color:var(--primary-light); }
-  .servico-btn:active { transform:scale(0.95); }
-
-  .report-btns { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-  .report-btn { flex:1; min-width:80px; padding:10px 8px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:11px; cursor:pointer; font-weight:600; transition:all var(--transition-fast); }
-  .report-btn:hover { border-color:var(--primary); color:var(--text); background:rgba(27,99,51,0.05); }
 
   .log-item { display:flex; align-items:center; gap:12px; padding:10px 4px; border-bottom:1px solid var(--border); }
   .log-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
@@ -294,12 +225,35 @@
   .empty svg { width:40px; height:40px; stroke:var(--text3); margin-bottom:12px; }
   .empty p { font-size:14px; color:var(--text3); }
 
+  .photo-picker { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .photo-preview { width:64px; height:64px; border-radius:14px; background:var(--bg3); border:1px solid var(--border2); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+  .photo-preview img { width:100%; height:100%; object-fit:cover; }
+  .photo-preview svg { width:26px; height:26px; stroke:var(--text3); }
+  .photo-btn { flex:1; padding:11px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text2); font-size:13px; cursor:pointer; text-align:center; transition:all var(--transition-fast); }
+  .photo-btn:hover { border-color:var(--primary); color:var(--text); }
+
+  .dir-btns { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .dir-btn { flex:1; padding:14px; border-radius:var(--radius-sm); font-size:15px; font-weight:700; cursor:pointer; border:1px solid; min-width:80px; transition:all var(--transition-fast); }
+  .dir-btn:active { transform:scale(0.97); }
+  .dir-btn.entrada { background:rgba(27,99,51,0.1); color:var(--primary-light); border-color:rgba(27,99,51,0.2); }
+  .dir-btn.entrada:hover { background:rgba(27,99,51,0.18); }
+  .dir-btn.saida { background:var(--bg3); color:var(--text2); border-color:var(--border2); }
+  .dir-btn.saida:hover { border-color:var(--text3); color:var(--text); }
+
+  .servico-options { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px; }
+  .servico-btn { padding:10px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:13px; cursor:pointer; transition:all var(--transition-fast); }
+  .servico-btn.selected { border-color:var(--primary); background:rgba(27,99,51,0.1); color:var(--primary-light); }
+
+  .report-btns { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .report-btn { flex:1; min-width:80px; padding:10px 8px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:11px; cursor:pointer; font-weight:600; transition:all var(--transition-fast); }
+  .report-btn:hover { border-color:var(--primary); color:var(--text); background:rgba(27,99,51,0.05); }
+
   .admin-only { display:none !important; }
   .role-admin .admin-only { display:block !important; }
   .role-admin .nav-btn.admin-only { display:flex !important; }
 
   #btnEnviarWhats { display:none; width:100%; padding:13px; background:#25D366; color:#fff; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; transition:all var(--transition-fast); }
-  #btnEnviarWhats:hover { box-shadow:0 4px 16px rgba(37,211,102,0.3); transform:scale(1.01); }
+  #btnEnviarWhats:hover { box-shadow:0 4px 16px rgba(37,211,102,0.3); }
 
   .detail-sheet h3 { font-size:18px; font-weight:700; margin-bottom:4px; }
   .detail-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
@@ -308,7 +262,7 @@
   .detail-row span:last-child { font-weight:500; font-family:'JetBrains Mono',monospace; font-size:12px; }
   .status-btns { display:flex; gap:8px; margin-top:16px; }
   .status-btn { flex:1; padding:11px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; border:1px solid; transition:all var(--transition-fast); text-transform:uppercase; letter-spacing:0.3px; }
-  .status-btn:active { transform:scale(0.96); }
+  .status-btn:active { transform:scale(0.97); }
   .status-btn.s-green { background:var(--green-bg); color:var(--green); border-color:rgba(52,201,138,0.2); }
   .status-btn.s-red { background:var(--red-bg); color:var(--red); border-color:rgba(240,91,91,0.2); }
   .status-btn.s-amber { background:var(--amber-bg); color:var(--amber); border-color:rgba(240,169,58,0.2); }
@@ -352,7 +306,6 @@
     </div>
 
     <div class="pages">
-      <!-- VALIDAR -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -372,7 +325,6 @@
         <div id="scanResult"></div>
       </div>
 
-      <!-- CADASTRAR -->
       <div class="page admin-only" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
@@ -401,7 +353,6 @@
         </div>
       </div>
 
-      <!-- MOTORISTAS -->
       <div class="page admin-only" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
@@ -417,7 +368,6 @@
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
-      <!-- LOG -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">Histórico de validações</p>
@@ -556,7 +506,7 @@ function toggleTheme() {
 loadTheme();
 
 // ============================================================
-// TOAST
+// TOAST - SIMPLES E FUNCIONAL
 // ============================================================
 function showToast(message, type = 'info', duration = 2500) {
   const container = document.getElementById('toastContainer');
@@ -565,7 +515,7 @@ function showToast(message, type = 'info', duration = 2500) {
   const icons = { success: '✅', error: '❌', info: 'ℹ️' };
   
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span> ${message}`;
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
   
   container.appendChild(toast);
   toast.offsetHeight;
@@ -693,8 +643,7 @@ async function fazerLogin() {
   
   const btn = document.getElementById('btnLogin');
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-spinner"></span> Verificando...';
-  document.getElementById('loginLoading').textContent = '';
+  document.getElementById('loginLoading').textContent = 'Verificando...';
   
   try {
     const { data, error } = await supa.from('portarias')
@@ -715,7 +664,6 @@ async function fazerLogin() {
     showToast('Erro inesperado', 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Entrar';
     document.getElementById('loginLoading').textContent = '';
   }
 }
@@ -1040,7 +988,7 @@ async function cadastrar() {
   
   const btn = document.getElementById('btnCadastrar');
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-spinner"></span> Salvando...';
+  btn.textContent = 'Salvando...';
   
   try {
     const novo = {
@@ -1057,7 +1005,7 @@ async function cadastrar() {
     if (error) throw new Error(error.message);
     
     if (fotoFile) {
-      btn.innerHTML = '<span class="btn-spinner"></span> Enviando foto...';
+      btn.textContent = 'Enviando foto...';
       const url = await uploadFoto(data.id, fotoFile);
       if (url) await supa.from('motoristas').update({ foto_url: url }).eq('id', data.id);
     }
