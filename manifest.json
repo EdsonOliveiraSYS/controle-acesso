@@ -2,7 +2,7 @@
   "name": "PortariaPro - Controle de Acesso",
   "short_name": "PortariaPro",
   "description": "Sistema de controle de acesso para portarias com QR Code",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#060D10",
   "theme_color": "#0B3B4A",
