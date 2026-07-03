@@ -11,11 +11,10 @@
 <title>PortariaPro - Controle de Acesso</title>
 
 <!-- ========================================================== -->
-<!-- PWA / SERVICE WORKER                                       -->
+<!-- PWA / SERVICE WORKER - CORRIGIDO                           -->
 <!-- ========================================================== -->
-<link rel="manifest" href="manifest.json">
-<!-- Remove a linha abaixo se não tiver ícones -->
-<!-- <link rel="apple-touch-icon" href="icons/icon-192x192.png"> -->
+<link rel="manifest" href="/controle-acesso/manifest.json">
+<link rel="apple-touch-icon" href="/controle-acesso/icons/icon-192x192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <!-- ========================================================== -->
@@ -532,12 +531,12 @@
 const APP_VERSION = '2.1.0';
 
 // ============================================================
-// REGISTRO DO SERVICE WORKER - VERSÃO CORRIGIDA
+// REGISTRO DO SERVICE WORKER - CORRIGIDO
 // ============================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    // Use caminho relativo - sem a barra no início
-    navigator.serviceWorker.register('sw.js', { scope: '/' })
+    // CAMINHO CORRIGIDO: /controle-acesso/sw.js
+    navigator.serviceWorker.register('/controle-acesso/sw.js', { scope: '/' })
       .then(function(registration) {
         console.log('✅ Service Worker registrado com sucesso!', registration.scope);
         
@@ -548,11 +547,11 @@ if ('serviceWorker' in navigator) {
       })
       .catch(function(err) {
         console.log('❌ Falha ao registrar Service Worker:', err);
-        // Mostra um aviso amigável para o usuário
-        console.log('💡 Dica: Verifique se o arquivo sw.js existe na raiz do projeto');
+        console.log('💡 Verifique se o arquivo sw.js existe em: /controle-acesso/sw.js');
       });
   });
 }
+
 // ============================================================
 // DETECTA ATUALIZAÇÃO DO SERVICE WORKER
 // ============================================================
@@ -576,7 +575,6 @@ if ('serviceWorker' in navigator) {
 async function forceUpdate() {
   console.log('🔄 Iniciando atualização forçada...');
   
-  // Verifica se o navegador suporta Service Worker
   if (!('serviceWorker' in navigator)) {
     console.log('⚠️ Service Worker não suportado neste navegador');
     showToast('⚠️ Seu navegador não suporta atualização automática', 3000);
@@ -584,10 +582,8 @@ async function forceUpdate() {
   }
 
   try {
-    // Mostra toast imediatamente
     showToast('🔄 Atualizando aplicação...', 3000);
     
-    // Obtém todos os Service Workers registrados
     const registrations = await navigator.serviceWorker.getRegistrations();
     
     if (registrations.length === 0) {
@@ -596,16 +592,13 @@ async function forceUpdate() {
       return;
     }
 
-    // Remove todos os Service Workers (limpa o cache)
     for (let registration of registrations) {
       await registration.unregister();
       console.log('🗑️ Service Worker desregistrado:', registration.scope);
     }
 
-    // Aguarda um momento para o toast ser visto
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Recarrega a página do servidor (busca a versão mais recente)
     console.log('🔄 Recarregando página...');
     window.location.reload(true);
 
@@ -615,7 +608,6 @@ async function forceUpdate() {
   }
 }
 
-// Torna a função disponível globalmente para uso no HTML
 window.forceUpdate = forceUpdate;
 
 // ============================================================
