@@ -102,9 +102,14 @@
   .header-logo { font-size:24px; flex-shrink:0; }
   .header-title { font-size:16px; font-weight:700; letter-spacing:-0.3px; color:#fff; }
   .header-sub { font-size:11px; color:var(--text2); font-weight:400; }
-  .header-badge { margin-left:auto; background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius-full); padding:5px 14px; font-size:11px; color:var(--text2); font-family:'Inter',sans-serif; cursor:pointer; transition:all var(--transition-fast); }
+  .header-right { display:flex; gap:6px; align-items:center; margin-left:auto; }
+  .header-badge { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius-full); padding:5px 14px; font-size:11px; color:var(--text2); font-family:'Inter',sans-serif; cursor:pointer; transition:all var(--transition-fast); }
   .header-badge:hover { background:var(--bg3); border-color:var(--cyan); color:var(--text); }
   .header-badge:active { transform:scale(0.95); }
+  
+  .btn-update { background:none; border:none; color:var(--cyan); cursor:pointer; font-size:18px; padding:4px 8px; border-radius:6px; transition:all var(--transition-fast); display:flex; align-items:center; justify-content:center; }
+  .btn-update:hover { background:rgba(64,212,224,0.1); transform:scale(1.1); }
+  .btn-update:active { transform:scale(0.9); }
 
   .pages { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:0 4px; }
   .pages::-webkit-scrollbar { width:3px; }
@@ -314,30 +319,18 @@
   <!-- APP PRINCIPAL -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
-<div class="header">
-  <span class="header-logo">🚛</span>
-  <div>
-    <div class="header-title">PortariaPro</div>
-    <div class="header-sub" id="portariaNome">—</div>
-  </div>
-  <div style="display:flex;gap:6px;align-items:center;">
-    <!-- NOVO BOTÃO DE ATUALIZAÇÃO -->
-    <button onclick="forceUpdate()" 
-            style="background:none;border:none;color:var(--cyan);cursor:pointer;font-size:18px;padding:4px 8px;border-radius:6px;transition:all var(--transition-fast);"
-            title="Forçar atualização do aplicativo"
-            onmouseover="this.style.background='rgba(64,212,224,0.1)'"
-            onmouseout="this.style.background='none'">
-      🔄
-    </button>
-    <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
-  </div>
-</div>
       <span class="header-logo">🚛</span>
       <div>
         <div class="header-title">PortariaPro</div>
         <div class="header-sub" id="portariaNome">—</div>
       </div>
-      <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
+      <div class="header-right">
+        <!-- BOTÃO DE ATUALIZAÇÃO FORÇADA -->
+        <button class="btn-update" onclick="forceUpdate()" title="Forçar atualização do aplicativo">
+          🔄
+        </button>
+        <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
+      </div>
     </div>
 
     <div class="pages">
@@ -532,10 +525,11 @@
 <!-- JAVASCRIPT PRINCIPAL                                       -->
 <!-- ========================================================== -->
 <script>
-  // ============================================================
+// ============================================================
 // VERSÃO DO APLICATIVO
 // ============================================================
-const APP_VERSION = '1.0.0'; // ← MUDE SEMPRE QUE ATUALIZAR
+const APP_VERSION = '2.1.0';
+
 // ============================================================
 // REGISTRO DO SERVICE WORKER
 // ============================================================
@@ -559,22 +553,7 @@ if ('serviceWorker' in navigator) {
 // ============================================================
 // DETECTA ATUALIZAÇÃO DO SERVICE WORKER
 // ============================================================
-let refreshing = false;
-navigator.serviceWorker.addEventListener('controllerchange', () => {
-  if (!refreshing) {
-    refreshing = true;
-    console.log('🔄 Service Worker atualizado. Recarregando...');
-    window.location.reload();
-  }
-});
-// ============================================================
-// DETECÇÃO AUTOMÁTICA DE ATUALIZAÇÕES
-// ============================================================
-
-// Variável para controlar se já está recarregando
 let isRefreshing = false;
-
-// Detecta quando o Service Worker é atualizado
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!isRefreshing) {
@@ -587,19 +566,55 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
-// ============================================================
-// VERIFICA ATUALIZAÇÕES PERIODICAMENTE
-// ============================================================
 
-// A cada 5 minutos, verifica se há uma nova versão
-setInterval(() => {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready.then(registration => {
-      registration.update();
-      console.log('🔍 Verificando atualizações...');
-    });
+// ============================================================
+// FORÇAR ATUALIZAÇÃO PARA USUÁRIOS (OPÇÃO 7)
+// ============================================================
+async function forceUpdate() {
+  console.log('🔄 Iniciando atualização forçada...');
+  
+  // Verifica se o navegador suporta Service Worker
+  if (!('serviceWorker' in navigator)) {
+    console.log('⚠️ Service Worker não suportado neste navegador');
+    showToast('⚠️ Seu navegador não suporta atualização automática', 3000);
+    return;
   }
-}, 5 * 60 * 1000); // 5 minutos
+
+  try {
+    // Mostra toast imediatamente
+    showToast('🔄 Atualizando aplicação...', 3000);
+    
+    // Obtém todos os Service Workers registrados
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    
+    if (registrations.length === 0) {
+      console.log('ℹ️ Nenhum Service Worker registrado');
+      showToast('ℹ️ Nenhuma atualização disponível', 2000);
+      return;
+    }
+
+    // Remove todos os Service Workers (limpa o cache)
+    for (let registration of registrations) {
+      await registration.unregister();
+      console.log('🗑️ Service Worker desregistrado:', registration.scope);
+    }
+
+    // Aguarda um momento para o toast ser visto
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Recarrega a página do servidor (busca a versão mais recente)
+    console.log('🔄 Recarregando página...');
+    window.location.reload(true);
+
+  } catch (error) {
+    console.error('❌ Erro ao forçar atualização:', error);
+    showToast('❌ Erro ao atualizar. Tente recarregar manualmente (F5).', 4000);
+  }
+}
+
+// Torna a função disponível globalmente para uso no HTML
+window.forceUpdate = forceUpdate;
+
 // ============================================================
 // CONFIGURAÇÃO - SUPABASE
 // ============================================================
@@ -1908,24 +1923,26 @@ window.addEventListener('online', () => { showToast('Conexão restaurada ✓', 1
 window.addEventListener('offline', () => { showToast('Sem conexão com a internet ⚠', 3000); });
 
 // ============================================================
-// START
-// ============================================================
-(function start() {
-  // ============================================================
 // START - COM VERIFICAÇÃO DE VERSÃO
 // ============================================================
 (function start() {
   // VERIFICA SE A VERSÃO MUDOU
   const storedVersion = localStorage.getItem('portariapro_version');
-  if (storedVersion !== APP_VERSION) {
+  if (storedVersion && storedVersion !== APP_VERSION) {
     console.log(`📦 Versão atualizada: ${storedVersion} → ${APP_VERSION}`);
     localStorage.setItem('portariapro_version', APP_VERSION);
     
     // Se já estiver logado, força atualização
     if (getPortaria()) {
-      forceUpdate();
+      showToast('🔄 Nova versão disponível! Atualizando...', 2000);
+      setTimeout(() => {
+        forceUpdate();
+      }, 1000);
       return;
     }
+  } else if (!storedVersion) {
+    // Primeira execução: salva a versão
+    localStorage.setItem('portariapro_version', APP_VERSION);
   }
 
   if (!initSupabase()) return;
@@ -1936,26 +1953,6 @@ window.addEventListener('offline', () => { showToast('Sem conexão com a interne
     document.getElementById('loginScreen').style.display = 'flex';
   }
 })();
-  if (!initSupabase()) return;
-  const p = getPortaria();
-  if (p) {
-    iniciarApp();
-  } else {
-    document.getElementById('loginScreen').style.display = 'flex';
-  }
-})();
-/**
- * Versão simplificada (se preferir)
- */
-async function forceUpdateSimple() {
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (let registration of registrations) {
-      await registration.unregister();
-    }
-    window.location.reload();
-  }
-}
 </script>
 </body>
 </html>
