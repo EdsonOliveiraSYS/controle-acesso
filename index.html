@@ -18,7 +18,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
   /* ============================================
-     TEMAS - ESCURO E CLARO
+     TEMAS
      ============================================ */
   :root {
     --primary: #1b6333;
@@ -74,7 +74,7 @@
   .loading-text { font-size: 14px; color: var(--text2); font-weight: 500; }
 
   /* ============================================
-     TOAST
+     TOAST SUTIL (NÃO QUEBRA O LAYOUT)
      ============================================ */
   .toast-container {
     position: fixed;
@@ -87,24 +87,25 @@
     pointer-events: none;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
   }
   .toast {
-    background: var(--bg3);
+    background: var(--bg2);
     border: 1px solid var(--border2);
-    padding: 10px 20px;
+    padding: 8px 18px;
     border-radius: var(--radius-full);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     pointer-events: auto;
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(15px) scale(0.95);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    max-width: 100%;
   }
   .toast.show {
     opacity: 1;
@@ -113,7 +114,7 @@
   .toast-success { border-color: var(--green); color: var(--green); }
   .toast-error { border-color: var(--red); color: var(--red); }
   .toast-info { border-color: var(--primary-light); color: var(--text); }
-  .toast .toast-icon { font-size: 18px; }
+  .toast .toast-icon { font-size: 16px; }
 
   /* ============================================
      LOGIN
@@ -126,7 +127,6 @@
   .login-screen input:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(27,99,51,0.15); }
   .login-error { color:var(--red); font-size:13px; margin-bottom:12px; min-height:18px; }
   .login-loading { color:var(--text2); font-size:13px; margin-top:16px; }
-  .btn-spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
 
   /* ============================================
      HEADER
@@ -201,6 +201,7 @@
   .btn-primary:hover:not(:disabled) { box-shadow:0 6px 24px rgba(27,99,51,0.4); transform:translateY(-1px); }
   .btn-ghost { background:var(--bg3); color:var(--text2); border:1px solid var(--border2); margin-top:8px; }
   .btn-ghost:hover:not(:disabled) { border-color:var(--primary); color:var(--text); }
+  .btn-spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
 
   /* ============================================
      FORMULÁRIO
@@ -228,7 +229,7 @@
   .qr-sheet h3 { font-size:18px; font-weight:700; margin-bottom:4px; }
   .qr-sheet p { font-size:13px; color:var(--text2); margin-bottom:20px; }
   .qr-code-wrap { display:flex; justify-content:center; margin-bottom:20px; background:white; padding:16px; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,0.4); }
-  .qr-code-wrap canvas, .qr-code-wrap img { border-radius:8px; max-width:100%; height:auto; }
+  .qr-code-wrap canvas { border-radius:8px; max-width:100%; height:auto; }
   .share-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
 
   /* ============================================
@@ -375,20 +376,12 @@
       <div class="page admin-only" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
-          <div class="field">
-            <label>NOME COMPLETO *</label>
-            <input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off" oninput="validarCampo(this, 'err-nome')">
-            <div class="error-msg" id="err-nome">Nome é obrigatório (mínimo 3 caracteres)</div>
-          </div>
-          <div class="field">
-            <label>CPF *</label>
-            <input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off" oninput="validarCPF(this)">
-            <div class="error-msg" id="err-cpf">CPF inválido</div>
-          </div>
+          <div class="field"><label>NOME COMPLETO *</label><input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off"><div class="error-msg" id="err-nome">Nome é obrigatório</div></div>
+          <div class="field"><label>CPF *</label><input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off"><div class="error-msg" id="err-cpf">CPF inválido</div></div>
           <div class="field"><label>NÚMERO DA CNH</label><input type="tel" id="f-cnh" placeholder="00000000000" autocomplete="off"></div>
-          <div class="field"><label>PLACA DO VEÍCULO</label><input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="field"><label>PLACA DO VEÍCULO</label><input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8" autocomplete="off"></div>
           <div class="field"><label>EMPRESA / TRANSPORTADORA</label><input type="text" id="f-empresa" placeholder="Nome da empresa" autocomplete="off"></div>
-          <div class="field"><label>WHATSAPP (com DDD)</label><input type="tel" id="f-whats" placeholder="(62) 99999-9999" autocomplete="off" inputmode="numeric" oninput="this.value=formatPhone(this.value)"></div>
+          <div class="field"><label>WHATSAPP (com DDD)</label><input type="tel" id="f-whats" placeholder="(62) 99999-9999" autocomplete="off" inputmode="numeric"></div>
           <div class="field">
             <label>FOTO DO MOTORISTA</label>
             <div class="photo-picker">
@@ -429,7 +422,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">Histórico de validações</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="renderLog()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:4px;transition:all var(--transition-fast);">🔄 Atualizar</button>
+            <button onclick="renderLog()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:4px;">🔄 Atualizar</button>
             <button onclick="exportarLogCSV()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:4px;">📊 CSV</button>
             <button onclick="exportarLogPDF()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:4px;">📄 PDF</button>
           </div>
@@ -508,12 +501,12 @@
     <div class="handle"></div>
     <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">✏️ Editar motorista</h3>
     <div id="editForm">
-      <div class="field"><label>NOME COMPLETO *</label><input type="text" id="e-nome" autocomplete="off" oninput="validarCampo(this, 'err-e-nome')"><div class="error-msg" id="err-e-nome">Nome é obrigatório</div></div>
-      <div class="field"><label>CPF *</label><input type="tel" id="e-cpf" maxlength="14" autocomplete="off" oninput="validarCPF(this)"><div class="error-msg" id="err-e-cpf">CPF inválido</div></div>
+      <div class="field"><label>NOME COMPLETO *</label><input type="text" id="e-nome" autocomplete="off"><div class="error-msg" id="err-e-nome">Nome é obrigatório</div></div>
+      <div class="field"><label>CPF *</label><input type="tel" id="e-cpf" maxlength="14" autocomplete="off"><div class="error-msg" id="err-e-cpf">CPF inválido</div></div>
       <div class="field"><label>CNH</label><input type="tel" id="e-cnh" autocomplete="off"></div>
-      <div class="field"><label>PLACA</label><input type="text" id="e-placa" maxlength="8" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="field"><label>PLACA</label><input type="text" id="e-placa" maxlength="8" autocomplete="off"></div>
       <div class="field"><label>EMPRESA</label><input type="text" id="e-empresa" autocomplete="off"></div>
-      <div class="field"><label>WHATSAPP</label><input type="tel" id="e-whats" autocomplete="off" inputmode="numeric" oninput="this.value=formatPhone(this.value)"></div>
+      <div class="field"><label>WHATSAPP</label><input type="tel" id="e-whats" autocomplete="off" inputmode="numeric"></div>
       <div class="field"><label>STATUS</label>
         <select id="e-status">
           <option value="autorizado">✓ Autorizado</option>
@@ -591,64 +584,23 @@ function showToast(message, type = 'info', duration = 2500) {
 }
 
 // ============================================================
-// VALIDAÇÃO
-// ============================================================
-function validarCampo(input, errorId) {
-  const errorEl = document.getElementById(errorId);
-  if (!errorEl) return;
-  if (input.value.trim().length < 3) {
-    input.classList.remove('valid');
-    input.classList.add('error');
-    errorEl.classList.add('show');
-  } else {
-    input.classList.remove('error');
-    input.classList.add('valid');
-    errorEl.classList.remove('show');
-  }
-}
-
-function validarCPF(input) {
-  const errorId = input.id === 'f-cpf' ? 'err-cpf' : 'err-e-cpf';
-  const errorEl = document.getElementById(errorId);
-  if (!errorEl) return;
-  const value = input.value.replace(/\D/g, '');
-  input.value = formatCPF(input.value);
-  if (value.length === 11 && Utils.validateCPF(input.value)) {
-    input.classList.remove('error');
-    input.classList.add('valid');
-    errorEl.classList.remove('show');
-  } else if (value.length > 0) {
-    input.classList.remove('valid');
-    input.classList.add('error');
-    errorEl.classList.add('show');
-  } else {
-    input.classList.remove('valid', 'error');
-    errorEl.classList.remove('show');
-  }
-}
-
-function formatCPF(v) {
-  let val = v.replace(/\D/g,'');
-  if (val.length > 3) val = val.slice(0,3) + '.' + val.slice(3);
-  if (val.length > 7) val = val.slice(0,7) + '.' + val.slice(7);
-  if (val.length > 11) val = val.slice(0,11) + '-' + val.slice(11,13);
-  return val;
-}
-
-function formatPhone(v) {
-  let val = v.replace(/\D/g,'');
-  if (val.length > 2) val = '(' + val.slice(0,2) + ') ' + val.slice(2);
-  if (val.length > 10) val = val.slice(0,10) + '-' + val.slice(10);
-  return val;
-}
-
-// ============================================================
 // UTILITÁRIOS
 // ============================================================
 const Utils = {
   now: () => new Date().toISOString(),
-  formatCPF: formatCPF,
-  formatPhone: formatPhone,
+  formatCPF: (v) => {
+    let val = v.replace(/\D/g,'');
+    if (val.length > 3) val = val.slice(0,3) + '.' + val.slice(3);
+    if (val.length > 7) val = val.slice(0,7) + '.' + val.slice(7);
+    if (val.length > 11) val = val.slice(0,11) + '-' + val.slice(11,13);
+    return val;
+  },
+  formatPhone: (v) => {
+    let val = v.replace(/\D/g,'');
+    if (val.length > 2) val = '(' + val.slice(0,2) + ') ' + val.slice(2);
+    if (val.length > 10) val = val.slice(0,10) + '-' + val.slice(10);
+    return val;
+  },
   initials: (nome) => {
     const partes = nome.trim().split(' ');
     if (partes.length >= 2) return (partes[0][0] + partes[partes.length-1][0]).toUpperCase();
@@ -1068,20 +1020,16 @@ function validarCadastro() {
   const cpf = document.getElementById('f-cpf').value.trim();
   let ok = true;
   document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('.field input').forEach(el => el.classList.remove('error', 'valid'));
+  document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
   if (!nome || nome.length < 3) {
     document.getElementById('err-nome').classList.add('show');
     document.getElementById('f-nome').classList.add('error');
     ok = false;
-  } else {
-    document.getElementById('f-nome').classList.add('valid');
   }
   if (!Utils.validateCPF(cpf)) {
     document.getElementById('err-cpf').classList.add('show');
     document.getElementById('f-cpf').classList.add('error');
     ok = false;
-  } else {
-    document.getElementById('f-cpf').classList.add('valid');
   }
   return ok;
 }
@@ -1114,11 +1062,9 @@ async function cadastrar() {
       if (url) await supa.from('motoristas').update({ foto_url: url }).eq('id', data.id);
     }
     
-    document.querySelectorAll('#page-cadastro .field input').forEach(f => {
-      f.value = '';
-      f.classList.remove('valid', 'error');
-    });
+    document.querySelectorAll('#page-cadastro .field input').forEach(f => f.value = '');
     document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
     document.getElementById('f-status').value = 'autorizado';
     fotoFile = null;
     document.getElementById('f-foto').value = '';
@@ -1400,7 +1346,7 @@ function openEditModal(id) {
   editFotoFile = null;
   document.getElementById('e-foto').value = '';
   document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error', 'valid'));
+  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
   document.getElementById('editModal').classList.add('open');
 }
 
@@ -1411,21 +1357,16 @@ async function salvarEdicao() {
   const cpf = document.getElementById('e-cpf').value.trim();
   let ok = true;
   document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error', 'valid'));
-  
+  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
   if (!nome || nome.length < 3) {
     document.getElementById('err-e-nome').classList.add('show');
     document.getElementById('e-nome').classList.add('error');
     ok = false;
-  } else {
-    document.getElementById('e-nome').classList.add('valid');
   }
   if (!Utils.validateCPF(cpf)) {
     document.getElementById('err-e-cpf').classList.add('show');
     document.getElementById('e-cpf').classList.add('error');
     ok = false;
-  } else {
-    document.getElementById('e-cpf').classList.add('valid');
   }
   if (!ok) { showToast('Corrija os campos destacados', 'error'); return; }
   
