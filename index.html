@@ -18,7 +18,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
   /* ============================================
-     TEMAS
+     TEMAS - ESCURO E CLARO
      ============================================ */
   :root {
     --primary: #1b6333;
@@ -46,7 +46,6 @@
     --shadow-card: 0 4px 24px rgba(0,0,0,0.5);
     --transition-fast: 0.15s ease;
     --transition-medium: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    --skeleton-gradient: linear-gradient(90deg, var(--bg3) 25%, var(--bg2) 50%, var(--bg3) 75%);
   }
 
   [data-theme="light"] {
@@ -66,35 +65,6 @@
   .status-bar { height: var(--safe-top); background: var(--bg); flex-shrink: 0; }
 
   /* ============================================
-     LOADING SKELETON
-     ============================================ */
-  .skeleton {
-    background: var(--skeleton-gradient);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: var(--radius-sm);
-  }
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  .skeleton-text { height: 16px; margin: 4px 0; }
-  .skeleton-title { height: 24px; width: 60%; margin-bottom: 12px; }
-  .skeleton-card { height: 60px; margin-bottom: 8px; }
-  .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
-
-  .skeleton-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 4px;
-    border-bottom: 1px solid var(--border);
-  }
-  .skeleton-item .skeleton-text { flex: 1; }
-  .skeleton-item .skeleton-text:last-child { width: 40%; }
-
-  /* ============================================
      LOADING OVERLAY
      ============================================ */
   .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
@@ -104,27 +74,7 @@
   .loading-text { font-size: 14px; color: var(--text2); font-weight: 500; }
 
   /* ============================================
-     BOTÃO COM LOADING
-     ============================================ */
-  .btn-loading {
-    position: relative;
-    pointer-events: none;
-    opacity: 0.7;
-  }
-  .btn-loading .btn-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
-  }
-
-  /* ============================================
-     TOAST MELHORADO
+     TOAST
      ============================================ */
   .toast-container {
     position: fixed;
@@ -143,60 +93,40 @@
   .toast {
     background: var(--bg3);
     border: 1px solid var(--border2);
-    padding: 12px 20px;
+    padding: 10px 20px;
     border-radius: var(--radius-full);
     font-size: 13px;
     font-weight: 500;
     box-shadow: 0 4px 24px rgba(0,0,0,0.4);
     pointer-events: auto;
     opacity: 0;
-    transform: translateY(20px);
-    transition: all var(--transition-medium);
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 200px;
-    justify-content: center;
   }
   .toast.show {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
   .toast-success { border-color: var(--green); color: var(--green); }
   .toast-error { border-color: var(--red); color: var(--red); }
-  .toast-info { border-color: var(--primary); color: var(--text); }
+  .toast-info { border-color: var(--primary-light); color: var(--text); }
   .toast .toast-icon { font-size: 18px; }
 
   /* ============================================
-     FORMULÁRIO - VALIDAÇÃO EM TEMPO REAL
+     LOGIN
      ============================================ */
-  .field input:focus:not(.error) { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27,99,51,0.15); }
-  .field input.valid { border-color: var(--green); }
-  .field input.valid:focus { box-shadow: 0 0 0 3px rgba(52,201,138,0.15); }
-  .field .helper-text { font-size: 11px; color: var(--text3); margin-top: 4px; display: none; }
-  .field .helper-text.show { display: block; }
-
-  /* ============================================
-     SCROLLBAR E ANIMAÇÕES
-     ============================================ */
-  .pages { flex:1; overflow-y:auto; overflow-x:hidden; padding:0 4px; }
-  .pages::-webkit-scrollbar { width:3px; }
-  .pages::-webkit-scrollbar-thumb { background:var(--border2); border-radius:var(--radius-full); }
-
-  .page { display:none; padding:20px 16px 24px; animation:fadeIn 0.3s ease; }
-  .page.active { display:block; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);} }
-
-  /* ============================================
-     NAVEGAÇÃO
-     ============================================ */
-  .nav { display:flex; border-top:1px solid var(--border); background:var(--bg2); padding-bottom:var(--safe-bottom); flex-shrink:0; }
-  .nav-btn { flex:1; padding:10px 4px 8px; background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--text3); font-size:10px; letter-spacing:0.2px; font-weight:500; position:relative; transition:color var(--transition-fast); }
-  .nav-btn svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; transition:stroke var(--transition-fast); }
-  .nav-btn.active { color:var(--primary-light); }
-  .nav-btn.active svg { stroke:var(--primary-light); }
-  .nav-btn.active::after { content:''; position:absolute; top:-1px; left:30%; right:30%; height:2px; background:linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius:0 0 2px 2px; }
-  .nav-btn:active { transform:scale(0.92); }
+  .login-screen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:32px 24px; text-align:center; background: var(--bg); }
+  .login-logo { width:80px; height:80px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; color:#fff; margin-bottom:20px; box-shadow:0 8px 32px rgba(27,99,51,0.3); }
+  .login-screen h1 { font-size:22px; font-weight:700; margin-bottom:4px; background: linear-gradient(135deg, var(--text) 60%, var(--text2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .login-screen .subtitle { font-size:13px; color:var(--text2); margin-bottom:28px; }
+  .login-screen input { width:100%; max-width:280px; padding:16px; text-align:center; font-size:24px; letter-spacing:10px; background:var(--bg2); border:2px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-family:'JetBrains Mono',monospace; outline:none; margin-bottom:16px; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
+  .login-screen input:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(27,99,51,0.15); }
+  .login-error { color:var(--red); font-size:13px; margin-bottom:12px; min-height:18px; }
+  .login-loading { color:var(--text2); font-size:13px; margin-top:16px; }
+  .btn-spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
 
   /* ============================================
      HEADER
@@ -212,28 +142,31 @@
   .theme-toggle:hover { border-color:var(--primary); }
 
   /* ============================================
-     LOGIN
+     NAVEGAÇÃO
      ============================================ */
-  .login-screen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:32px 24px; text-align:center; background:var(--bg); }
-  .login-logo { width:80px; height:80px; background:linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; color:#fff; margin-bottom:20px; box-shadow:0 8px 32px rgba(27,99,51,0.3); }
-  .login-screen h1 { font-size:22px; font-weight:700; margin-bottom:4px; background:linear-gradient(135deg, var(--text) 60%, var(--text2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .login-screen .subtitle { font-size:13px; color:var(--text2); margin-bottom:28px; }
-  .login-screen input { width:100%; max-width:280px; padding:16px; text-align:center; font-size:24px; letter-spacing:10px; background:var(--bg2); border:2px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-family:'JetBrains Mono',monospace; outline:none; margin-bottom:16px; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
-  .login-screen input:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(27,99,51,0.15); }
-  .login-error { color:var(--red); font-size:13px; margin-bottom:12px; min-height:18px; }
-  .login-loading { color:var(--text2); font-size:13px; margin-top:16px; }
+  .pages { flex:1; overflow-y:auto; overflow-x:hidden; padding:0 4px; }
+  .pages::-webkit-scrollbar { width:3px; }
+  .pages::-webkit-scrollbar-thumb { background:var(--border2); border-radius:var(--radius-full); }
+  .page { display:none; padding:20px 16px 24px; animation:fadeIn 0.25s ease; }
+  .page.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+  .nav { display:flex; border-top:1px solid var(--border); background:var(--bg2); padding-bottom:var(--safe-bottom); flex-shrink:0; }
+  .nav-btn { flex:1; padding:10px 4px 8px; background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--text3); font-size:10px; letter-spacing:0.2px; font-weight:500; position:relative; transition:color var(--transition-fast); }
+  .nav-btn svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; transition:stroke var(--transition-fast); }
+  .nav-btn.active { color:var(--primary-light); }
+  .nav-btn.active svg { stroke:var(--primary-light); }
+  .nav-btn.active::after { content:''; position:absolute; top:-1px; left:30%; right:30%; height:2px; background:linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius:0 0 2px 2px; }
+  .nav-btn:active { transform:scale(0.92); }
 
   /* ============================================
-     CARD E SECTION
+     SCAN
      ============================================ */
   .section-title { font-size:11px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:var(--text3); margin-bottom:12px; }
   .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; box-shadow:var(--shadow-card); transition:border-color var(--transition-fast); }
   .card:hover { border-color:var(--border2); }
 
-  /* ============================================
-     SCAN
-     ============================================ */
-  .scan-zone { position:relative; background:#000; border:2px solid var(--border); border-radius:var(--radius); overflow:hidden; aspect-ratio:1; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:12px; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
+  .scan-zone { position:relative; background:#000; border:2px solid var(--border); border-radius:var(--radius); overflow:hidden; aspect-ratio:1; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:12px; transition:border-color var(--transition-fast); }
   .scan-zone:hover { border-color:var(--border2); }
   .scan-zone video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; }
   .scan-placeholder { text-align:center; padding:2rem; z-index:1; }
@@ -256,6 +189,7 @@
   .result-box h3 { font-size:17px; font-weight:700; margin-bottom:4px; }
   .result-box .result-name { font-size:15px; font-weight:600; }
   .result-box .result-sub { font-size:13px; color:var(--text2); }
+  .result-photo { width:64px; height:64px; border-radius:14px; object-fit:cover; margin-bottom:10px; border:2px solid var(--border2); }
 
   /* ============================================
      BOTÕES
@@ -268,21 +202,12 @@
   .btn-ghost { background:var(--bg3); color:var(--text2); border:1px solid var(--border2); margin-top:8px; }
   .btn-ghost:hover:not(:disabled) { border-color:var(--primary); color:var(--text); }
 
-  .btn-success { background:#25D366; color:#fff; }
-  .btn-success:hover:not(:disabled) { box-shadow:0 4px 16px rgba(37,211,102,0.3); transform:translateY(-1px); }
-
-  .status-btn { flex:1; padding:11px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; border:1px solid; transition:all var(--transition-fast); text-transform:uppercase; letter-spacing:0.3px; }
-  .status-btn:active { transform:scale(0.96); }
-  .status-btn.s-green { background:var(--green-bg); color:var(--green); border-color:rgba(52,201,138,0.2); }
-  .status-btn.s-red { background:var(--red-bg); color:var(--red); border-color:rgba(240,91,91,0.2); }
-  .status-btn.s-amber { background:var(--amber-bg); color:var(--amber); border-color:rgba(240,169,58,0.2); }
-
   /* ============================================
      FORMULÁRIO
      ============================================ */
   .field { margin-bottom:14px; }
   .field label { display:block; font-size:11px; color:var(--text2); margin-bottom:5px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
-  .field input, .field select { width:100%; padding:12px 14px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-size:15px; outline:none; transition:all var(--transition-fast); }
+  .field input, .field select { width:100%; padding:12px 14px; background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius-sm); color:var(--text); font-size:15px; outline:none; transition:all var(--transition-fast); font-family:'Inter',sans-serif; }
   .field input:focus, .field select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(27,99,51,0.1); }
   .field input.error { border-color:var(--red); }
   .field input.error:focus { box-shadow:0 0 0 3px rgba(240,91,91,0.15); }
@@ -290,8 +215,7 @@
   .field input.valid:focus { box-shadow:0 0 0 3px rgba(52,201,138,0.15); }
   .field .error-msg { font-size:11px; color:var(--red); margin-top:4px; display:none; animation:fadeIn 0.2s ease; }
   .field .error-msg.show { display:block; }
-  .field .helper-text { font-size:11px; color:var(--text3); margin-top:4px; display:none; }
-  .field .helper-text.show { display:block; }
+  .field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%238CA99A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
 
   /* ============================================
      QR MODAL
@@ -301,17 +225,20 @@
   @keyframes slideUp { from{transform:translateY(60px);opacity:0;} to{transform:translateY(0);opacity:1;} }
   .qr-sheet, .detail-sheet, .edit-sheet { background:var(--bg2); border:1px solid var(--border2); border-radius:20px 20px 0 0; padding:20px 20px 32px; width:100%; max-width:480px; box-shadow:0 -8px 40px rgba(0,0,0,0.5); max-height:90vh; overflow-y:auto; }
   .handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 16px; }
+  .qr-sheet h3 { font-size:18px; font-weight:700; margin-bottom:4px; }
+  .qr-sheet p { font-size:13px; color:var(--text2); margin-bottom:20px; }
   .qr-code-wrap { display:flex; justify-content:center; margin-bottom:20px; background:white; padding:16px; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,0.4); }
-  .qr-code-wrap canvas { max-width:250px; max-height:250px; }
+  .qr-code-wrap canvas, .qr-code-wrap img { border-radius:8px; max-width:100%; height:auto; }
   .share-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
 
   /* ============================================
      LISTA
      ============================================ */
-  .driver-item { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border); cursor:pointer; transition:background var(--transition-fast), transform 0.1s; border-radius:4px; }
+  .driver-item { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border); cursor:pointer; transition:background var(--transition-fast); border-radius:4px; }
   .driver-item:hover { background:rgba(27,99,51,0.04); }
   .driver-item:active { transform:scale(0.98); }
   .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg, rgba(27,99,51,0.2), rgba(45,138,74,0.1)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--primary-light); flex-shrink:0; overflow:hidden; border:1px solid var(--border); }
+  .avatar img { width:100%; height:100%; object-fit:cover; }
   .driver-name { font-size:14px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .driver-sub { font-size:12px; color:var(--text2); }
   .badge { font-size:10px; font-weight:600; padding:3px 10px; border-radius:var(--radius-full); text-transform:uppercase; letter-spacing:0.3px; flex-shrink:0; }
@@ -324,25 +251,8 @@
 
   .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
   .stat { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 10px; text-align:center; transition:border-color var(--transition-fast); }
-  .stat:hover { border-color:var(--border2); }
   .stat-num { font-size:20px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--text); }
   .stat-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; }
-
-  /* ============================================
-     LOG
-     ============================================ */
-  .log-item { display:flex; align-items:center; gap:12px; padding:10px 4px; border-bottom:1px solid var(--border); }
-  .log-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .log-name { font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .log-sub { font-size:11px; color:var(--text2); }
-  .log-time { font-size:10px; color:var(--text3); font-family:'JetBrains Mono',monospace; flex-shrink:0; text-align:right; line-height:1.4; }
-
-  /* ============================================
-     OUTROS
-     ============================================ */
-  .empty { text-align:center; padding:3rem 1rem; }
-  .empty svg { width:40px; height:40px; stroke:var(--text3); margin-bottom:12px; }
-  .empty p { font-size:14px; color:var(--text3); }
 
   .search-wrap { position:relative; margin-bottom:14px; }
   .search-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:var(--text3); pointer-events:none; }
@@ -366,14 +276,22 @@
 
   .servico-options { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px; }
   .servico-btn { padding:10px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:13px; cursor:pointer; transition:all var(--transition-fast); }
-  .servico-btn:hover { border-color:var(--border2); }
   .servico-btn.selected { border-color:var(--primary); background:rgba(27,99,51,0.1); color:var(--primary-light); }
   .servico-btn:active { transform:scale(0.95); }
 
   .report-btns { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
   .report-btn { flex:1; min-width:80px; padding:10px 8px; border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:11px; cursor:pointer; font-weight:600; transition:all var(--transition-fast); }
   .report-btn:hover { border-color:var(--primary); color:var(--text); background:rgba(27,99,51,0.05); }
-  .report-btn:active { transform:scale(0.95); }
+
+  .log-item { display:flex; align-items:center; gap:12px; padding:10px 4px; border-bottom:1px solid var(--border); }
+  .log-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .log-name { font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .log-sub { font-size:11px; color:var(--text2); }
+  .log-time { font-size:10px; color:var(--text3); font-family:'JetBrains Mono',monospace; flex-shrink:0; text-align:right; line-height:1.4; }
+
+  .empty { text-align:center; padding:3rem 1rem; }
+  .empty svg { width:40px; height:40px; stroke:var(--text3); margin-bottom:12px; }
+  .empty p { font-size:14px; color:var(--text3); }
 
   .admin-only { display:none !important; }
   .role-admin .admin-only { display:block !important; }
@@ -381,6 +299,21 @@
 
   #btnEnviarWhats { display:none; width:100%; padding:13px; background:#25D366; color:#fff; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; transition:all var(--transition-fast); }
   #btnEnviarWhats:hover { box-shadow:0 4px 16px rgba(37,211,102,0.3); transform:scale(1.01); }
+
+  .detail-sheet h3 { font-size:18px; font-weight:700; margin-bottom:4px; }
+  .detail-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .detail-row:last-of-type { border-bottom:none; }
+  .detail-row span:first-child { color:var(--text2); }
+  .detail-row span:last-child { font-weight:500; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .status-btns { display:flex; gap:8px; margin-top:16px; }
+  .status-btn { flex:1; padding:11px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; border:1px solid; transition:all var(--transition-fast); text-transform:uppercase; letter-spacing:0.3px; }
+  .status-btn:active { transform:scale(0.96); }
+  .status-btn.s-green { background:var(--green-bg); color:var(--green); border-color:rgba(52,201,138,0.2); }
+  .status-btn.s-red { background:var(--red-bg); color:var(--red); border-color:rgba(240,91,91,0.2); }
+  .status-btn.s-amber { background:var(--amber-bg); color:var(--amber); border-color:rgba(240,169,58,0.2); }
+
+  .qr-mini-btn { flex:1; padding:11px; background:rgba(27,99,51,0.08); color:var(--primary-light); border:1px solid rgba(27,99,51,0.2); border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; transition:all var(--transition-fast); }
+  .qr-mini-btn:hover { background:rgba(27,99,51,0.15); }
 </style>
 </head>
 <body>
@@ -556,14 +489,14 @@
       <div><h3 id="detailNome"></h3><p style="font-size:13px;color:var(--text2)" id="detailEmpresa"></p></div>
     </div>
     <div id="detailRows"></div>
-    <div class="status-btns" style="display:flex;gap:8px;margin-top:16px;">
+    <div class="status-btns">
       <button class="status-btn s-green" onclick="setStatus('autorizado')">Autorizar</button>
       <button class="status-btn s-amber" onclick="setStatus('pendente')">Pendente</button>
       <button class="status-btn s-red" onclick="setStatus('bloqueado')">Bloquear</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
-      <button class="btn btn-ghost" style="flex:1;padding:11px;" onclick="showQRFor(currentDriverId)">Ver QR Code</button>
-      <button class="btn btn-ghost" style="flex:1;padding:11px;background:rgba(45,138,74,0.08);" onclick="openEditModal(currentDriverId)">✏️ Editar</button>
+      <button class="qr-mini-btn" onclick="showQRFor(currentDriverId)">Ver QR Code</button>
+      <button class="qr-mini-btn" style="background:rgba(45,138,74,0.08);" onclick="openEditModal(currentDriverId)">✏️ Editar</button>
     </div>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="deleteDriver()">🗑 Remover motorista</button>
   </div>
@@ -625,29 +558,23 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
   document.getElementById('themeToggle').textContent = next === 'dark' ? '🌙' : '☀️';
-  showToast(next === 'light' ? '☀️ Tema claro ativado' : '🌙 Tema escuro ativado', 'info', 1500);
+  showToast(next === 'light' ? '☀️ Tema claro' : '🌙 Tema escuro', 'info', 1500);
 }
 loadTheme();
 
 // ============================================================
-// TOAST MELHORADO
+// TOAST
 // ============================================================
 function showToast(message, type = 'info', duration = 2500) {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   
-  const icons = {
-    success: '✅',
-    error: '❌',
-    info: 'ℹ️'
-  };
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
   
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span> ${message}`;
   
   container.appendChild(toast);
-  
-  // Força reflow para animação
   toast.offsetHeight;
   toast.classList.add('show');
   
@@ -656,7 +583,6 @@ function showToast(message, type = 'info', duration = 2500) {
     setTimeout(() => toast.remove(), 300);
   }, duration);
   
-  // Permitir fechar clicando
   toast.addEventListener('click', () => {
     clearTimeout(timeout);
     toast.classList.remove('show');
@@ -665,12 +591,11 @@ function showToast(message, type = 'info', duration = 2500) {
 }
 
 // ============================================================
-// VALIDAÇÃO DE CAMPOS EM TEMPO REAL
+// VALIDAÇÃO
 // ============================================================
 function validarCampo(input, errorId) {
   const errorEl = document.getElementById(errorId);
   if (!errorEl) return;
-  
   if (input.value.trim().length < 3) {
     input.classList.remove('valid');
     input.classList.add('error');
@@ -686,10 +611,8 @@ function validarCPF(input) {
   const errorId = input.id === 'f-cpf' ? 'err-cpf' : 'err-e-cpf';
   const errorEl = document.getElementById(errorId);
   if (!errorEl) return;
-  
   const value = input.value.replace(/\D/g, '');
   input.value = formatCPF(input.value);
-  
   if (value.length === 11 && Utils.validateCPF(input.value)) {
     input.classList.remove('error');
     input.classList.add('valid');
@@ -791,7 +714,6 @@ function hideLoading() {
 function initSupabase() {
   try {
     supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('✅ Supabase conectado!');
     return true;
   } catch (e) {
     document.getElementById('configCheck').innerHTML = `
@@ -828,16 +750,8 @@ async function fazerLogin() {
       .eq('codigo', codigo)
       .maybeSingle();
     
-    if (error) { 
-      errEl.textContent = 'Erro de conexão.';
-      showToast('Erro de conexão', 'error');
-      return; 
-    }
-    if (!data) { 
-      errEl.textContent = 'Código inválido.';
-      showToast('Código inválido', 'error');
-      return; 
-    }
+    if (error) { errEl.textContent = 'Erro de conexão.'; showToast('Erro de conexão', 'error'); return; }
+    if (!data) { errEl.textContent = 'Código inválido.'; showToast('Código inválido', 'error'); return; }
     
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: data.id, nome: data.nome, tipo: data.tipo || 'porteiro'
@@ -923,34 +837,20 @@ function showPage(id) {
 function previewFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { 
-    showToast('A foto deve ter no máximo 5MB', 'error');
-    e.target.value = ''; 
-    return; 
-  }
+  if (file.size > 5 * 1024 * 1024) { showToast('A foto deve ter no máximo 5MB', 'error'); e.target.value = ''; return; }
   fotoFile = file;
   const reader = new FileReader();
-  reader.onload = ev => { 
-    document.getElementById('fotoPreview').innerHTML = `<img src="${ev.target.result}">`;
-    showToast('Foto selecionada ✓', 'success', 1500);
-  };
+  reader.onload = ev => { document.getElementById('fotoPreview').innerHTML = `<img src="${ev.target.result}">`; showToast('Foto selecionada ✓', 'success', 1500); };
   reader.readAsDataURL(file);
 }
 
 function previewEditFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { 
-    showToast('A foto deve ter no máximo 5MB', 'error');
-    e.target.value = ''; 
-    return; 
-  }
+  if (file.size > 5 * 1024 * 1024) { showToast('A foto deve ter no máximo 5MB', 'error'); e.target.value = ''; return; }
   editFotoFile = file;
   const reader = new FileReader();
-  reader.onload = ev => { 
-    document.getElementById('e-fotoPreview').innerHTML = `<img src="${ev.target.result}">`;
-    showToast('Foto selecionada ✓', 'success', 1500);
-  };
+  reader.onload = ev => { document.getElementById('e-fotoPreview').innerHTML = `<img src="${ev.target.result}">`; showToast('Foto selecionada ✓', 'success', 1500); };
   reader.readAsDataURL(file);
 }
 
@@ -1055,7 +955,7 @@ async function processQR(id) {
   try {
     const { data: m, error } = await supa.from('motoristas').select('*').eq('id', id).maybeSingle();
     const dt = Utils.now();
-    const foto = (m && m.foto_url) ? `<img class="result-photo" src="${m.foto_url}" style="width:64px;height:64px;border-radius:14px;object-fit:cover;margin-bottom:10px;border:2px solid var(--border2);">` : '';
+    const foto = (m && m.foto_url) ? `<img class="result-photo" src="${m.foto_url}">` : '';
     
     if (error || !m) {
       div.innerHTML = `<div class="result-box fail"><svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><h3 style="color:var(--red)">QR Code inválido</h3><p class="result-sub">Motorista não encontrado</p></div>`;
@@ -1140,7 +1040,7 @@ async function registrarDirecao(tipo) {
     });
     
     const corStatus = ok ? 'var(--green)' : 'var(--amber)';
-    const foto = m.foto_url ? `<img class="result-photo" src="${m.foto_url}" style="width:64px;height:64px;border-radius:14px;object-fit:cover;margin-bottom:10px;border:2px solid var(--border2);">` : '';
+    const foto = m.foto_url ? `<img class="result-photo" src="${m.foto_url}">` : '';
     const servicoLabel = servico ? ` · ${servico.charAt(0).toUpperCase() + servico.slice(1)}` : '';
     const empresaLabel = servicoEmpresa ? ` · ${servicoEmpresa}` : '';
     
@@ -1167,10 +1067,8 @@ function validarCadastro() {
   const nome = document.getElementById('f-nome').value.trim();
   const cpf = document.getElementById('f-cpf').value.trim();
   let ok = true;
-  
   document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('.field input').forEach(el => el.classList.remove('error', 'valid'));
-  
   if (!nome || nome.length < 3) {
     document.getElementById('err-nome').classList.add('show');
     document.getElementById('f-nome').classList.add('error');
@@ -1178,7 +1076,6 @@ function validarCadastro() {
   } else {
     document.getElementById('f-nome').classList.add('valid');
   }
-  
   if (!Utils.validateCPF(cpf)) {
     document.getElementById('err-cpf').classList.add('show');
     document.getElementById('f-cpf').classList.add('error');
@@ -1186,7 +1083,6 @@ function validarCadastro() {
   } else {
     document.getElementById('f-cpf').classList.add('valid');
   }
-  
   return ok;
 }
 
@@ -1263,20 +1159,7 @@ function showQRFor(id, nome, placa, empresa, whatsapp) {
   qrDiv.innerHTML = '';
   
   try {
-    new QRCode(qrDiv, { text: id, width: 280, height: 280, colorDark: '#000000', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.H });
-    const canvas = qrDiv.querySelector('canvas');
-    if (canvas) {
-      const newCanvas = document.createElement('canvas');
-      const size = canvas.width;
-      newCanvas.width = size + 40;
-      newCanvas.height = size + 40;
-      const ctx = newCanvas.getContext('2d');
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
-      ctx.drawImage(canvas, 20, 20);
-      qrDiv.innerHTML = '';
-      qrDiv.appendChild(newCanvas);
-    }
+    new QRCode(qrDiv, { text: id, width: 250, height: 250, colorDark: '#000000', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.H });
   } catch (e) {
     qrDiv.innerHTML = '<p style="color:var(--red)">Erro ao gerar QR Code</p>';
     showToast('Erro ao gerar QR Code', 'error');
@@ -1371,24 +1254,6 @@ async function carregarTodosMotoristas() {
   } catch (e) { return []; }
 }
 
-function renderSkeletons(count = 5) {
-  const div = document.getElementById('listaMotoristas');
-  let html = '';
-  for (let i = 0; i < count; i++) {
-    html += `
-      <div class="skeleton-item">
-        <div class="skeleton skeleton-avatar"></div>
-        <div style="flex:1">
-          <div class="skeleton skeleton-text" style="width:70%"></div>
-          <div class="skeleton skeleton-text" style="width:40%"></div>
-        </div>
-        <div class="skeleton skeleton-text" style="width:60px"></div>
-      </div>
-    `;
-  }
-  div.innerHTML = html;
-}
-
 function renderLista() {
   const div = document.getElementById('listaMotoristas');
   const busca = (document.getElementById('busca').value || '').toLowerCase();
@@ -1421,7 +1286,7 @@ function renderLista() {
   
   div.innerHTML = paginados.map(m => `
     <div class="driver-item" onclick="openDetail('${m.id}')">
-      <div class="avatar">${m.foto_url ? `<img style="width:100%;height:100%;object-fit:cover;" src="${m.foto_url}">` : Utils.initials(m.nome)}</div>
+      <div class="avatar">${m.foto_url ? `<img src="${m.foto_url}">` : Utils.initials(m.nome)}</div>
       <div style="flex:1;min-width:0;">
         <div class="driver-name">${m.nome}</div>
         <div class="driver-sub">${m.placa || 'Sem placa'} · ${m.empresa || 'Sem empresa'}</div>
@@ -1484,7 +1349,7 @@ async function carregarMais() {
     item.className = 'driver-item';
     item.onclick = () => openDetail(m.id);
     item.innerHTML = `
-      <div class="avatar">${m.foto_url ? `<img style="width:100%;height:100%;object-fit:cover;" src="${m.foto_url}">` : Utils.initials(m.nome)}</div>
+      <div class="avatar">${m.foto_url ? `<img src="${m.foto_url}">` : Utils.initials(m.nome)}</div>
       <div style="flex:1;min-width:0;">
         <div class="driver-name">${m.nome}</div>
         <div class="driver-sub">${m.placa || 'Sem placa'} · ${m.empresa || 'Sem empresa'}</div>
@@ -1603,16 +1468,16 @@ function openDetail(id) {
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { showToast('Motorista não encontrado', 'error'); return; }
   currentDriverId = id;
-  document.getElementById('detailAvatar').innerHTML = m.foto_url ? `<img style="width:48px;height:48px;border-radius:12px;object-fit:cover;" src="${m.foto_url}">` : Utils.initials(m.nome);
+  document.getElementById('detailAvatar').innerHTML = m.foto_url ? `<img src="${m.foto_url}">` : Utils.initials(m.nome);
   document.getElementById('detailNome').textContent = m.nome;
   document.getElementById('detailEmpresa').textContent = m.empresa || 'Sem empresa';
   document.getElementById('detailRows').innerHTML = `
-    <div class="detail-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2)">CPF</span><span>${m.cpf || '—'}</span></div>
-    <div class="detail-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2)">CNH</span><span>${m.cnh || '—'}</span></div>
-    <div class="detail-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2)">Placa</span><span>${m.placa || '—'}</span></div>
-    <div class="detail-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2)">WhatsApp</span><span>${m.whatsapp ? Utils.formatPhone(m.whatsapp) : '—'}</span></div>
-    <div class="detail-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2)">Status</span><span class="${m.status === 'autorizado' ? 'badge badge-green' : m.status === 'bloqueado' ? 'badge badge-red' : 'badge badge-amber'}" style="font-family:'Inter',sans-serif">${m.status}</span></div>
-    <div class="detail-row" style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px;"><span style="color:var(--text2)">Cadastrado</span><span>${new Date(m.criado_em).toLocaleDateString('pt-BR')}</span></div>
+    <div class="detail-row"><span>CPF</span><span>${m.cpf || '—'}</span></div>
+    <div class="detail-row"><span>CNH</span><span>${m.cnh || '—'}</span></div>
+    <div class="detail-row"><span>Placa</span><span>${m.placa || '—'}</span></div>
+    <div class="detail-row"><span>WhatsApp</span><span>${m.whatsapp ? Utils.formatPhone(m.whatsapp) : '—'}</span></div>
+    <div class="detail-row"><span>Status</span><span class="${m.status === 'autorizado' ? 'badge badge-green' : m.status === 'bloqueado' ? 'badge badge-red' : 'badge badge-amber'}" style="font-family:'Inter',sans-serif">${m.status}</span></div>
+    <div class="detail-row"><span>Cadastrado</span><span>${new Date(m.criado_em).toLocaleDateString('pt-BR')}</span></div>
   `;
   document.getElementById('detailModal').classList.add('open');
 }
@@ -1840,9 +1705,6 @@ async function renderLog() {
   }
 }
 
-// ============================================================
-// LOG - EXPORTAÇÕES
-// ============================================================
 async function exportarLogCSV() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet', 'error'); return; }
   const portaria = getPortaria();
