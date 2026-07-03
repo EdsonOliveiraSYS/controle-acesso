@@ -1,15 +1,15 @@
 // ============================================================
 // SERVICE WORKER - PORTARIAPRO
-// Cache de arquivos para funcionamento offline e performance
 // ============================================================
 
 const CACHE_NAME = 'portariapro-v1';
 const OFFLINE_URL = 'index.html';
 
-// Arquivos que serão cacheados na instalação
+// Arquivos que serão cacheados na instalação - use caminhos relativos
 const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
+  '.',  // Página inicial
+  'index.html',
+  'manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://unpkg.com/@zxing/library@latest/umd/index.min.js',
@@ -17,7 +17,6 @@ const FILES_TO_CACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js'
 ];
-
 // ============================================================
 // INSTALAÇÃO
 // ============================================================
