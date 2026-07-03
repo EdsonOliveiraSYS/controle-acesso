@@ -14,7 +14,8 @@
 <!-- PWA / SERVICE WORKER                                       -->
 <!-- ========================================================== -->
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+<!-- Remove a linha abaixo se não tiver ícones -->
+<!-- <link rel="apple-touch-icon" href="icons/icon-192x192.png"> -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <!-- ========================================================== -->
@@ -531,11 +532,12 @@
 const APP_VERSION = '2.1.0';
 
 // ============================================================
-// REGISTRO DO SERVICE WORKER
+// REGISTRO DO SERVICE WORKER - VERSÃO CORRIGIDA
 // ============================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    // Use caminho relativo - sem a barra no início
+    navigator.serviceWorker.register('sw.js', { scope: '/' })
       .then(function(registration) {
         console.log('✅ Service Worker registrado com sucesso!', registration.scope);
         
@@ -546,10 +548,11 @@ if ('serviceWorker' in navigator) {
       })
       .catch(function(err) {
         console.log('❌ Falha ao registrar Service Worker:', err);
+        // Mostra um aviso amigável para o usuário
+        console.log('💡 Dica: Verifique se o arquivo sw.js existe na raiz do projeto');
       });
   });
 }
-
 // ============================================================
 // DETECTA ATUALIZAÇÃO DO SERVICE WORKER
 // ============================================================
