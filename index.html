@@ -6,9 +6,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Transzilli Acesso">
+<meta name="apple-mobile-web-app-title" content="PortariaPro">
 <meta name="theme-color" content="#0A0E0D">
-<title>Transzilli - Controle de Acesso</title>
+<title>PortariaPro - Controle de Acesso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -279,7 +279,7 @@
   <div id="configCheck"></div>
 
   <div class="login-screen" id="loginScreen" style="display:none">
-    <div class="login-logo">TZ</div>
+    <div class="login-logo">PP</div>
     <h1>Controle de Acesso</h1>
     <p class="subtitle">Digite o código da sua portaria</p>
     <div class="login-error" id="loginError"></div>
@@ -290,9 +290,9 @@
 
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
-      <div class="header-logo">TZ</div>
+      <div class="header-logo">PP</div>
       <div>
-        <div class="header-title">Transzilli</div>
+        <div class="header-title">PortariaPro</div>
         <div class="header-sub" id="portariaNome">—</div>
       </div>
       <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
@@ -1114,7 +1114,7 @@ async function enviarImagemWhatsapp() {
       if (!blob) { hideLoading(); showToast('Erro ao gerar imagem'); return; }
       if (navigator.share && navigator.canShare) {
         const file = new File([blob], `qrcode-${nome.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
-        const shareData = { title: 'QR Code de Acesso - Transzilli', text: `🚛 QR Code de acesso para ${nome}`, files: [file] };
+        const shareData = { title: 'QR Code de Acesso - PortariaPro', text: `🚛 QR Code de acesso para ${nome}`, files: [file] };
         if (navigator.canShare(shareData)) {
           try { await navigator.share(shareData); hideLoading(); showToast('Compartilhado com sucesso! ✓'); return; } 
           catch (e) { if (e.name === 'AbortError') { hideLoading(); return; } }
@@ -1126,7 +1126,7 @@ async function enviarImagemWhatsapp() {
       link.href = imageUrl;
       link.click();
       setTimeout(() => {
-        const msg = encodeURIComponent(`🚛 *QR Code de Acesso - Transzilli*\n\nOlá *${nome}*! Segue seu QR Code de acesso.\nApresente na portaria.`);
+        const msg = encodeURIComponent(`🚛 *QR Code de Acesso - PortariaPro*\n\nOlá *${nome}*! Segue seu QR Code de acesso.\nApresente na portaria.`);
         window.open(`https://wa.me/55${qrWhatsAtual}?text=${msg}`, '_blank');
         hideLoading();
         showToast('QR Code baixado e WhatsApp aberto ✓');
@@ -1167,7 +1167,7 @@ function enviarPorEmail() {
   if (!canvas) { showToast('Aguarde o QR Code carregar'); return; }
   const nome = document.getElementById('qrNome').textContent;
   const subject = encodeURIComponent(`QR Code de Acesso - ${nome}`);
-  const body = encodeURIComponent(`Olá ${nome},\n\nSegue seu QR Code de acesso.\n\nAtt,\nTranszilli`);
+  const body = encodeURIComponent(`Olá ${nome},\n\nSegue seu QR Code de acesso.\n\nAtt,\nPortariaPro`);
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
   showToast('E-mail aberto. Anexe a imagem baixada.');
   baixarQRCode();
@@ -1503,7 +1503,7 @@ function exportarMotoristasPDF() {
   doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
   doc.setFontSize(18);
   doc.setTextColor(255, 255, 255);
-  doc.text('🚛 TRANSZILLI - RELATÓRIO DE MOTORISTAS', 40, 35);
+  doc.text('🚛 PORTARIAPRO - RELATÓRIO DE MOTORISTAS', 40, 35);
   doc.setFontSize(9);
   doc.setTextColor(200, 220, 200);
   doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
@@ -1537,7 +1537,7 @@ function exportarMotoristasPDF() {
     doc.setTextColor(150, 150, 150);
     const pageWidth = doc.internal.pageSize.width;
     doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
-    doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
+    doc.text('PortariaPro - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
   }
   const dataStr = new Date().toISOString().slice(0,10);
   doc.save(`RELATORIO_MOTORISTAS_${dataStr}.pdf`);
@@ -1556,7 +1556,7 @@ function exportarMotoristasCompleto() {
   doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
   doc.setFontSize(18);
   doc.setTextColor(255, 255, 255);
-  doc.text('📋 TRANSZILLI - RELATÓRIO COMPLETO', 40, 35);
+  doc.text('📋 PORTARIAPRO - RELATÓRIO COMPLETO', 40, 35);
   doc.setFontSize(9);
   doc.setTextColor(200, 220, 200);
   doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
@@ -1603,7 +1603,7 @@ function exportarMotoristasCompleto() {
     doc.setTextColor(150, 150, 150);
     const pageWidth = doc.internal.pageSize.width;
     doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
-    doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
+    doc.text('PortariaPro - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
   }
   const dataStr = new Date().toISOString().slice(0,10);
   doc.save(`RELATORIO_COMPLETO_${dataStr}.pdf`);
@@ -1672,7 +1672,7 @@ async function exportarLogPDF() {
     doc.rect(0, 0, doc.internal.pageSize.width, 70, 'F');
     doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
-    doc.text('📊 TRANZILLI - HISTÓRICO DE VALIDAÇÕES', 40, 35);
+    doc.text('📊 PORTARIAPRO - HISTÓRICO DE VALIDAÇÕES', 40, 35);
     doc.setFontSize(9);
     doc.setTextColor(200, 220, 200);
     doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
@@ -1722,7 +1722,7 @@ async function exportarLogPDF() {
       doc.setTextColor(150, 150, 150);
       const pageWidth = doc.internal.pageSize.width;
       doc.text(`Página ${i} de ${pageCount}`, pageWidth - 80, doc.internal.pageSize.height - 20);
-      doc.text('Transzilli - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
+      doc.text('PortariaPro - Controle de Acesso', 40, doc.internal.pageSize.height - 20);
     }
     const dataStr = new Date().toISOString().slice(0,10);
     doc.save(`HISTORICO_VALIDACOES_${dataStr}.pdf`);
