@@ -25,7 +25,6 @@
      TEMAS - ESCURO (padrão) E CLARO
      ============================================ */
   :root {
-    /* Cores base (não mudam com o tema) */
     --primary: #1b6333;
     --primary-dark: #124a25;
     --primary-light: #2d8a4a;
@@ -92,15 +91,7 @@
     --chart-grid: rgba(0,0,0,0.1);
   }
 
-  /* Transição suave para todas as cores */
-  * {
-    transition: background-color var(--transition-medium), 
-                color var(--transition-medium), 
-                border-color var(--transition-medium),
-                box-shadow var(--transition-medium),
-                fill var(--transition-medium);
-  }
-
+  * { transition: background-color var(--transition-medium), color var(--transition-medium), border-color var(--transition-medium), box-shadow var(--transition-medium), fill var(--transition-medium); }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
   
@@ -135,7 +126,6 @@
   .header-badge:hover { background:var(--bg3); border-color:var(--primary); color:var(--text); }
   .header-badge:active { transform:scale(0.95); }
 
-  /* ===== BOTÃO DE TEMA ===== */
   .theme-toggle {
     background: var(--bg3);
     border: 1px solid var(--border2);
@@ -152,14 +142,8 @@
     color: var(--text2);
     font-family: 'Inter', sans-serif;
   }
-  .theme-toggle:hover {
-    border-color: var(--primary);
-    background: var(--bg3);
-    transform: scale(1.05);
-  }
-  .theme-toggle:active {
-    transform: scale(0.95);
-  }
+  .theme-toggle:hover { border-color: var(--primary); background: var(--bg3); transform: scale(1.05); }
+  .theme-toggle:active { transform: scale(0.95); }
 
   .pages { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:0 4px; }
   .pages::-webkit-scrollbar { width:3px; }
@@ -235,11 +219,11 @@
   .last-access .la-name { font-weight: 500; }
   .last-access .la-time { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; float: right; }
 
-  /* Garantir que a página do Dashboard só apareça para admin */
+  /* Dashboard só aparece para admin e na aba correta */
   #page-dashboard {
     display: none !important;
   }
-  .role-admin #page-dashboard {
+  .role-admin #page-dashboard.active {
     display: block !important;
   }
 
@@ -429,9 +413,7 @@
         <div class="header-sub" id="portariaNome">—</div>
       </div>
       <div class="header-actions">
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Alternar tema" title="Alternar tema">
-          🌙
-        </button>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Alternar tema">🌙</button>
         <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
       </div>
     </div>
@@ -458,7 +440,7 @@
       </div>
 
       <!-- CADASTRAR -->
-      <div class="page" id="page-cadastro">
+      <div class="page admin-only" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
           <div class="field"><label>NOME COMPLETO *</label><input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off"><div class="error-msg" id="err-nome">Nome é obrigatório</div></div>
@@ -487,7 +469,7 @@
       </div>
 
       <!-- MOTORISTAS -->
-      <div class="page" id="page-lista">
+      <div class="page admin-only" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
           <button class="report-btn" onclick="exportarMotoristasCSV()">📊 CSV</button>
@@ -502,7 +484,7 @@
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
-      <!-- LOG -->
+      <!-- HISTÓRICO -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">Histórico de validações</p>
@@ -515,11 +497,10 @@
         <div class="card" id="logList"></div>
       </div>
 
-      <!-- DASHBOARD -->
+      <!-- DASHBOARD (ÚLTIMO) -->
       <div class="page admin-only" id="page-dashboard">
         <p class="section-title">📊 Dashboard</p>
         
-        <!-- Cards de estatísticas -->
         <div class="dashboard-stats" id="dashStats">
           <div class="dash-stat">
             <div class="dash-icon">🧑‍🤝‍🧑</div>
@@ -543,7 +524,6 @@
           </div>
         </div>
 
-        <!-- Gráficos -->
         <div class="chart-container">
           <div class="chart-title">📈 Acessos por dia da semana</div>
           <canvas id="chartAcessosSemana"></canvas>
@@ -564,7 +544,6 @@
           <canvas id="chartEvolucao"></canvas>
         </div>
 
-        <!-- Últimos acessos -->
         <div class="card">
           <p class="section-title" style="margin-bottom:8px;">🔄 Últimos acessos</p>
           <div id="dashUltimosAcessos">
@@ -689,36 +668,28 @@ console.log('🔑 SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? '✅ Configurada' : '
 // ============================================================
 // TEMA ESCURO/CLARO
 // ============================================================
-
-// Carregar tema salvo ou usar o padrão (escuro)
 function loadTheme() {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
 }
 
-// Atualizar ícone do botão
 function updateThemeIcon(theme) {
   const toggle = document.getElementById('themeToggle');
   if (toggle) {
     toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
-    toggle.setAttribute('aria-label', theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro');
   }
 }
 
-// Alternar tema
 function toggleTheme() {
   const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
   const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  
   document.documentElement.setAttribute('data-theme', newTheme);
   localStorage.setItem('theme', newTheme);
   updateThemeIcon(newTheme);
-  
   showToast(newTheme === 'light' ? '☀️ Tema claro ativado' : '🌙 Tema escuro ativado', 1500);
 }
 
-// Carregar tema ao iniciar
 document.addEventListener('DOMContentLoaded', loadTheme);
 
 // ============================================================
@@ -790,7 +761,6 @@ let currentPage = 0;
 const PAGE_SIZE = 20;
 let selectedServico = null;
 
-// Variáveis para gráficos
 let chartAcessosSemana = null;
 let chartStatus = null;
 let chartServicos = null;
@@ -917,7 +887,6 @@ async function iniciarApp() {
     await carregarTodosMotoristas();
     renderLista();
     setupInfiniteScroll();
-    // NÃO carregar Dashboard aqui - será carregado apenas quando clicar na aba
   }
 }
 
@@ -943,7 +912,7 @@ function showPage(id) {
   }
   if (id === 'log') renderLog();
   if (id === 'dashboard') {
-    carregarDashboard(); // Só carrega o Dashboard quando clicar na aba
+    carregarDashboard();
   }
   if (id === 'cadastro') {
     document.getElementById('cadastroTitle').textContent = 'Novo motorista';
@@ -962,7 +931,6 @@ function showPage(id) {
 // ============================================================
 async function carregarDashboard() {
   try {
-    // Estatísticas dos motoristas
     const total = allMotoristas.length;
     const ativos = allMotoristas.filter(x => x.status === 'autorizado').length;
     const pendentes = allMotoristas.filter(x => x.status === 'pendente').length;
@@ -973,7 +941,6 @@ async function carregarDashboard() {
     document.getElementById('dashPendentes').textContent = pendentes;
     document.getElementById('dashBloqueados').textContent = bloqueados;
     
-    // Buscar validações dos últimos 7 dias
     const hoje = new Date();
     const seteDiasAtras = new Date();
     seteDiasAtras.setDate(hoje.getDate() - 7);
@@ -987,25 +954,19 @@ async function carregarDashboard() {
     
     if (error) throw new Error(error.message);
     
-    // Dados para gráficos
     const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const acessosPorDia = Array(7).fill(0);
     const servicosCount = { carga: 0, descarga: 0, pernoite: 0 };
-    let entradas = 0;
-    let saidas = 0;
     
     validacoes.forEach(v => {
       const data = new Date(v.dt);
       const dia = data.getDay();
-      if (v.tipo === 'entrada') entradas++;
-      if (v.tipo === 'saida') saidas++;
       if (v.servico) {
         const serv = v.servico.toLowerCase();
         if (servicosCount[serv] !== undefined) servicosCount[serv]++;
       }
     });
     
-    // Preencher acessos por dia (últimos 7 dias)
     for (let i = 0; i < 7; i++) {
       const data = new Date();
       data.setDate(data.getDate() - i);
@@ -1019,13 +980,11 @@ async function carregarDashboard() {
       acessosPorDia[dia] = count;
     }
     
-    // Criar gráficos
     criarGraficoAcessosSemana(diasSemana, acessosPorDia);
     criarGraficoStatus([ativos, pendentes, bloqueados]);
     criarGraficoServicos(Object.values(servicosCount));
     criarGraficoEvolucao(validacoes);
     
-    // Últimos acessos
     const ultimos = validacoes.slice(0, 5);
     const container = document.getElementById('dashUltimosAcessos');
     if (ultimos.length === 0) {
@@ -1071,19 +1030,10 @@ function criarGraficoAcessosSemana(labels, data) {
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: textColor, stepSize: 1 },
-          grid: { color: gridColor }
-        },
-        x: {
-          ticks: { color: textColor },
-          grid: { display: false }
-        }
+        y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
+        x: { ticks: { color: textColor }, grid: { display: false } }
       }
     }
   });
@@ -1111,10 +1061,7 @@ function criarGraficoStatus(data) {
       responsive: true,
       maintainAspectRatio: true,
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: textColor, padding: 8, usePointStyle: true }
-        }
+        legend: { position: 'bottom', labels: { color: textColor, padding: 8, usePointStyle: true } }
       }
     }
   });
@@ -1142,19 +1089,10 @@ function criarGraficoServicos(data) {
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: textColor, stepSize: 1 },
-          grid: { color: 'var(--chart-grid)' }
-        },
-        x: {
-          ticks: { color: textColor },
-          grid: { display: false }
-        }
+        y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: 'var(--chart-grid)' } },
+        x: { ticks: { color: textColor }, grid: { display: false } }
       }
     }
   });
@@ -1168,7 +1106,6 @@ function criarGraficoEvolucao(validacoes) {
   const textColor = isDark ? '#E8F0EA' : '#1A2A1A';
   const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
   
-  // Agrupar por dia (últimos 7 dias)
   const dias = [];
   const dados = [];
   for (let i = 6; i >= 0; i--) {
@@ -1201,30 +1138,14 @@ function criarGraficoEvolucao(validacoes) {
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: textColor, stepSize: 1 },
-          grid: { color: gridColor }
-        },
-        x: {
-          ticks: { color: textColor },
-          grid: { display: false }
-        }
+        y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
+        x: { ticks: { color: textColor }, grid: { display: false } }
       }
     }
   });
 }
-
-// Atualizar gráficos quando o tema mudar
-document.addEventListener('themeChanged', () => {
-  if (document.getElementById('page-dashboard').classList.contains('active')) {
-    carregarDashboard();
-  }
-});
 
 // ============================================================
 // FOTO
@@ -1485,7 +1406,6 @@ async function registrarDirecao(tipo) {
     pendingValidation = null;
     selectedServico = null;
     showToast(tipo === 'entrada' ? 'Entrada registrada ✓' : 'Saída registrada ✓');
-    // Atualizar dashboard se estiver visível
     if (document.getElementById('page-dashboard').classList.contains('active')) {
       carregarDashboard();
     }
