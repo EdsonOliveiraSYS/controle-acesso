@@ -11,7 +11,7 @@
 <title>PortariaPro - Controle de Acesso</title>
 
 <!-- ========================================================== -->
-<!-- PWA / SERVICE WORKER - CORRIGIDO                           -->
+<!-- PWA / SERVICE WORKER                                       -->
 <!-- ========================================================== -->
 <link rel="manifest" href="/controle-acesso/manifest.json">
 <link rel="apple-touch-icon" href="/controle-acesso/icons/icon-192x192.png">
@@ -286,6 +286,21 @@
   .report-btn:hover { border-color:var(--cyan); color:var(--text); background:rgba(64, 212, 224, 0.05); }
 
   .edit-sheet .field textarea { resize:vertical; min-height:60px; }
+  
+  /* Estilo para campo com erro */
+  .field input.error {
+    border-color: var(--red) !important;
+    background: rgba(255, 107, 91, 0.05);
+  }
+  .field .error-msg {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+  }
+  .field .error-msg.show {
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -325,10 +340,7 @@
         <div class="header-sub" id="portariaNome">—</div>
       </div>
       <div class="header-right">
-        <!-- BOTÃO DE ATUALIZAÇÃO FORÇADA -->
-        <button class="btn-update" onclick="forceUpdate()" title="Forçar atualização do aplicativo">
-          🔄
-        </button>
+        <button class="btn-update" onclick="forceUpdate()" title="Forçar atualização do aplicativo">🔄</button>
         <div class="header-badge" onclick="logout()" title="Trocar portaria">Sair</div>
       </div>
     </div>
@@ -358,12 +370,33 @@
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
-          <div class="field"><label>NOME COMPLETO *</label><input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off"><div class="error-msg" id="err-nome">Nome é obrigatório</div></div>
-          <div class="field"><label>CPF *</label><input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off"><div class="error-msg" id="err-cpf">CPF inválido</div></div>
-          <div class="field"><label>NÚMERO DA CNH</label><input type="tel" id="f-cnh" placeholder="00000000000" autocomplete="off"></div>
-          <div class="field"><label>PLACA DO VEÍCULO</label><input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8" autocomplete="off"></div>
-          <div class="field"><label>EMPRESA / TRANSPORTADORA</label><input type="text" id="f-empresa" placeholder="Nome da empresa" autocomplete="off"></div>
-          <div class="field"><label>WHATSAPP (com DDD)</label><input type="tel" id="f-whats" placeholder="(62) 99999-9999" autocomplete="off" inputmode="numeric"></div>
+          <div class="field">
+            <label>NOME COMPLETO *</label>
+            <input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off">
+            <div class="error-msg" id="err-nome">Nome é obrigatório (mínimo 3 caracteres)</div>
+          </div>
+          <div class="field">
+            <label>CPF *</label>
+            <input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off">
+            <div class="error-msg" id="err-cpf">CPF inválido</div>
+          </div>
+          <div class="field">
+            <label>NÚMERO DA CNH (11 dígitos)</label>
+            <input type="tel" id="f-cnh" placeholder="00000000000" maxlength="11" autocomplete="off">
+            <div class="error-msg" id="err-cnh">CNH deve ter 11 dígitos</div>
+          </div>
+          <div class="field">
+            <label>PLACA DO VEÍCULO</label>
+            <input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>EMPRESA / TRANSPORTADORA</label>
+            <input type="text" id="f-empresa" placeholder="Nome da empresa" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>WHATSAPP (com DDD)</label>
+            <input type="tel" id="f-whats" placeholder="(62) 99999-9999" autocomplete="off" inputmode="numeric">
+          </div>
           <div class="field">
             <label>FOTO DO MOTORISTA</label>
             <div class="photo-picker">
@@ -372,7 +405,8 @@
               <input type="file" id="f-foto" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(event)">
             </div>
           </div>
-          <div class="field"><label>STATUS INICIAL</label>
+          <div class="field">
+            <label>STATUS INICIAL</label>
             <select id="f-status">
               <option value="autorizado">✓ Autorizado</option>
               <option value="pendente">⏳ Pendente</option>
@@ -492,7 +526,7 @@
     <div id="editForm">
       <div class="field"><label>NOME COMPLETO *</label><input type="text" id="e-nome" autocomplete="off"><div class="error-msg" id="err-e-nome">Nome é obrigatório</div></div>
       <div class="field"><label>CPF *</label><input type="tel" id="e-cpf" maxlength="14" autocomplete="off"><div class="error-msg" id="err-e-cpf">CPF inválido</div></div>
-      <div class="field"><label>CNH</label><input type="tel" id="e-cnh" autocomplete="off"></div>
+      <div class="field"><label>CNH (11 dígitos)</label><input type="tel" id="e-cnh" maxlength="11" autocomplete="off"><div class="error-msg" id="err-e-cnh">CNH deve ter 11 dígitos</div></div>
       <div class="field"><label>PLACA</label><input type="text" id="e-placa" maxlength="8" autocomplete="off"></div>
       <div class="field"><label>EMPRESA</label><input type="text" id="e-empresa" autocomplete="off"></div>
       <div class="field"><label>WHATSAPP</label><input type="tel" id="e-whats" autocomplete="off" inputmode="numeric"></div>
@@ -531,18 +565,15 @@
 const APP_VERSION = '2.1.0';
 
 // ============================================================
-// REGISTRO DO SERVICE WORKER - CORRIGIDO
+// REGISTRO DO SERVICE WORKER
 // ============================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    // CAMINHO CORRIGIDO: /controle-acesso/sw.js com scope correto
     navigator.serviceWorker.register('/controle-acesso/sw.js', { 
       scope: '/controle-acesso/' 
     })
       .then(function(registration) {
         console.log('✅ Service Worker registrado com sucesso!', registration.scope);
-        
-        // Verifica atualizações a cada 60 segundos
         setInterval(() => {
           registration.update();
         }, 60000);
@@ -550,7 +581,6 @@ if ('serviceWorker' in navigator) {
       .catch(function(err) {
         console.log('❌ Falha ao registrar Service Worker:', err);
         console.log('💡 Verifique se o arquivo sw.js existe em: /controle-acesso/sw.js');
-        console.log('💡 O scope deve ser: /controle-acesso/');
       });
   });
 }
@@ -573,7 +603,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ============================================================
-// FORÇAR ATUALIZAÇÃO PARA USUÁRIOS (OPÇÃO 7)
+// FORÇAR ATUALIZAÇÃO
 // ============================================================
 async function forceUpdate() {
   console.log('🔄 Iniciando atualização forçada...');
@@ -660,6 +690,10 @@ const Utils = {
     if (rev === 10 || rev === 11) rev = 0;
     return rev === parseInt(val.charAt(10));
   },
+  validateCNH: (cnh) => {
+    const val = cnh.replace(/\D/g,'');
+    return val.length === 11;
+  },
   isOnline: () => navigator.onLine,
   debounce: (fn, delay = 300) => {
     let timer;
@@ -735,118 +769,237 @@ function showToast(msg, duration) {
 }
 
 // ============================================================
-// LOGIN
+// VALIDAÇÃO DE CPF DUPLICADO
 // ============================================================
-function getPortaria() {
-  try { return JSON.parse(localStorage.getItem('portaria_atual') || 'null'); } 
-  catch(e) { return null; }
-}
-
-async function fazerLogin() {
-  const codigo = document.getElementById('loginCodigo').value.trim();
-  const errEl = document.getElementById('loginError');
-  errEl.textContent = '';
-  
-  if (!codigo) { errEl.textContent = 'Digite o código.'; return; }
-  
-  const btn = document.getElementById('btnLogin');
-  btn.disabled = true;
-  document.getElementById('loginLoading').textContent = 'Verificando...';
-  
+async function verificarCPFDuplicado(cpf) {
   try {
-    const { data, error } = await supa.from('portarias')
-      .select('id,nome,codigo,tipo')
-      .eq('codigo', codigo)
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    
+    const { data, error } = await supa
+      .from('motoristas')
+      .select('cpf, id, nome')
+      .eq('cpf', cpfLimpo)
       .maybeSingle();
     
     if (error) {
-      errEl.textContent = 'Erro de conexão. Verifique a rede.';
-      console.error(error);
-      return;
+      console.error('Erro ao verificar CPF:', error);
+      return { duplicado: false, error: error.message };
     }
     
-    if (!data) {
-      errEl.textContent = 'Código inválido.';
-      return;
+    if (data) {
+      return { 
+        duplicado: true, 
+        motorista: data,
+        mensagem: `⚠️ CPF já cadastrado para: ${data.nome}`
+      };
     }
     
-    localStorage.setItem('portaria_atual', JSON.stringify({
-      id: data.id,
-      nome: data.nome,
-      tipo: data.tipo || 'porteiro'
-    }));
+    return { duplicado: false };
     
-    iniciarApp();
   } catch (e) {
-    errEl.textContent = 'Erro inesperado. Tente novamente.';
-    console.error(e);
-  } finally {
-    btn.disabled = false;
-    document.getElementById('loginLoading').textContent = '';
-  }
-}
-
-function logout() {
-  if (!confirm('Deseja sair?')) return;
-  localStorage.removeItem('portaria_atual');
-  location.reload();
-}
-
-document.getElementById('loginCodigo').addEventListener('keypress', e => {
-  if (e.key === 'Enter') fazerLogin();
-});
-
-// ============================================================
-// APP INIT
-// ============================================================
-async function iniciarApp() {
-  const p = getPortaria();
-  if (!p) return;
-  
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'flex';
-  document.getElementById('portariaNome').textContent = p.nome + (p.tipo === 'admin' ? ' · Administrador' : '');
-  
-  if (p.tipo === 'admin') {
-    document.getElementById('app').classList.add('role-admin');
-    await carregarTodosMotoristas();
-    renderLista();
-    setupInfiniteScroll();
+    console.error('Erro na verificação:', e);
+    return { duplicado: false, error: e.message };
   }
 }
 
 // ============================================================
-// NAVEGAÇÃO
+// VALIDAÇÃO DE CPF DUPLICADO NA EDIÇÃO
 // ============================================================
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => {
-    b.classList.remove('active');
-    b.setAttribute('aria-selected', 'false');
-  });
-  
-  document.getElementById('page-' + id).classList.add('active');
-  const navBtn = document.getElementById('nav-' + id);
-  navBtn.classList.add('active');
-  navBtn.setAttribute('aria-selected', 'true');
-  
-  if (id !== 'scan') stopScan();
-  if (id === 'lista') {
-    renderLista();
-    setupInfiniteScroll();
+async function verificarCPFDuplicadoEdicao(cpf, idAtual) {
+  try {
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    
+    const { data, error } = await supa
+      .from('motoristas')
+      .select('cpf, id, nome')
+      .eq('cpf', cpfLimpo)
+      .neq('id', idAtual)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Erro ao verificar CPF:', error);
+      return { duplicado: false, error: error.message };
+    }
+    
+    if (data) {
+      return { 
+        duplicado: true, 
+        motorista: data,
+        mensagem: `⚠️ CPF já cadastrado para: ${data.nome}`
+      };
+    }
+    
+    return { duplicado: false };
+    
+  } catch (e) {
+    console.error('Erro na verificação:', e);
+    return { duplicado: false, error: e.message };
   }
-  if (id === 'log') renderLog();
-  if (id === 'cadastro') {
-    document.getElementById('cadastroTitle').textContent = 'Novo motorista';
-    document.getElementById('btnCadastrar').textContent = 'Cadastrar e gerar QR Code';
-    document.getElementById('btnCadastrar').onclick = cadastrar;
-    document.querySelectorAll('#page-cadastro .field input').forEach(inp => inp.value = '');
+}
+
+// ============================================================
+// VALIDAÇÃO DO CADASTRO
+// ============================================================
+async function validarCadastro() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const cpf = document.getElementById('f-cpf').value.trim();
+  const cnh = document.getElementById('f-cnh').value.trim();
+  let isValid = true;
+  
+  // Limpa erros anteriores
+  document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+  document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
+  
+  // Valida nome
+  if (!nome || nome.length < 3) {
+    document.getElementById('err-nome').classList.add('show');
+    document.getElementById('f-nome').classList.add('error');
+    isValid = false;
+  }
+  
+  // Valida formato do CPF
+  if (!Utils.validateCPF(cpf)) {
+    document.getElementById('err-cpf').textContent = 'CPF inválido. Verifique o formato.';
+    document.getElementById('err-cpf').classList.add('show');
+    document.getElementById('f-cpf').classList.add('error');
+    isValid = false;
+  }
+  
+  // 🔥 NOVO: Valida CNH (11 dígitos)
+  if (cnh && !Utils.validateCNH(cnh)) {
+    document.getElementById('err-cnh').classList.add('show');
+    document.getElementById('f-cnh').classList.add('error');
+    isValid = false;
+  }
+  
+  // 🔥 NOVO: Valida CPF duplicado no banco
+  if (isValid && Utils.validateCPF(cpf)) {
+    const resultado = await verificarCPFDuplicado(cpf);
+    if (resultado.duplicado) {
+      document.getElementById('err-cpf').textContent = resultado.mensagem;
+      document.getElementById('err-cpf').classList.add('show');
+      document.getElementById('f-cpf').classList.add('error');
+      isValid = false;
+    }
+  }
+  
+  return isValid;
+}
+
+// ============================================================
+// CADASTRAR
+// ============================================================
+async function cadastrar() {
+  if (!Utils.isOnline()) {
+    showToast('Sem conexão com a internet');
+    return;
+  }
+  
+  const isValid = await validarCadastro();
+  if (!isValid) {
+    showToast('Corrija os campos destacados', 3000);
+    return;
+  }
+  
+  const btn = document.getElementById('btnCadastrar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+  
+  try {
+    const novo = {
+      nome: document.getElementById('f-nome').value.trim(),
+      cpf: document.getElementById('f-cpf').value.trim().replace(/\D/g, ''),
+      cnh: document.getElementById('f-cnh').value.trim().replace(/\D/g, ''),
+      placa: document.getElementById('f-placa').value.trim().toUpperCase(),
+      empresa: document.getElementById('f-empresa').value.trim(),
+      whatsapp: document.getElementById('f-whats').value.replace(/\D/g, ''),
+      status: document.getElementById('f-status').value
+    };
+    
+    const { data, error } = await supa.from('motoristas').insert(novo).select().single();
+    if (error) throw new Error(error.message);
+    
+    if (fotoFile) {
+      btn.textContent = 'Enviando foto...';
+      const url = await uploadFoto(data.id, fotoFile);
+      if (url) {
+        await supa.from('motoristas').update({ foto_url: url }).eq('id', data.id);
+      }
+    }
+    
+    // Limpa formulário
+    ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('f-status').value = 'autorizado';
     fotoFile = null;
     document.getElementById('f-foto').value = '';
     document.getElementById('fotoPreview').innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+    document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
+    
+    showToast('Motorista cadastrado com sucesso ✓');
+    showQRFor(data.id, data.nome, data.placa, data.empresa, data.whatsapp || '');
+    await carregarTodosMotoristas();
+    renderLista();
+    
+  } catch (e) {
+    console.error('Erro ao cadastrar:', e);
+    showToast('Erro: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Cadastrar e gerar QR Code';
   }
 }
+
+// ============================================================
+// VALIDAÇÃO EM TEMPO REAL - CPF
+// ============================================================
+document.getElementById('f-cpf').addEventListener('blur', async function() {
+  const cpf = this.value.trim();
+  if (cpf.length >= 11 && Utils.validateCPF(cpf)) {
+    const resultado = await verificarCPFDuplicado(cpf);
+    if (resultado.duplicado) {
+      document.getElementById('err-cpf').textContent = resultado.mensagem;
+      document.getElementById('err-cpf').classList.add('show');
+      this.classList.add('error');
+    } else {
+      document.getElementById('err-cpf').classList.remove('show');
+      this.classList.remove('error');
+    }
+  }
+});
+
+// ============================================================
+// VALIDAÇÃO EM TEMPO REAL - CNH
+// ============================================================
+document.getElementById('f-cnh').addEventListener('input', function() {
+  const cnh = this.value.trim();
+  if (cnh.length > 0 && cnh.length !== 11) {
+    document.getElementById('err-cnh').classList.add('show');
+    this.classList.add('error');
+  } else {
+    document.getElementById('err-cnh').classList.remove('show');
+    this.classList.remove('error');
+  }
+});
+
+// ============================================================
+// MÁSCARAS
+// ============================================================
+document.getElementById('f-cpf').addEventListener('input', function() { 
+  this.value = Utils.formatCPF(this.value); 
+});
+
+document.getElementById('f-cnh').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g, '').slice(0, 11);
+});
+
+document.getElementById('f-placa').addEventListener('input', function() { 
+  this.value = this.value.toUpperCase(); 
+});
+
+document.getElementById('f-whats').addEventListener('input', function() { 
+  this.value = Utils.formatPhone(this.value); 
+});
 
 // ============================================================
 // FOTO
@@ -1114,81 +1267,118 @@ async function registrarDirecao(tipo) {
 }
 
 // ============================================================
-// CADASTRAR
+// LOGIN
 // ============================================================
-function validarCadastro() {
-  const nome = document.getElementById('f-nome').value.trim();
-  const cpf = document.getElementById('f-cpf').value.trim();
-  let isValid = true;
-  document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
-  if (!nome || nome.length < 3) {
-    document.getElementById('err-nome').classList.add('show');
-    document.getElementById('f-nome').classList.add('error');
-    isValid = false;
-  }
-  if (!Utils.validateCPF(cpf)) {
-    document.getElementById('err-cpf').classList.add('show');
-    document.getElementById('f-cpf').classList.add('error');
-    isValid = false;
-  }
-  return isValid;
+function getPortaria() {
+  try { return JSON.parse(localStorage.getItem('portaria_atual') || 'null'); } 
+  catch(e) { return null; }
 }
 
-async function cadastrar() {
-  if (!Utils.isOnline()) {
-    showToast('Sem conexão com a internet');
-    return;
-  }
-  if (!validarCadastro()) {
-    showToast('Corrija os campos destacados');
-    return;
-  }
-  const btn = document.getElementById('btnCadastrar');
+async function fazerLogin() {
+  const codigo = document.getElementById('loginCodigo').value.trim();
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  
+  if (!codigo) { errEl.textContent = 'Digite o código.'; return; }
+  
+  const btn = document.getElementById('btnLogin');
   btn.disabled = true;
-  btn.textContent = 'Salvando...';
+  document.getElementById('loginLoading').textContent = 'Verificando...';
+  
   try {
-    const novo = {
-      nome: document.getElementById('f-nome').value.trim(),
-      cpf: document.getElementById('f-cpf').value.trim(),
-      cnh: document.getElementById('f-cnh').value.trim(),
-      placa: document.getElementById('f-placa').value.trim().toUpperCase(),
-      empresa: document.getElementById('f-empresa').value.trim(),
-      whatsapp: document.getElementById('f-whats').value.replace(/\D/g,''),
-      status: document.getElementById('f-status').value
-    };
-    const { data, error } = await supa.from('motoristas').insert(novo).select().single();
-    if (error) throw new Error(error.message);
-    if (fotoFile) {
-      btn.textContent = 'Enviando foto...';
-      const url = await uploadFoto(data.id, fotoFile);
-      if (url) {
-        await supa.from('motoristas').update({ foto_url: url }).eq('id', data.id);
-      }
+    const { data, error } = await supa.from('portarias')
+      .select('id,nome,codigo,tipo')
+      .eq('codigo', codigo)
+      .maybeSingle();
+    
+    if (error) {
+      errEl.textContent = 'Erro de conexão. Verifique a rede.';
+      console.error(error);
+      return;
     }
-    ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats'].forEach(f => document.getElementById(f).value = '');
+    
+    if (!data) {
+      errEl.textContent = 'Código inválido.';
+      return;
+    }
+    
+    localStorage.setItem('portaria_atual', JSON.stringify({
+      id: data.id,
+      nome: data.nome,
+      tipo: data.tipo || 'porteiro'
+    }));
+    
+    iniciarApp();
+  } catch (e) {
+    errEl.textContent = 'Erro inesperado. Tente novamente.';
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('loginLoading').textContent = '';
+  }
+}
+
+function logout() {
+  if (!confirm('Deseja sair?')) return;
+  localStorage.removeItem('portaria_atual');
+  location.reload();
+}
+
+document.getElementById('loginCodigo').addEventListener('keypress', e => {
+  if (e.key === 'Enter') fazerLogin();
+});
+
+// ============================================================
+// APP INIT
+// ============================================================
+async function iniciarApp() {
+  const p = getPortaria();
+  if (!p) return;
+  
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('portariaNome').textContent = p.nome + (p.tipo === 'admin' ? ' · Administrador' : '');
+  
+  if (p.tipo === 'admin') {
+    document.getElementById('app').classList.add('role-admin');
+    await carregarTodosMotoristas();
+    renderLista();
+    setupInfiniteScroll();
+  }
+}
+
+// ============================================================
+// NAVEGAÇÃO
+// ============================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
+  
+  document.getElementById('page-' + id).classList.add('active');
+  const navBtn = document.getElementById('nav-' + id);
+  navBtn.classList.add('active');
+  navBtn.setAttribute('aria-selected', 'true');
+  
+  if (id !== 'scan') stopScan();
+  if (id === 'lista') {
+    renderLista();
+    setupInfiniteScroll();
+  }
+  if (id === 'log') renderLog();
+  if (id === 'cadastro') {
+    document.getElementById('cadastroTitle').textContent = 'Novo motorista';
+    document.getElementById('btnCadastrar').textContent = 'Cadastrar e gerar QR Code';
+    document.getElementById('btnCadastrar').onclick = cadastrar;
+    document.querySelectorAll('#page-cadastro .field input').forEach(inp => inp.value = '');
     document.getElementById('f-status').value = 'autorizado';
     fotoFile = null;
     document.getElementById('f-foto').value = '';
     document.getElementById('fotoPreview').innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
-    document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
-    document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
-    showToast('Motorista cadastrado com sucesso ✓');
-    showQRFor(data.id, data.nome, data.placa, data.empresa, data.whatsapp || '');
-    await carregarTodosMotoristas();
-    renderLista();
-  } catch (e) {
-    console.error('Erro ao cadastrar:', e);
-    showToast('Erro: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Cadastrar e gerar QR Code';
   }
 }
-
-document.getElementById('f-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
-document.getElementById('f-placa').addEventListener('input', function() { this.value = this.value.toUpperCase(); });
-document.getElementById('f-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
 // ============================================================
 // QR CODE MODAL
@@ -1475,22 +1665,46 @@ function openEditModal(id) {
   document.getElementById('detailModal').classList.remove('open');
 }
 
-function validarEdicao() {
+async function validarEdicao() {
   const nome = document.getElementById('e-nome').value.trim();
   const cpf = document.getElementById('e-cpf').value.trim();
+  const cnh = document.getElementById('e-cnh').value.trim();
   let isValid = true;
+  
   document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
+  
   if (!nome || nome.length < 3) {
     document.getElementById('err-e-nome').classList.add('show');
     document.getElementById('e-nome').classList.add('error');
     isValid = false;
   }
+  
   if (!Utils.validateCPF(cpf)) {
+    document.getElementById('err-e-cpf').textContent = 'CPF inválido. Verifique o formato.';
     document.getElementById('err-e-cpf').classList.add('show');
     document.getElementById('e-cpf').classList.add('error');
     isValid = false;
   }
+  
+  // Valida CNH na edição
+  if (cnh && !Utils.validateCNH(cnh)) {
+    document.getElementById('err-e-cnh').classList.add('show');
+    document.getElementById('e-cnh').classList.add('error');
+    isValid = false;
+  }
+  
+  // Valida CPF duplicado na edição (ignorando o próprio)
+  if (isValid && Utils.validateCPF(cpf)) {
+    const resultado = await verificarCPFDuplicadoEdicao(cpf, editDriverId);
+    if (resultado.duplicado) {
+      document.getElementById('err-e-cpf').textContent = resultado.mensagem;
+      document.getElementById('err-e-cpf').classList.add('show');
+      document.getElementById('e-cpf').classList.add('error');
+      isValid = false;
+    }
+  }
+  
   return isValid;
 }
 
@@ -1499,16 +1713,19 @@ async function salvarEdicao() {
     showToast('Sem conexão com a internet');
     return;
   }
-  if (!validarEdicao()) {
-    showToast('Corrija os campos destacados');
+  
+  const isValid = await validarEdicao();
+  if (!isValid) {
+    showToast('Corrija os campos destacados', 3000);
     return;
   }
+  
   showLoading('Salvando alterações...');
   try {
     const dados = {
       nome: document.getElementById('e-nome').value.trim(),
-      cpf: document.getElementById('e-cpf').value.trim(),
-      cnh: document.getElementById('e-cnh').value.trim(),
+      cpf: document.getElementById('e-cpf').value.trim().replace(/\D/g, ''),
+      cnh: document.getElementById('e-cnh').value.trim().replace(/\D/g, ''),
       placa: document.getElementById('e-placa').value.trim().toUpperCase(),
       empresa: document.getElementById('e-empresa').value.trim(),
       whatsapp: document.getElementById('e-whats').value.replace(/\D/g,''),
@@ -1537,7 +1754,9 @@ async function salvarEdicao() {
   }
 }
 
+// Máscaras na edição
 document.getElementById('e-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
+document.getElementById('e-cnh').addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 11); });
 document.getElementById('e-placa').addEventListener('input', function() { this.value = this.value.toUpperCase(); });
 document.getElementById('e-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
@@ -1924,13 +2143,10 @@ window.addEventListener('offline', () => { showToast('Sem conexão com a interne
 // START - COM VERIFICAÇÃO DE VERSÃO
 // ============================================================
 (function start() {
-  // VERIFICA SE A VERSÃO MUDOU
   const storedVersion = localStorage.getItem('portariapro_version');
   if (storedVersion && storedVersion !== APP_VERSION) {
     console.log(`📦 Versão atualizada: ${storedVersion} → ${APP_VERSION}`);
     localStorage.setItem('portariapro_version', APP_VERSION);
-    
-    // Se já estiver logado, força atualização
     if (getPortaria()) {
       showToast('🔄 Nova versão disponível! Atualizando...', 2000);
       setTimeout(() => {
@@ -1939,7 +2155,6 @@ window.addEventListener('offline', () => { showToast('Sem conexão com a interne
       return;
     }
   } else if (!storedVersion) {
-    // Primeira execução: salva a versão
     localStorage.setItem('portariapro_version', APP_VERSION);
   }
 
