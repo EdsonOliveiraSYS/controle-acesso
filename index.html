@@ -353,7 +353,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .servico-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
 /* ========================================================== */
-/* FILTROS - NOVOS ESTILOS                                    */
+/* FILTROS DO HISTÓRICO                                       */
 /* ========================================================== */
 .filtros-container {
   display: grid;
@@ -781,38 +781,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
-        
-        <!-- NOVOS FILTROS -->
-        <div class="filtros-container" id="filtrosContainer">
-          <div class="field">
-            <label>📅 DATA INICIAL</label>
-            <input type="date" id="filtroDataInicio">
-          </div>
-          <div class="field">
-            <label>📅 DATA FINAL</label>
-            <input type="date" id="filtroDataFim">
-          </div>
-          <div class="field">
-            <label>📊 STATUS</label>
-            <select id="filtroStatus">
-              <option value="">Todos</option>
-              <option value="autorizado">✓ Autorizado</option>
-              <option value="pendente">⏳ Pendente</option>
-              <option value="bloqueado">✗ Bloqueado</option>
-            </select>
-          </div>
-          <div class="field admin-only" id="filtroPortariaField">
-            <label>🏢 PORTARIA</label>
-            <select id="filtroPortaria">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div class="filtros-actions">
-            <button class="btn btn-ghost" onclick="aplicarFiltros()" style="margin:0;">🔍 Aplicar Filtros</button>
-            <button class="btn btn-ghost" onclick="limparFiltros()" style="margin:0;">🔄 Limpar</button>
-          </div>
-        </div>
-
         <div class="report-btns">
           <button class="report-btn" onclick="exportarMotoristasCSV()">📊 CSV</button>
           <button class="report-btn" onclick="exportarMotoristasPDF()">📄 PDF</button>
@@ -828,13 +796,52 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-          <p class="section-title" style="margin:0">Histórico de validações</p>
+          <p class="section-title" style="margin:0">📋 Histórico de validações</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button onclick="renderLog()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">🔄 Atualizar</button>
             <button onclick="exportarLogCSV()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">📊 CSV</button>
             <button onclick="exportarLogPDF()" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;font-family:'Inter',sans-serif;transition:color var(--transition-fast);padding:4px 8px;border-radius:4px;">📄 PDF</button>
           </div>
         </div>
+
+        <!-- FILTROS DO HISTÓRICO -->
+        <div class="filtros-container" id="filtrosContainer">
+          <div class="field">
+            <label>📅 DATA INICIAL</label>
+            <input type="date" id="filtroDataInicio">
+          </div>
+          <div class="field">
+            <label>📅 DATA FINAL</label>
+            <input type="date" id="filtroDataFim">
+          </div>
+          <div class="field">
+            <label>🔄 TIPO</label>
+            <select id="filtroTipo">
+              <option value="">Todos</option>
+              <option value="entrada">↓ Entrada</option>
+              <option value="saida">↑ Saída</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>📊 STATUS</label>
+            <select id="filtroStatusLog">
+              <option value="">Todos</option>
+              <option value="true">✓ Autorizado</option>
+              <option value="false">✗ Negado</option>
+            </select>
+          </div>
+          <div class="field admin-only" id="filtroPortariaField">
+            <label>🏢 PORTARIA</label>
+            <select id="filtroPortaria">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="filtros-actions">
+            <button class="btn btn-ghost" onclick="aplicarFiltrosLog()" style="margin:0;">🔍 Aplicar Filtros</button>
+            <button class="btn btn-ghost" onclick="limparFiltrosLog()" style="margin:0;">🔄 Limpar</button>
+          </div>
+        </div>
+
         <div class="card" id="logList"></div>
       </div>
     </div>
@@ -1026,6 +1033,70 @@ const Utils = {
     if (!dateStr) return null;
     const parts = dateStr.split('-');
     return new Date(parts[0], parts[1] - 1, parts[2]);
+  },
+  formatDuration: (ms) => {
+    if (!ms || ms < 0) return '—';
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    const remainingMinutes = minutes % 60;
+    
+    if (days > 0) {
+      return `${days}d ${remainingHours}h ${remainingMinutes}min`;
+    } else if (hours > 0) {
+      return `${hours}h ${remainingMinutes}min`;
+    } else if (minutes > 0) {
+      return `${minutes}min`;
+    } else {
+      return `${seconds}s`;
+    }
+  },
+  calcularPermanencia: (entradas, saidas) => {
+    const resultado = [];
+    let saidasIndex = 0;
+    
+    // Ordena entradas e saídas por data
+    const entradasOrdenadas = [...entradas].sort((a, b) => new Date(a.dt) - new Date(b.dt));
+    const saidasOrdenadas = [...saidas].sort((a, b) => new Date(a.dt) - new Date(b.dt));
+    
+    for (const entrada of entradasOrdenadas) {
+      // Procura a saída mais próxima após esta entrada
+      let saidaEncontrada = null;
+      let saidaIndex = -1;
+      
+      for (let i = saidasIndex; i < saidasOrdenadas.length; i++) {
+        const saida = saidasOrdenadas[i];
+        if (new Date(saida.dt) > new Date(entrada.dt)) {
+          saidaEncontrada = saida;
+          saidaIndex = i;
+          break;
+        }
+      }
+      
+      if (saidaEncontrada) {
+        const entradaMs = new Date(entrada.dt).getTime();
+        const saidaMs = new Date(saidaEncontrada.dt).getTime();
+        const duracao = saidaMs - entradaMs;
+        
+        resultado.push({
+          motorista: entrada.motorista_nome,
+          placa: entrada.motorista_placa,
+          entrada: entrada.dt,
+          saida: saidaEncontrada.dt,
+          duracao: duracao,
+          duracaoFormatada: Utils.formatDuration(duracao),
+          servico: entrada.servico || '—',
+          empresa_servico: entrada.empresa_servico || '—'
+        });
+        
+        // Atualiza o índice de saídas para não reutilizar a mesma saída
+        saidasIndex = saidaIndex + 1;
+      }
+    }
+    
+    return resultado;
   }
 };
 
@@ -1034,6 +1105,7 @@ let currentDriverId = null;
 let editDriverId = null;
 let zxingReader = null;
 let allMotoristas = [];
+let allValidacoes = [];
 let fotoFile = null;
 let editFotoFile = null;
 let pendingValidation = null;
@@ -1071,59 +1143,61 @@ function initSupabase() {
 }
 
 // ============================================================
-// FILTROS - NOVAS FUNÇÕES
+// FILTROS DO HISTÓRICO
 // ============================================================
 
-function getFiltros() {
+function getFiltrosLog() {
   return {
     dataInicio: document.getElementById('filtroDataInicio').value,
     dataFim: document.getElementById('filtroDataFim').value,
-    status: document.getElementById('filtroStatus').value,
+    tipo: document.getElementById('filtroTipo').value,
+    status: document.getElementById('filtroStatusLog').value,
     portaria: document.getElementById('filtroPortaria').value
   };
 }
 
-function aplicarFiltros() {
+function aplicarFiltrosLog() {
   showToast('🔍 Filtros aplicados', 1500);
-  renderLista();
+  renderLog();
 }
 
-function limparFiltros() {
+function limparFiltrosLog() {
   document.getElementById('filtroDataInicio').value = '';
   document.getElementById('filtroDataFim').value = '';
-  document.getElementById('filtroStatus').value = '';
+  document.getElementById('filtroTipo').value = '';
+  document.getElementById('filtroStatusLog').value = '';
   document.getElementById('filtroPortaria').value = '';
   showToast('🔄 Filtros limpos', 1500);
-  renderLista();
+  renderLog();
 }
 
-function getMotoristasFiltrados() {
-  const busca = (document.getElementById('busca').value || '').toLowerCase();
-  const filtros = getFiltros();
+function getValidacoesFiltradas(data) {
+  const filtros = getFiltrosLog();
   
-  return allMotoristas.filter(m => {
-    // Filtro de busca
-    const matchBusca = m.nome.toLowerCase().includes(busca) || 
-                       (m.placa || '').toLowerCase().includes(busca) || 
-                       (m.empresa || '').toLowerCase().includes(busca);
-    if (!matchBusca) return false;
-    
-    // Filtro de status
-    if (filtros.status && m.status !== filtros.status) return false;
-    
-    // Filtro de data (criado_em)
-    if (filtros.dataInicio || filtros.dataFim) {
-      const dataCadastro = new Date(m.criado_em);
-      if (filtros.dataInicio) {
-        const inicio = Utils.parseDate(filtros.dataInicio);
-        if (dataCadastro < inicio) return false;
-      }
-      if (filtros.dataFim) {
-        const fim = Utils.parseDate(filtros.dataFim);
-        fim.setHours(23, 59, 59);
-        if (dataCadastro > fim) return false;
-      }
+  return data.filter(v => {
+    // Filtro de data
+    const dataVal = new Date(v.dt);
+    if (filtros.dataInicio) {
+      const inicio = Utils.parseDate(filtros.dataInicio);
+      if (dataVal < inicio) return false;
     }
+    if (filtros.dataFim) {
+      const fim = Utils.parseDate(filtros.dataFim);
+      fim.setHours(23, 59, 59);
+      if (dataVal > fim) return false;
+    }
+    
+    // Filtro de tipo
+    if (filtros.tipo && v.tipo !== filtros.tipo) return false;
+    
+    // Filtro de status (ok)
+    if (filtros.status !== '') {
+      const ok = filtros.status === 'true';
+      if (v.ok !== ok) return false;
+    }
+    
+    // Filtro de portaria
+    if (filtros.portaria && v.portaria_id !== filtros.portaria) return false;
     
     return true;
   });
@@ -1509,6 +1583,7 @@ async function iniciarApp() {
       renderLista();
       setupInfiniteScroll();
     }
+    renderLog();
     hideLoading();
   } catch (e) { hideLoading(); showToast('Erro ao carregar', 3000); }
 }
@@ -1655,7 +1730,8 @@ async function carregarTodosMotoristas() {
 
 function renderLista() {
   const div = document.getElementById('listaMotoristas');
-  const filtrados = getMotoristasFiltrados();
+  const busca = (document.getElementById('busca').value || '').toLowerCase();
+  let filtrados = allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
   const total = allMotoristas.length;
   const aut = allMotoristas.filter(x => x.status === 'autorizado').length;
   const bloq = allMotoristas.filter(x => x.status === 'bloqueado').length;
@@ -1714,7 +1790,8 @@ function setupInfiniteScroll() {
 async function carregarMais() {
   if (isLoadingMore || !hasMoreData) return;
   isLoadingMore = true;
-  const filtrados = getMotoristasFiltrados();
+  const busca = (document.getElementById('busca').value || '').toLowerCase();
+  const filtrados = allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
   const start = currentPage * PAGE_SIZE;
   const end = Math.min(start + PAGE_SIZE, filtrados.length);
   if (start >= filtrados.length) { hasMoreData = false; isLoadingMore = false; return; }
@@ -1904,8 +1981,9 @@ function exportarMotoristasCSV() {
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Gerando...';
   try {
-    const filtrados = getMotoristasFiltrados();
-    if (!filtrados.length) { showToast('Nenhum motorista com os filtros atuais'); return; }
+    const busca = (document.getElementById('busca').value||'').toLowerCase();
+    const filtrados = allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
+    if (!filtrados.length) { showToast('Nenhum motorista'); return; }
     const headers = ['Nº','NOME','CPF','CNH','PLACA','EMPRESA','WHATSAPP','STATUS','CADASTRO'];
     const rows = filtrados.map((m,i) => [i+1, m.nome||'', m.cpf||'', m.cnh||'', m.placa||'', m.empresa||'', m.whatsapp ? Utils.formatPhone(m.whatsapp) : '', m.status ? m.status.toUpperCase() : '', m.criado_em ? new Date(m.criado_em).toLocaleDateString('pt-BR') : '']);
     const csvLines = [headers.join(';')];
@@ -1925,19 +2003,14 @@ function exportarMotoristasPDF() {
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Gerando...';
   try {
-    const filtrados = getMotoristasFiltrados();
-    if (!filtrados.length) { showToast('Nenhum motorista com os filtros atuais'); return; }
+    const busca = (document.getElementById('busca').value||'').toLowerCase();
+    const filtrados = allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
+    if (!filtrados.length) { showToast('Nenhum motorista'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l','pt','a4');
     doc.setFillColor(11,59,74); doc.rect(0,0,doc.internal.pageSize.width,70,'F');
     doc.setFontSize(18); doc.setTextColor(255,255,255); doc.text('🚛 PORTARIAPRO - RELATÓRIO DE MOTORISTAS',40,35);
-    doc.setFontSize(9); doc.setTextColor(200,220,230); 
-    const filtroInfo = [];
-    const f = getFiltros();
-    if (f.dataInicio) filtroInfo.push(`De: ${f.dataInicio}`);
-    if (f.dataFim) filtroInfo.push(`Até: ${f.dataFim}`);
-    if (f.status) filtroInfo.push(`Status: ${f.status}`);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} ${filtroInfo.length ? ' | Filtros: '+filtroInfo.join(' ') : ''}`,40,55);
+    doc.setFontSize(9); doc.setTextColor(200,220,230); doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`,40,55);
     const total = filtrados.length, autorizados = filtrados.filter(x=>x.status==='autorizado').length, pendentes = filtrados.filter(x=>x.status==='pendente').length, bloqueados = filtrados.filter(x=>x.status==='bloqueado').length;
     doc.setFontSize(10); doc.setTextColor(50,50,50);
     doc.text(`Total: ${total} motoristas`,40,90); doc.text(`✓ Autorizados: ${autorizados}`,190,90); doc.text(`⏳ Pendentes: ${pendentes}`,340,90); doc.text(`✗ Bloqueados: ${bloqueados}`,490,90);
@@ -1957,19 +2030,14 @@ function exportarMotoristasCompleto() {
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Gerando...';
   try {
-    const filtrados = getMotoristasFiltrados();
-    if (!filtrados.length) { showToast('Nenhum motorista com os filtros atuais'); return; }
+    const busca = (document.getElementById('busca').value||'').toLowerCase();
+    const filtrados = allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
+    if (!filtrados.length) { showToast('Nenhum motorista'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l','pt','a4');
     doc.setFillColor(11,59,74); doc.rect(0,0,doc.internal.pageSize.width,70,'F');
     doc.setFontSize(18); doc.setTextColor(255,255,255); doc.text('📋 PORTARIAPRO - RELATÓRIO COMPLETO',40,35);
-    doc.setFontSize(9); doc.setTextColor(200,220,230);
-    const f = getFiltros();
-    const filtroInfo = [];
-    if (f.dataInicio) filtroInfo.push(`De: ${f.dataInicio}`);
-    if (f.dataFim) filtroInfo.push(`Até: ${f.dataFim}`);
-    if (f.status) filtroInfo.push(`Status: ${f.status}`);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} ${filtroInfo.length ? ' | Filtros: '+filtroInfo.join(' ') : ''}`,40,55);
+    doc.setFontSize(9); doc.setTextColor(200,220,230); doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`,40,55);
     const total = filtrados.length, autorizados = filtrados.filter(x=>x.status==='autorizado').length, pendentes = filtrados.filter(x=>x.status==='pendente').length, bloqueados = filtrados.filter(x=>x.status==='bloqueado').length;
     doc.setFontSize(10); doc.setTextColor(50,50,50);
     doc.text(`Total: ${total} motoristas`,40,90); doc.text(`✓ Autorizados: ${autorizados}`,190,90); doc.text(`⏳ Pendentes: ${pendentes}`,340,90); doc.text(`✗ Bloqueados: ${bloqueados}`,490,90);
@@ -1984,6 +2052,10 @@ function exportarMotoristasCompleto() {
   finally { btn.disabled = false; btn.textContent = orig; }
 }
 
+// ============================================================
+// RELATÓRIOS DE HISTÓRICO COM FILTROS E PERMANÊNCIA
+// ============================================================
+
 async function exportarLogCSV() {
   const btn = event.target;
   const orig = btn.textContent;
@@ -1992,21 +2064,54 @@ async function exportarLogCSV() {
     if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
     const portaria = getPortaria();
     if (!portaria) { showToast('Sessão expirada'); return; }
-    let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(500);
+    
+    let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(2000);
     if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { showToast('Nenhum registro'); return; }
-    const headers = ['DATA/HORA','MOTORISTA','CPF','PLACA','EMPRESA','TIPO','SERVIÇO','EMPRESA SERVIÇO','PORTARIA','STATUS'];
-    const rows = data.map(l => [new Date(l.dt).toLocaleString('pt-BR'), l.motorista_nome||'', l.motorista_cpf||'', l.motorista_placa||'', l.motorista_empresa||'', l.tipo==='entrada'?'ENTRADA':l.tipo==='saida'?'SAÍDA':'—', l.servico ? l.servico.toUpperCase() : '—', l.empresa_servico||'—', l.portaria_nome||'', l.ok ? '✓ AUTORIZADO' : '✗ NEGADO']);
+    
+    // Aplica filtros
+    const filtrados = getValidacoesFiltradas(data);
+    if (!filtrados.length) { showToast('Nenhum registro com os filtros atuais'); return; }
+    
+    // Calcula permanências
+    const entradas = filtrados.filter(v => v.tipo === 'entrada' && v.ok === true);
+    const saidas = filtrados.filter(v => v.tipo === 'saida' && v.ok === true);
+    const permanencias = Utils.calcularPermanencia(entradas, saidas);
+    
+    const headers = ['DATA/HORA','MOTORISTA','CPF','PLACA','EMPRESA','TIPO','SERVIÇO','EMPRESA SERVIÇO','PORTARIA','STATUS','PERMANÊNCIA'];
+    const rows = filtrados.map(l => {
+      // Procura permanência para esta entrada
+      let permanencia = '—';
+      if (l.tipo === 'entrada' && l.ok) {
+        const p = permanencias.find(p => p.motorista === l.motorista_nome && new Date(p.entrada).getTime() === new Date(l.dt).getTime());
+        if (p) permanencia = p.duracaoFormatada;
+      }
+      return [
+        new Date(l.dt).toLocaleString('pt-BR'),
+        l.motorista_nome||'',
+        l.motorista_cpf||'',
+        l.motorista_placa||'',
+        l.motorista_empresa||'',
+        l.tipo==='entrada'?'ENTRADA':l.tipo==='saida'?'SAÍDA':'—',
+        l.servico ? l.servico.toUpperCase() : '—',
+        l.empresa_servico||'—',
+        l.portaria_nome||'',
+        l.ok ? '✓ AUTORIZADO' : '✗ NEGADO',
+        permanencia
+      ];
+    });
+    
     const csvLines = [headers.join(';')];
     rows.forEach(row => csvLines.push(row.map(cell => typeof cell === 'string' && (cell.includes(';')||cell.includes('"')||cell.includes('\n')) ? `"${cell.replace(/"/g,'""')}"` : cell).join(';')));
     const blob = new Blob(['\uFEFF'+csvLines.join('\n')], { type:'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `HISTORICO_VALIDACOES_${new Date().toISOString().slice(0,10)}.csv`;
+    const dataStr = new Date().toISOString().slice(0,10);
+    link.download = `HISTORICO_VALIDACOES_${dataStr}.csv`;
     link.click();
-    showToast(`Histórico CSV exportado com ${data.length} registros ✓`);
+    showToast(`Histórico CSV exportado com ${filtrados.length} registros ✓`);
   } catch(e) { showToast('Erro: '+e.message); }
   finally { btn.disabled = false; btn.textContent = orig; }
 }
@@ -2019,32 +2124,117 @@ async function exportarLogPDF() {
     if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
     const portaria = getPortaria();
     if (!portaria) { showToast('Sessão expirada'); return; }
-    let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(300);
+    
+    let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(2000);
     if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { showToast('Nenhum registro'); return; }
+    
+    // Aplica filtros
+    const filtrados = getValidacoesFiltradas(data);
+    if (!filtrados.length) { showToast('Nenhum registro com os filtros atuais'); return; }
+    
+    // Calcula permanências
+    const entradas = filtrados.filter(v => v.tipo === 'entrada' && v.ok === true);
+    const saidas = filtrados.filter(v => v.tipo === 'saida' && v.ok === true);
+    const permanencias = Utils.calcularPermanencia(entradas, saidas);
+    
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l','pt','a4');
     doc.setFillColor(11,59,74); doc.rect(0,0,doc.internal.pageSize.width,70,'F');
     doc.setFontSize(18); doc.setTextColor(255,255,255); doc.text('📊 PORTARIAPRO - HISTÓRICO DE VALIDAÇÕES',40,35);
-    doc.setFontSize(9); doc.setTextColor(200,220,230); doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`,40,55); doc.text(`Portaria: ${portaria.nome}`,400,55);
-    const total = data.length, entradas = data.filter(x=>x.tipo==='entrada').length, saidas = data.filter(x=>x.tipo==='saida').length, autorizados = data.filter(x=>x.ok===true).length, negados = data.filter(x=>x.ok===false).length, servicos = data.filter(x=>x.servico).length;
+    doc.setFontSize(9); doc.setTextColor(200,220,230);
+    
+    const f = getFiltrosLog();
+    const filtroInfo = [];
+    if (f.dataInicio) filtroInfo.push(`De: ${f.dataInicio}`);
+    if (f.dataFim) filtroInfo.push(`Até: ${f.dataFim}`);
+    if (f.tipo) filtroInfo.push(`Tipo: ${f.tipo === 'entrada' ? 'Entrada' : 'Saída'}`);
+    if (f.status !== '') filtroInfo.push(`Status: ${f.status === 'true' ? 'Autorizado' : 'Negado'}`);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} ${filtroInfo.length ? '| Filtros: '+filtroInfo.join(' ') : ''}`,40,55);
+    doc.text(`Portaria: ${portaria.nome}`,400,55);
+    
+    const total = filtrados.length;
+    const entradasCount = filtrados.filter(x => x.tipo === 'entrada').length;
+    const saidasCount = filtrados.filter(x => x.tipo === 'saida').length;
+    const autorizados = filtrados.filter(x => x.ok === true).length;
+    const negados = filtrados.filter(x => x.ok === false).length;
+    const servicos = filtrados.filter(x => x.servico).length;
+    
     doc.setFontSize(10); doc.setTextColor(50,50,50);
     let yPos = 90;
-    doc.text(`Total de registros: ${total}`,40,yPos); doc.text(`↓ Entradas: ${entradas}`,180,yPos); doc.text(`↑ Saídas: ${saidas}`,310,yPos); doc.text(`✓ Autorizados: ${autorizados}`,440,yPos);
+    doc.text(`Total de registros: ${total}`,40,yPos);
+    doc.text(`↓ Entradas: ${entradasCount}`,180,yPos);
+    doc.text(`↑ Saídas: ${saidasCount}`,310,yPos);
+    doc.text(`✓ Autorizados: ${autorizados}`,440,yPos);
     yPos = 110;
-    doc.text(`✗ Negados: ${negados}`,40,yPos); doc.text(`📦 Com serviço: ${servicos}`,180,yPos);
-    const headers = [['Data/Hora','Motorista','Placa','Empresa','Tipo','Serviço','Empresa Serv.','Status']];
-    const tableData = data.slice(0,100).map(l => [new Date(l.dt).toLocaleString('pt-BR'), l.motorista_nome||'', l.motorista_placa||'', l.motorista_empresa||'', l.tipo==='entrada'?'ENTRADA':l.tipo==='saida'?'SAÍDA':'—', l.servico ? l.servico.toUpperCase() : '—', l.empresa_servico||'', l.ok ? '✓ OK' : '✗ NEGADO']);
-    doc.autoTable({ startY:130, head:headers, body:tableData, theme:'striped', styles:{ fontSize:7, cellPadding:4 }, headStyles:{ fillColor:[11,59,74], textColor:[255,255,255], fontSize:8, fontStyle:'bold' }, alternateRowStyles:{ fillColor:[245,248,245] }, columnStyles:{ 0:{ cellWidth:120 }, 1:{ cellWidth:130 }, 2:{ cellWidth:70 }, 3:{ cellWidth:100 }, 4:{ cellWidth:60, halign:'center' }, 5:{ cellWidth:60, halign:'center' }, 6:{ cellWidth:100 }, 7:{ cellWidth:70, halign:'center' } }, margin:{ left:25, right:25 } });
+    doc.text(`✗ Negados: ${negados}`,40,yPos);
+    doc.text(`📦 Com serviço: ${servicos}`,180,yPos);
+    doc.text(`⏱️ Permanências calculadas: ${permanencias.length}`,310,yPos);
+    
+    const headers = [['Data/Hora','Motorista','Placa','Empresa','Tipo','Serviço','Empresa Serv.','Status','Permanência']];
+    const tableData = filtrados.slice(0,100).map(l => {
+      let permanencia = '—';
+      if (l.tipo === 'entrada' && l.ok) {
+        const p = permanencias.find(p => p.motorista === l.motorista_nome && new Date(p.entrada).getTime() === new Date(l.dt).getTime());
+        if (p) permanencia = p.duracaoFormatada;
+      }
+      return [
+        new Date(l.dt).toLocaleString('pt-BR'),
+        l.motorista_nome||'',
+        l.motorista_placa||'',
+        l.motorista_empresa||'',
+        l.tipo==='entrada'?'ENTRADA':l.tipo==='saida'?'SAÍDA':'—',
+        l.servico ? l.servico.toUpperCase() : '—',
+        l.empresa_servico||'—',
+        l.ok ? '✓ OK' : '✗ NEGADO',
+        permanencia
+      ];
+    });
+    
+    doc.autoTable({
+      startY:130,
+      head:[headers],
+      body:tableData,
+      theme:'striped',
+      styles:{ fontSize:7, cellPadding:4 },
+      headStyles:{ fillColor:[11,59,74], textColor:[255,255,255], fontSize:8, fontStyle:'bold' },
+      alternateRowStyles:{ fillColor:[245,248,245] },
+      columnStyles:{
+        0:{ cellWidth:100 },
+        1:{ cellWidth:110 },
+        2:{ cellWidth:60 },
+        3:{ cellWidth:80 },
+        4:{ cellWidth:50, halign:'center' },
+        5:{ cellWidth:50, halign:'center' },
+        6:{ cellWidth:80 },
+        7:{ cellWidth:55, halign:'center' },
+        8:{ cellWidth:60, halign:'center' }
+      },
+      margin:{ left:20, right:20 }
+    });
+    
     const pageCount = doc.internal.getNumberOfPages();
-    for (let i=1; i<=pageCount; i++) { doc.setPage(i); doc.setFontSize(7); doc.setTextColor(150,150,150); const pw = doc.internal.pageSize.width; doc.text(`Página ${i} de ${pageCount}`, pw-80, doc.internal.pageSize.height-20); doc.text('PortariaPro - Controle de Acesso',40,doc.internal.pageSize.height-20); }
-    doc.save(`HISTORICO_VALIDACOES_${new Date().toISOString().slice(0,10)}.pdf`);
+    for (let i=1; i<=pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(150,150,150);
+      const pw = doc.internal.pageSize.width;
+      doc.text(`Página ${i} de ${pageCount}`, pw-80, doc.internal.pageSize.height-20);
+      doc.text('PortariaPro - Controle de Acesso',40,doc.internal.pageSize.height-20);
+    }
+    
+    const dataStr = new Date().toISOString().slice(0,10);
+    doc.save(`HISTORICO_VALIDACOES_${dataStr}.pdf`);
     showToast('Histórico PDF exportado ✓');
   } catch(e) { showToast('Erro: '+e.message); }
   finally { btn.disabled = false; btn.textContent = orig; }
 }
+
+// ============================================================
+// RENDER LOG COM FILTROS E PERMANÊNCIA
+// ============================================================
 
 async function renderLog() {
   const div = document.getElementById('logList');
@@ -2052,17 +2242,49 @@ async function renderLog() {
   const portaria = getPortaria();
   if (!portaria) { div.innerHTML = '<p style="color:var(--red)">Sessão expirada</p>'; return; }
   try {
-    let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(80);
+    let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(200);
     if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><p>Nenhuma validação ainda</p></div>`; return; }
-    div.innerHTML = data.map(l => {
+    
+    // Aplica filtros
+    const filtrados = getValidacoesFiltradas(data);
+    if (!filtrados.length) {
+      div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><p>Nenhum registro com os filtros atuais</p></div>`;
+      return;
+    }
+    
+    // Calcula permanências para exibição
+    const entradas = filtrados.filter(v => v.tipo === 'entrada' && v.ok === true);
+    const saidas = filtrados.filter(v => v.tipo === 'saida' && v.ok === true);
+    const permanencias = Utils.calcularPermanencia(entradas, saidas);
+    
+    div.innerHTML = filtrados.slice(0, 80).map(l => {
       const dirLabel = l.tipo === 'entrada' ? 'Entrada' : l.tipo === 'saida' ? 'Saída' : '';
       const servicoLabel = l.servico ? ` · ${l.servico.charAt(0).toUpperCase() + l.servico.slice(1)}` : '';
       const empresaLabel = l.empresa_servico ? ` · ${l.empresa_servico}` : '';
-      return `<div class="log-item"><div class="log-dot" style="background:${l.ok ? 'var(--green)' : 'var(--red)'}"></div><div class="log-info"><div class="log-name">${l.motorista_nome} ${dirLabel ? `<span style="color:var(--text2);font-weight:400">· ${dirLabel}</span>` : ''}${servicoLabel}</div><div class="log-sub">${l.motorista_placa||''} ${l.motorista_empresa ? '· '+l.motorista_empresa : ''}${empresaLabel} ${portaria.tipo === 'admin' && l.portaria_nome ? '· '+l.portaria_nome : ''}</div></div><div class="log-time">${new Date(l.dt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}<br>${new Date(l.dt).toLocaleDateString('pt-BR')}</div></div>`;
+      
+      // Verifica se é uma entrada com permanência
+      let permanenciaHtml = '';
+      if (l.tipo === 'entrada' && l.ok) {
+        const p = permanencias.find(p => p.motorista === l.motorista_nome && new Date(p.entrada).getTime() === new Date(l.dt).getTime());
+        if (p) {
+          permanenciaHtml = `<span style="color:var(--cyan);font-size:10px;display:block;">⏱️ ${p.duracaoFormatada}</span>`;
+        }
+      }
+      
+      return `<div class="log-item">
+        <div class="log-dot" style="background:${l.ok ? 'var(--green)' : 'var(--red)'}"></div>
+        <div class="log-info">
+          <div class="log-name">${l.motorista_nome} ${dirLabel ? `<span style="color:var(--text2);font-weight:400">· ${dirLabel}</span>` : ''}${servicoLabel}</div>
+          <div class="log-sub">${l.motorista_placa||''} ${l.motorista_empresa ? '· '+l.motorista_empresa : ''}${empresaLabel} ${portaria.tipo === 'admin' && l.portaria_nome ? '· '+l.portaria_nome : ''}</div>
+          ${permanenciaHtml}
+        </div>
+        <div class="log-time">${new Date(l.dt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}<br>${new Date(l.dt).toLocaleDateString('pt-BR')}</div>
+      </div>`;
     }).join('');
+    
   } catch(e) {
     div.innerHTML = `<p style="color:var(--red);text-align:center;padding:20px 0">Erro ao carregar. <button onclick="renderLog()" style="background:none;border:none;color:var(--cyan);cursor:pointer;text-decoration:underline;">Tentar novamente</button></p>`;
   }
