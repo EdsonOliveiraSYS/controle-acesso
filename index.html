@@ -1265,20 +1265,40 @@ function showToast(msg, duration) {
 }
 
 // ============================================================
-// SUPABASE
+// SUPABASE - CORRIGIDO (listener movido para cá)
 // ============================================================
 function initSupabase() {
   try {
     supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('✅ Supabase conectado com sucesso!');
+    
+    // 🔧 LISTENER DE AUTENTICAÇÃO (AGORA DENTRO DO initSupabase)
+    supa.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Evento de autenticação:', event);
+      if (event === 'SIGNED_IN') {
+        console.log('✅ Usuário logado:', session?.user?.email);
+      }
+      if (event === 'SIGNED_OUT') {
+        console.log('👋 Usuário deslogado');
+      }
+      if (event === 'TOKEN_REFRESHED') {
+        console.log('🔄 Token renovado automaticamente');
+      }
+      if (event === 'USER_UPDATED') {
+        console.log('📝 Usuário atualizado');
+      }
+    });
+    
     return true;
   } catch (e) {
+    console.error('❌ Erro ao conectar ao Supabase:', e);
     document.getElementById('configCheck').innerHTML = `<div class="config-warning"><h2>❌ Erro de conexão</h2><p>${e.message}</p></div>`;
     return false;
   }
 }
 
 // ============================================================
-// AUTENTICAÇÃO - CORRIGIDA (PERSISTÊNCIA DE SESSÃO)
+// AUTENTICAÇÃO
 // ============================================================
 function mostrarLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
@@ -1423,7 +1443,7 @@ async function fazerCadastro() {
 }
 
 // ============================================================
-// LOGIN - CORRIGIDO
+// LOGIN
 // ============================================================
 async function fazerLoginAuth() {
   const email = document.getElementById('loginEmail').value.trim();
@@ -1453,7 +1473,6 @@ async function fazerLoginAuth() {
   document.getElementById('loginLoading').textContent = 'Verificando credenciais...';
 
   try {
-    // 🔧 Usando signInWithPassword que retorna a sessão
     const { data, error } = await supa.auth.signInWithPassword({ 
       email, 
       password 
@@ -1463,11 +1482,8 @@ async function fazerLoginAuth() {
     if (!data || !data.user) throw new Error('Usuário não encontrado');
     if (!data.session) throw new Error('Sessão não criada');
 
-    // 🔧 Salva a sessão no localStorage (já feito pelo Supabase)
     console.log('✅ Sessão criada para:', data.user.email);
-    console.log('📅 Expira em:', new Date(data.session.expires_at * 1000).toLocaleString());
 
-    // Busca ou cria a portaria
     let { data: portaria, error: portariaError } = await supa
       .from('portarias')
       .select('*')
@@ -1477,7 +1493,6 @@ async function fazerLoginAuth() {
     if (portariaError) throw new Error('Erro ao buscar portaria');
 
     if (!portaria) {
-      // Tenta criar a portaria
       const { error: insertError } = await supa
         .from('portarias')
         .insert({
@@ -1487,19 +1502,14 @@ async function fazerLoginAuth() {
           tipo: 'porteiro'
         });
       
-      if (insertError) {
-        console.warn('⚠️ Erro ao criar portaria:', insertError);
-        // Continua mesmo sem portaria, mas com aviso
+      if (!insertError) {
+        const { data: newPortaria } = await supa
+          .from('portarias')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        portaria = newPortaria;
       }
-      
-      // Busca novamente
-      const { data: newPortaria } = await supa
-        .from('portarias')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-      
-      portaria = newPortaria;
     }
 
     localStorage.setItem('portaria_atual', JSON.stringify({
@@ -1574,7 +1584,6 @@ async function logoutAuth() {
   try {
     await supa.auth.signOut();
     localStorage.removeItem('portaria_atual');
-    // 🔧 Limpa também o localStorage do Supabase para garantir
     localStorage.removeItem('supabase.auth.token');
     mostrarLogin();
     document.getElementById('loginEmail').value = '';
@@ -1587,13 +1596,12 @@ async function logoutAuth() {
 }
 
 // ============================================================
-// VERIFICAR SESSÃO - CORRIGIDA
+// VERIFICAR SESSÃO
 // ============================================================
 async function verificarSessao() {
   try {
     console.log('🔍 Verificando sessão...');
     
-    // 🔧 Usa getSession() que restaura a sessão do localStorage
     const { data: { session }, error: sessionError } = await supa.auth.getSession();
     
     if (sessionError) {
@@ -1607,9 +1615,7 @@ async function verificarSessao() {
     }
 
     console.log('✅ Sessão encontrada para:', session.user.email);
-    console.log('📅 Expira em:', new Date(session.expires_at * 1000).toLocaleString());
 
-    // Verifica se o token ainda é válido
     if (session.expires_at && Date.now() > session.expires_at * 1000) {
       console.log('⚠️ Token expirado. Tentando renovar...');
       const { error: refreshError } = await supa.auth.refreshSession();
@@ -1619,7 +1625,6 @@ async function verificarSessao() {
       }
     }
 
-    // Busca a portaria
     const { data: portaria, error: portariaError } = await supa
       .from('portarias')
       .select('*')
@@ -1628,7 +1633,6 @@ async function verificarSessao() {
 
     if (portariaError) {
       console.error('❌ Erro ao buscar portaria:', portariaError);
-      // Mesmo sem portaria, tenta usar os dados do usuário
       const userData = session.user.user_metadata || {};
       localStorage.setItem('portaria_atual', JSON.stringify({
         id: session.user.id,
@@ -1652,7 +1656,6 @@ async function verificarSessao() {
       return true;
     }
 
-    // Se chegou aqui, não tem portaria mas tem sessão
     console.warn('⚠️ Sessão ativa mas sem portaria');
     const userData = session.user.user_metadata || {};
     localStorage.setItem('portaria_atual', JSON.stringify({
@@ -1668,27 +1671,6 @@ async function verificarSessao() {
     console.error('❌ Erro ao verificar sessão:', e);
     return false;
   }
-}
-
-// ============================================================
-// RENOVAÇÃO DE TOKEN AUTOMÁTICA
-// ============================================================
-if (supabase) {
-  supa.auth.onAuthStateChange((event, session) => {
-    console.log('🔐 Evento de autenticação:', event);
-    if (event === 'SIGNED_IN') {
-      console.log('✅ Usuário logado:', session?.user?.email);
-    }
-    if (event === 'SIGNED_OUT') {
-      console.log('👋 Usuário deslogado');
-    }
-    if (event === 'TOKEN_REFRESHED') {
-      console.log('🔄 Token renovado automaticamente');
-    }
-    if (event === 'USER_UPDATED') {
-      console.log('📝 Usuário atualizado');
-    }
-  });
 }
 
 // ============================================================
