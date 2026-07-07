@@ -22,7 +22,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS VARIÁVEIS - MODO ESCURO (PADRÃO) ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -134,7 +133,6 @@
   --chart-height: 200px;
 }
 
-/* ===== MODO CLARO ===== */
 [data-theme="light"] {
   --primary: #1A5B6E;
   --primary-dark: #0B3B4A;
@@ -155,7 +153,6 @@
   --amber: #E6A800;
   --amber-bg: rgba(230, 168, 0, 0.08);
   --shadow-card: 0 4px 24px rgba(0,0,0,0.08);
-  --header-bg: #1A5B6E;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -189,6 +186,108 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .auth-loading { color:var(--text2); font-size:13px; margin-top:16px; }
 .auth-link { color:var(--cyan); cursor:pointer; text-decoration:none; font-weight:500; }
 .auth-link:hover { text-decoration:underline; }
+
+/* ===== MODAIS DE CONVITE E USUÁRIOS ===== */
+.invite-modal, .users-modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(8px);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.invite-modal.open, .users-modal.open {
+  display:flex;
+  animation:fadeIn 0.3s ease;
+}
+.invite-sheet, .users-sheet {
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:32px 24px;
+  width:100%;
+  max-width:450px;
+  max-height:80vh;
+  overflow-y:auto;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.invite-sheet h3, .users-sheet h3 {
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+.invite-sheet p, .users-sheet p {
+  font-size:13px;
+  color:var(--text2);
+  margin-bottom:16px;
+}
+.invite-options {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:12px;
+}
+.invite-options .btn {
+  margin:0;
+  font-size:13px;
+  padding:12px;
+}
+.user-item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+.user-item:last-child { border-bottom:none; }
+.user-role {
+  font-size:10px;
+  text-transform:uppercase;
+  padding:2px 10px;
+  border-radius:var(--radius-full);
+  font-weight:600;
+}
+.user-role.master { background:rgba(64,212,224,0.2); color:var(--cyan); }
+.user-role.admin { background:var(--green-bg); color:var(--green); }
+.user-role.operador { background:var(--amber-bg); color:var(--amber); }
+.user-actions { display:flex; gap:6px; }
+.user-actions button {
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:14px;
+  padding:4px 6px;
+  border-radius:4px;
+  transition:background var(--transition-fast);
+}
+.user-actions button:hover { background:var(--bg3); }
+.user-actions button.danger:hover { background:var(--red-bg); color:var(--red); }
+
+.role-badge {
+  font-size:9px;
+  padding:2px 10px;
+  border-radius:var(--radius-full);
+  font-weight:600;
+  text-transform:uppercase;
+  margin-left:6px;
+}
+.role-badge.master { background:rgba(64,212,224,0.2); color:var(--cyan); }
+.role-badge.admin { background:var(--green-bg); color:var(--green); }
+.role-badge.operador { background:var(--amber-bg); color:var(--amber); }
+
+.header-role {
+  font-size:9px;
+  padding:2px 10px;
+  border-radius:var(--radius-full);
+  font-weight:600;
+  text-transform:uppercase;
+  background:var(--bg3);
+  color:var(--text2);
+}
+.hidden { display:none !important; }
 
 .reset-modal { display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px; }
 .reset-modal.open { display:flex; animation:fadeIn 0.3s ease; }
@@ -518,6 +617,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   font-size: 11px;
 }
 
+/* ===== RESPONSIVO ===== */
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -548,6 +648,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .dashboard-grid .card .chart-container { height:120px; }
   .dashboard-stat { padding:8px 4px; }
   .reset-sheet { padding:24px 16px; }
+  .invite-sheet, .users-sheet { padding:20px 16px; }
 }
 
 @media (min-width: 375px) and (max-width: 767px) {
@@ -577,6 +678,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .dashboard-stat .number { font-size:20px; }
   .dashboard-grid { grid-template-columns:1fr 1fr; gap:6px; }
   .dashboard-grid .card .chart-container { height:130px; }
+  .invite-sheet, .users-sheet { padding:24px 18px; }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -606,6 +708,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .dashboard-grid { grid-template-columns:1fr 1fr; gap:10px; }
   .dashboard-grid .card .chart-container { height:150px; }
   .auth-screen .auth-form { max-width:360px; }
+  .invite-sheet, .users-sheet { max-width:500px; }
 }
 
 @media (min-width: 1024px) and (max-width: 1439px) {
@@ -635,6 +738,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .dashboard-grid { grid-template-columns:1fr 1fr; gap:12px; }
   .dashboard-grid .card .chart-container { height:160px; }
   .auth-screen .auth-form { max-width:400px; }
+  .invite-sheet, .users-sheet { max-width:600px; }
 }
 
 @media (min-width: 1440px) {
@@ -664,6 +768,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .dashboard-grid { grid-template-columns:1fr 1fr; gap:14px; }
   .dashboard-grid .card .chart-container { height:180px; }
   .auth-screen .auth-form { max-width:440px; }
+  .invite-sheet, .users-sheet { max-width:700px; }
 }
 
 @media (min-width: 1600px) {
@@ -692,6 +797,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .filtros-actions { grid-column:1 / -1; }
   .dashboard-stats { grid-template-columns:repeat(4,1fr) !important; gap:16px !important; }
   .dashboard-grid { grid-template-columns:1fr 1fr !important; gap:16px !important; }
+  .invite-sheet, .users-sheet { max-width:800px; }
 }
 
 @media (max-width: 820px) and (orientation: landscape) {
@@ -771,6 +877,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .dashboard-grid .card .chart-container { height:100px; }
   .dashboard-stat .number { font-size:16px; }
   .reset-sheet { padding:20px 16px; }
+  .invite-sheet, .users-sheet { padding:16px; max-width:100%; }
 }
 </style>
 </head>
@@ -785,7 +892,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   <div class="status-bar"></div>
   <div id="configCheck"></div>
 
-  <!-- TELA DE LOGIN -->
+  <!-- ===== TELA DE LOGIN ===== -->
   <div class="auth-screen" id="loginScreen" style="display:none">
     <span class="auth-logo">🚛</span>
     <h1>PortariaPro</h1>
@@ -810,7 +917,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
   </div>
 
-  <!-- TELA DE CADASTRO -->
+  <!-- ===== TELA DE CADASTRO ===== -->
   <div class="auth-screen" id="registerScreen" style="display:none">
     <span class="auth-logo">🚛</span>
     <h1>Criar conta</h1>
@@ -841,7 +948,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
   </div>
 
-  <!-- APP PRINCIPAL -->
+  <!-- ===== APP PRINCIPAL ===== -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
       <span class="header-logo">🚛</span>
@@ -851,6 +958,8 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       </div>
       <div class="header-right">
         <button class="btn-update" id="btnTheme" title="Alternar tema">🌙</button>
+        <button class="btn-update" id="btnInvite" title="Convidar usuário">📧</button>
+        <button class="btn-update" id="btnUsers" title="Gerenciar usuários">👥</button>
         <button class="btn-update" onclick="forceUpdate()" title="Forçar atualização">🔄</button>
         <div class="header-badge" onclick="logoutAuth()" title="Sair">Sair</div>
       </div>
@@ -1017,7 +1126,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- MODAL: RESET SENHA -->
+<!-- ===== MODAL DE RESET SENHA ===== -->
 <div class="reset-modal" id="resetModal" onclick="closeResetModal(event)">
   <div class="reset-sheet">
     <div class="handle"></div>
@@ -1033,7 +1142,50 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- MODAIS EXISTENTES -->
+<!-- ===== MODAL DE CONVITE ===== -->
+<div class="invite-modal" id="inviteModal" onclick="closeInviteModal(event)">
+  <div class="invite-sheet">
+    <div class="handle"></div>
+    <h3>📧 Convidar Usuário</h3>
+    <p>Convide um novo operador para sua portaria</p>
+    <div class="field">
+      <label>EMAIL DO CONVIDADO</label>
+      <input type="email" id="inviteEmail" placeholder="email@exemplo.com">
+      <div class="error-msg" id="err-invite-email">Email inválido</div>
+    </div>
+    <div class="field">
+      <label>NOME DO CONVIDADO</label>
+      <input type="text" id="inviteNome" placeholder="Nome completo">
+      <div class="error-msg" id="err-invite-nome">Nome é obrigatório</div>
+    </div>
+    <div class="field">
+      <label>NÍVEL DE ACESSO</label>
+      <select id="inviteRole">
+        <option value="operador">👤 Operador (cadastrar/editar)</option>
+        <option value="admin">👑 Administrador (tudo, menos excluir portaria)</option>
+      </select>
+    </div>
+    <div class="invite-options">
+      <button class="btn btn-primary" onclick="enviarConviteEmail()">✉️ Enviar Email</button>
+      <button class="btn btn-success" onclick="enviarConviteWhatsApp()">📱 WhatsApp</button>
+    </div>
+    <div id="inviteStatus" style="text-align:center;font-size:13px;color:var(--text2);margin-top:8px;"></div>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('inviteModal').classList.remove('open')">Fechar</button>
+  </div>
+</div>
+
+<!-- ===== MODAL DE USUÁRIOS ===== -->
+<div class="users-modal" id="usersModal" onclick="closeUsersModal(event)">
+  <div class="users-sheet">
+    <div class="handle"></div>
+    <h3>👥 Usuários da Portaria</h3>
+    <p id="usersPortariaNome">Carregando...</p>
+    <div id="usersList"></div>
+    <button class="btn btn-ghost" style="margin-top:12px" onclick="document.getElementById('usersModal').classList.remove('open')">Fechar</button>
+  </div>
+</div>
+
+<!-- ===== MODAIS QR, DETAIL E EDIT ===== -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -1112,7 +1264,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 // ============================================================
 // VERSÃO E SERVICE WORKER
 // ============================================================
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '3.0.0';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
@@ -1185,7 +1337,6 @@ function carregarTema() {
   }
 }
 
-// Atualiza cores dos gráficos quando o tema mudar
 function atualizarCoresGraficos() {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const corTexto = isLight ? '#333' : '#8BB4C4';
@@ -1327,6 +1478,9 @@ const Utils = {
 // ESTADO GLOBAL
 // ============================================================
 let supa = null;
+let currentUser = null;
+let currentPortaria = null;
+let allUsers = [];
 let currentDriverId = null;
 let editDriverId = null;
 let zxingReader = null;
@@ -1344,6 +1498,7 @@ let selectedServico = null;
 let allPortarias = [];
 let chartInstances = {};
 let dashboardLoaded = false;
+let window._conviteAtual = null;
 
 // ============================================================
 // LOADING E TOAST
@@ -1369,27 +1524,480 @@ function showToast(msg, duration) {
 function initSupabase() {
   try {
     supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('✅ Supabase conectado com sucesso!');
-    supa.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Evento de autenticação:', event);
-      if (event === 'SIGNED_IN') {
-        console.log('✅ Usuário logado:', session?.user?.email);
-      }
-      if (event === 'SIGNED_OUT') {
-        console.log('👋 Usuário deslogado');
-      }
-      if (event === 'TOKEN_REFRESHED') {
-        console.log('🔄 Token renovado automaticamente');
-      }
-      if (event === 'USER_UPDATED') {
-        console.log('📝 Usuário atualizado');
-      }
-    });
+    console.log('✅ Supabase conectado!');
     return true;
   } catch (e) {
     console.error('❌ Erro ao conectar ao Supabase:', e);
-    document.getElementById('configCheck').innerHTML = `<div class="config-warning"><h2>❌ Erro de conexão</h2><p>${e.message}</p></div>`;
     return false;
+  }
+}
+
+// ============================================================
+// CRIAÇÃO DO USUÁRIO MESTRE
+// ============================================================
+async function criarUsuarioMestre() {
+  try {
+    const { data: mestreExistente, error: checkError } = await supa
+      .from('portarias')
+      .select('id')
+      .eq('tipo', 'mestre')
+      .maybeSingle();
+
+    if (mestreExistente) {
+      console.log('👑 Usuário mestre já existe');
+      return true;
+    }
+
+    console.log('👑 Criando usuário mestre...');
+
+    const { data: authData, error: authError } = await supa.auth.signUp({
+      email: 'master@portariapro.com',
+      password: 'Master@2024#Admin',
+      options: {
+        data: {
+          nome: 'Mestre',
+          tipo: 'mestre'
+        }
+      }
+    });
+
+    if (authError) {
+      if (authError.message.includes('already registered')) {
+        const { data: { users } } = await supa.auth.admin.listUsers();
+        const mestre = users?.find(u => u.email === 'master@portariapro.com');
+        if (mestre) {
+          await criarPortariaMestre(mestre.id);
+        }
+        return true;
+      }
+      throw new Error(authError.message);
+    }
+
+    if (!authData || !authData.user) {
+      throw new Error('Falha ao criar usuário mestre');
+    }
+
+    await criarPortariaMestre(authData.user.id);
+
+    console.log('✅ Usuário mestre criado!');
+    console.log('📧 Email: master@portariapro.com');
+    console.log('🔑 Senha: Master@2024#Admin');
+    return true;
+
+  } catch (e) {
+    console.error('❌ Erro ao criar usuário mestre:', e);
+    return false;
+  }
+}
+
+async function criarPortariaMestre(userId) {
+  const { error } = await supa
+    .from('portarias')
+    .insert({
+      id: userId,
+      nome: 'Sistema Master',
+      email: 'master@portariapro.com',
+      tipo: 'mestre',
+      codigo: 'MASTER_' + Math.random().toString(36).substring(2, 8).toUpperCase()
+    });
+
+  if (error && !error.message.includes('duplicate')) {
+    throw new Error('Erro ao criar portaria mestre: ' + error.message);
+  }
+}
+
+// ============================================================
+// SISTEMA DE CONVITES
+// ============================================================
+async function enviarConviteEmail() {
+  const email = document.getElementById('inviteEmail').value.trim();
+  const nome = document.getElementById('inviteNome').value.trim();
+  const role = document.getElementById('inviteRole').value;
+  let isValid = true;
+
+  document.getElementById('err-invite-email').classList.remove('show');
+  document.getElementById('err-invite-nome').classList.remove('show');
+  document.getElementById('inviteEmail').classList.remove('error');
+  document.getElementById('inviteNome').classList.remove('error');
+
+  if (!email || !email.includes('@')) {
+    document.getElementById('err-invite-email').classList.add('show');
+    document.getElementById('inviteEmail').classList.add('error');
+    isValid = false;
+  }
+  if (!nome || nome.length < 3) {
+    document.getElementById('err-invite-nome').classList.add('show');
+    document.getElementById('inviteNome').classList.add('error');
+    isValid = false;
+  }
+
+  if (!isValid) {
+    showToast('Corrija os campos destacados', 3000);
+    return;
+  }
+
+  const btn = event?.target;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
+  document.getElementById('inviteStatus').textContent = '⏳ Enviando convite...';
+
+  try {
+    const portaria = getPortaria();
+    if (!portaria) throw new Error('Sessão expirada');
+
+    const { data: existingUser, error: userError } = await supa
+      .from('portarias')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingUser) {
+      throw new Error(`Este email já está cadastrado (${existingUser.email})`);
+    }
+
+    const codigo = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    const { data: invite, error: inviteError } = await supa
+      .from('convites')
+      .insert({
+        email: email,
+        nome: nome,
+        role: role,
+        portaria_id: portaria.id,
+        portaria_nome: portaria.nome,
+        codigo: codigo,
+        criado_por: portaria.id,
+        status: 'pendente',
+        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      })
+      .select()
+      .single();
+
+    if (inviteError) throw new Error(inviteError.message);
+
+    const link = `https://edsonoliveirasys.github.io/controle-acesso/?convite=${codigo}`;
+    const assunto = encodeURIComponent(`Convite PortariaPro - ${portaria.nome}`);
+    const corpo = encodeURIComponent(
+      `Olá ${nome},\n\n` +
+      `Você foi convidado para se cadastrar na portaria "${portaria.nome}" como ${role === 'admin' ? 'Administrador' : 'Operador'}.\n\n` +
+      `🔗 Clique no link para criar sua conta: ${link}\n\n` +
+      `O link expira em 7 dias.\n\n` +
+      `Att,\nPortariaPro`
+    );
+
+    window.open(`mailto:${email}?subject=${assunto}&body=${corpo}`, '_blank');
+
+    document.getElementById('inviteStatus').textContent = '✅ Convite enviado por email!';
+    showToast('✅ Convite enviado com sucesso!', 3000);
+
+    document.getElementById('inviteEmail').value = '';
+    document.getElementById('inviteNome').value = '';
+
+    setTimeout(() => {
+      document.getElementById('inviteModal').classList.remove('open');
+    }, 2000);
+
+  } catch (e) {
+    console.error('❌ Erro ao enviar convite:', e);
+    document.getElementById('inviteStatus').textContent = '❌ ' + e.message;
+    showToast('Erro: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✉️ Enviar Email'; }
+  }
+}
+
+async function enviarConviteWhatsApp() {
+  const email = document.getElementById('inviteEmail').value.trim();
+  const nome = document.getElementById('inviteNome').value.trim();
+  const role = document.getElementById('inviteRole').value;
+  let isValid = true;
+
+  document.getElementById('err-invite-email').classList.remove('show');
+  document.getElementById('err-invite-nome').classList.remove('show');
+  document.getElementById('inviteEmail').classList.remove('error');
+  document.getElementById('inviteNome').classList.remove('error');
+
+  if (!email || !email.includes('@')) {
+    document.getElementById('err-invite-email').classList.add('show');
+    document.getElementById('inviteEmail').classList.add('error');
+    isValid = false;
+  }
+  if (!nome || nome.length < 3) {
+    document.getElementById('err-invite-nome').classList.add('show');
+    document.getElementById('inviteNome').classList.add('error');
+    isValid = false;
+  }
+
+  if (!isValid) {
+    showToast('Corrija os campos destacados', 3000);
+    return;
+  }
+
+  const btn = event?.target;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
+  document.getElementById('inviteStatus').textContent = '⏳ Gerando link...';
+
+  try {
+    const portaria = getPortaria();
+    if (!portaria) throw new Error('Sessão expirada');
+
+    const { data: existingUser } = await supa
+      .from('portarias')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingUser) {
+      throw new Error('Este email já está cadastrado');
+    }
+
+    const codigo = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    const { data: invite, error: inviteError } = await supa
+      .from('convites')
+      .insert({
+        email: email,
+        nome: nome,
+        role: role,
+        portaria_id: portaria.id,
+        portaria_nome: portaria.nome,
+        codigo: codigo,
+        criado_por: portaria.id,
+        status: 'pendente',
+        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      })
+      .select()
+      .single();
+
+    if (inviteError) throw new Error(inviteError.message);
+
+    const link = `https://edsonoliveirasys.github.io/controle-acesso/?convite=${codigo}`;
+    const mensagem = encodeURIComponent(
+      `🚛 *Convite PortariaPro*\n\n` +
+      `Olá *${nome}*!\n\n` +
+      `Você foi convidado para se cadastrar na portaria *"${portaria.nome}"* como *${role === 'admin' ? 'Administrador' : 'Operador'}*.\n\n` +
+      `🔗 *Link de cadastro:* ${link}\n\n` +
+      `O link expira em 7 dias.\n\n` +
+      `Att,\nPortariaPro`
+    );
+
+    const numero = prompt('📱 Digite o número do WhatsApp do convidado (com DDD):', '(62) 99999-9999');
+    if (numero) {
+      const numLimpo = numero.replace(/\D/g, '');
+      if (numLimpo.length >= 10) {
+        window.open(`https://wa.me/55${numLimpo}?text=${mensagem}`, '_blank');
+        document.getElementById('inviteStatus').textContent = '✅ WhatsApp aberto! Envie a mensagem.';
+        showToast('✅ WhatsApp aberto!', 2000);
+        
+        document.getElementById('inviteEmail').value = '';
+        document.getElementById('inviteNome').value = '';
+        
+        setTimeout(() => {
+          document.getElementById('inviteModal').classList.remove('open');
+        }, 3000);
+      } else {
+        throw new Error('Número inválido');
+      }
+    } else {
+      document.getElementById('inviteStatus').textContent = 'ℹ️ Envio cancelado';
+    }
+
+  } catch (e) {
+    console.error('❌ Erro:', e);
+    document.getElementById('inviteStatus').textContent = '❌ ' + e.message;
+    showToast('Erro: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📱 WhatsApp'; }
+  }
+}
+
+function closeInviteModal(e) {
+  if (e.target === document.getElementById('inviteModal')) {
+    document.getElementById('inviteModal').classList.remove('open');
+  }
+}
+
+// ============================================================
+// GERENCIAMENTO DE USUÁRIOS
+// ============================================================
+async function carregarUsuarios() {
+  try {
+    const portaria = getPortaria();
+    if (!portaria) return;
+
+    const { data, error } = await supa
+      .from('portarias')
+      .select('*')
+      .eq('portaria_id', portaria.id);
+
+    if (error) throw error;
+    allUsers = data || [];
+    return allUsers;
+  } catch (e) {
+    console.error('Erro ao carregar usuários:', e);
+    return [];
+  }
+}
+
+async function abrirListaUsuarios() {
+  const portaria = getPortaria();
+  if (!portaria) { showToast('Sessão expirada'); return; }
+
+  document.getElementById('usersPortariaNome').textContent = `🏢 ${portaria.nome}`;
+  document.getElementById('usersModal').classList.add('open');
+
+  await carregarUsuarios();
+  renderizarUsuarios();
+}
+
+function renderizarUsuarios() {
+  const list = document.getElementById('usersList');
+  if (!allUsers.length) {
+    list.innerHTML = '<p style="text-align:center;color:var(--text3);padding:20px 0;">Nenhum usuário nesta portaria</p>';
+    return;
+  }
+
+  list.innerHTML = allUsers.map(user => {
+    const roleLabel = {
+      'mestre': '👑 Mestre',
+      'admin': '👑 Administrador',
+      'operador': '👤 Operador'
+    }[user.tipo] || user.tipo;
+
+    const roleClass = {
+      'mestre': 'master',
+      'admin': 'admin',
+      'operador': 'operador'
+    }[user.tipo] || '';
+
+    const isCurrentUser = user.id === currentUser?.id;
+    const canDelete = user.tipo !== 'mestre' && !isCurrentUser && currentUser?.tipo !== 'operador';
+
+    return `
+      <div class="user-item">
+        <div>
+          <strong>${user.nome}</strong>
+          <span class="user-role ${roleClass}">${roleLabel}</span>
+          ${isCurrentUser ? ' <span style="font-size:10px;color:var(--text3);">(você)</span>' : ''}
+          <div style="font-size:11px;color:var(--text3);">${user.email}</div>
+        </div>
+        <div class="user-actions">
+          ${canDelete ? `<button class="danger" onclick="removerUsuario('${user.id}')" title="Remover">🗑️</button>` : ''}
+          ${user.tipo !== 'mestre' && !isCurrentUser && currentUser?.tipo !== 'operador' ? `
+            <button onclick="alterarRoleUsuario('${user.id}')" title="Alterar papel">🔄</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function removerUsuario(userId) {
+  if (!confirm('Tem certeza que deseja remover este usuário?')) return;
+  
+  try {
+    const portaria = getPortaria();
+    if (!portaria) throw new Error('Sessão expirada');
+
+    const admins = allUsers.filter(u => u.tipo === 'admin' || u.tipo === 'mestre');
+    const userToRemove = allUsers.find(u => u.id === userId);
+    
+    if (userToRemove?.tipo === 'admin' && admins.length <= 1) {
+      throw new Error('Não é possível remover o único administrador da portaria');
+    }
+
+    const { error } = await supa
+      .from('portarias')
+      .delete()
+      .eq('id', userId);
+
+    if (error) throw error;
+
+    showToast('Usuário removido ✓');
+    await carregarUsuarios();
+    renderizarUsuarios();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message);
+  }
+}
+
+async function alterarRoleUsuario(userId) {
+  const user = allUsers.find(u => u.id === userId);
+  if (!user) return;
+
+  const novoRole = user.tipo === 'admin' ? 'operador' : 'admin';
+  const confirmMsg = user.tipo === 'admin' 
+    ? `Deseja rebaixar ${user.nome} para OPERADOR?` 
+    : `Deseja promover ${user.nome} para ADMINISTRADOR?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const { error } = await supa
+      .from('portarias')
+      .update({ tipo: novoRole })
+      .eq('id', userId);
+
+    if (error) throw error;
+
+    showToast(`✅ ${user.nome} agora é ${novoRole === 'admin' ? 'Administrador' : 'Operador'}`);
+    await carregarUsuarios();
+    renderizarUsuarios();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message);
+  }
+}
+
+function closeUsersModal(e) {
+  if (e.target === document.getElementById('usersModal')) {
+    document.getElementById('usersModal').classList.remove('open');
+  }
+}
+
+// ============================================================
+// PROCESSAMENTO DE CONVITE
+// ============================================================
+async function processarConvite() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const codigo = urlParams.get('convite');
+
+  if (!codigo) return;
+
+  try {
+    const { data: invite, error } = await supa
+      .from('convites')
+      .select('*')
+      .eq('codigo', codigo)
+      .eq('status', 'pendente')
+      .maybeSingle();
+
+    if (error || !invite) {
+      showToast('❌ Convite inválido ou expirado', 4000);
+      return;
+    }
+
+    if (new Date(invite.expira_em) < new Date()) {
+      await supa.from('convites').update({ status: 'expirado' }).eq('codigo', codigo);
+      showToast('❌ Convite expirado', 4000);
+      return;
+    }
+
+    document.getElementById('registerNome').value = invite.nome;
+    document.getElementById('registerEmail').value = invite.email;
+    
+    showToast(`📧 Cadastre-se para entrar na portaria "${invite.portaria_nome}"`, 4000);
+    
+    window._conviteAtual = {
+      codigo: codigo,
+      portaria_id: invite.portaria_id,
+      role: invite.role,
+      nome: invite.nome,
+      email: invite.email
+    };
+
+    mostrarCadastro();
+
+  } catch (e) {
+    console.error('Erro ao processar convite:', e);
   }
 }
 
@@ -1436,9 +2044,11 @@ function getPortaria() {
 }
 
 // ============================================================
-// CADASTRO DE USUÁRIO
+// CADASTRO DE USUÁRIO (COM CONVITE)
 // ============================================================
 async function fazerCadastro() {
+  const convite = window._conviteAtual;
+  
   const nome = document.getElementById('registerNome').value.trim();
   const email = document.getElementById('registerEmail').value.trim();
   const password = document.getElementById('registerPassword').value;
@@ -1478,6 +2088,43 @@ async function fazerCadastro() {
   document.getElementById('registerLoading').textContent = 'Criando conta...';
 
   try {
+    // Se tem convite, usa os dados dele
+    if (convite) {
+      const { data: authData, error: authError } = await supa.auth.signUp({
+        email: convite.email,
+        password: password,
+        options: {
+          data: {
+            nome: convite.nome,
+            tipo: convite.role
+          }
+        }
+      });
+
+      if (authError) throw new Error(authError.message);
+
+      if (!authData || !authData.user) throw new Error('Falha ao criar usuário');
+
+      await supa.from('portarias').insert({
+        id: authData.user.id,
+        nome: convite.nome,
+        email: convite.email,
+        tipo: convite.role,
+        portaria_id: convite.portaria_id
+      });
+
+      await supa.from('convites').update({ 
+        status: 'usado',
+        usado_em: new Date().toISOString()
+      }).eq('codigo', convite.codigo);
+
+      showToast('✅ Cadastro realizado com sucesso!', 3000);
+      window._conviteAtual = null;
+      mostrarLogin();
+      return;
+    }
+
+    // Cadastro normal (sem convite) - criando nova portaria
     const redirectUrl = 'https://edsonoliveirasys.github.io/controle-acesso/';
     
     const { data: authData, error: authError } = await supa.auth.signUp({
@@ -1486,7 +2133,7 @@ async function fazerCadastro() {
       options: {
         data: { 
           nome: nome, 
-          tipo: 'porteiro' 
+          tipo: 'admin' 
         },
         emailRedirectTo: redirectUrl
       }
@@ -1506,8 +2153,8 @@ async function fazerCadastro() {
         id: authData.user.id,
         nome: nome,
         email: email,
-        tipo: 'porteiro',
-        codigo: 'AUTH_' + Math.random().toString(36).substring(2, 8).toUpperCase()
+        tipo: 'admin',
+        codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase()
       });
 
     if (portariaError) {
@@ -1516,7 +2163,7 @@ async function fazerCadastro() {
           id: authData.user.id,
           nome: nome,
           email: email,
-          tipo: 'porteiro'
+          tipo: 'admin'
         });
       } else {
         throw new Error('Erro ao criar perfil: ' + portariaError.message);
@@ -1579,6 +2226,7 @@ async function fazerLoginAuth() {
     if (!data.session) throw new Error('Sessão não criada');
 
     console.log('✅ Sessão criada para:', data.user.email);
+    currentUser = data.user;
 
     let { data: portaria, error: portariaError } = await supa
       .from('portarias')
@@ -1595,7 +2243,7 @@ async function fazerLoginAuth() {
           id: data.user.id,
           nome: data.user.user_metadata?.nome || 'Portaria',
           email: email,
-          tipo: 'porteiro'
+          tipo: data.user.user_metadata?.tipo || 'admin'
         });
       
       if (!insertError) {
@@ -1608,10 +2256,11 @@ async function fazerLoginAuth() {
       }
     }
 
+    currentPortaria = portaria;
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: data.user.id,
       nome: portaria?.nome || data.user.user_metadata?.nome || 'Portaria',
-      tipo: portaria?.tipo || 'porteiro',
+      tipo: portaria?.tipo || data.user.user_metadata?.tipo || 'admin',
       email: email
     }));
 
@@ -1681,6 +2330,8 @@ async function logoutAuth() {
     await supa.auth.signOut();
     localStorage.removeItem('portaria_atual');
     localStorage.removeItem('supabase.auth.token');
+    currentUser = null;
+    currentPortaria = null;
     mostrarLogin();
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPassword').value = '';
@@ -1711,6 +2362,7 @@ async function verificarSessao() {
     }
 
     console.log('✅ Sessão encontrada para:', session.user.email);
+    currentUser = session.user;
 
     if (session.expires_at && Date.now() > session.expires_at * 1000) {
       console.log('⚠️ Token expirado. Tentando renovar...');
@@ -1733,19 +2385,21 @@ async function verificarSessao() {
       localStorage.setItem('portaria_atual', JSON.stringify({
         id: session.user.id,
         nome: userData.nome || 'Portaria',
-        tipo: userData.tipo || 'porteiro',
+        tipo: userData.tipo || 'admin',
         email: session.user.email
       }));
+      currentPortaria = { id: session.user.id, nome: userData.nome || 'Portaria', tipo: userData.tipo || 'admin' };
       await iniciarApp();
       return true;
     }
 
     if (portaria) {
       console.log('✅ Portaria encontrada:', portaria.nome);
+      currentPortaria = portaria;
       localStorage.setItem('portaria_atual', JSON.stringify({
         id: portaria.id,
         nome: portaria.nome,
-        tipo: portaria.tipo || 'porteiro',
+        tipo: portaria.tipo || 'admin',
         email: portaria.email || session.user.email
       }));
       await iniciarApp();
@@ -1757,9 +2411,10 @@ async function verificarSessao() {
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: session.user.id,
       nome: userData.nome || 'Portaria',
-      tipo: userData.tipo || 'porteiro',
+      tipo: userData.tipo || 'admin',
       email: session.user.email
     }));
+    currentPortaria = { id: session.user.id, nome: userData.nome || 'Portaria', tipo: userData.tipo || 'admin' };
     await iniciarApp();
     return true;
 
@@ -1767,6 +2422,44 @@ async function verificarSessao() {
     console.error('❌ Erro ao verificar sessão:', e);
     return false;
   }
+}
+
+// ============================================================
+// PERMISSÕES
+// ============================================================
+function verificarPermissao(acao) {
+  const user = getPortaria();
+  if (!user) return false;
+
+  const tipo = user.tipo;
+
+  if (tipo === 'mestre') return true;
+
+  const permissoes = {
+    'admin': {
+      podeCadastrar: true,
+      podeEditar: true,
+      podeExcluir: true,
+      podeConvidar: true,
+      podeVerUsuarios: true,
+      podeVerDashboard: true,
+      podeVerHistorico: true,
+      podeGerenciarPortaria: true
+    },
+    'operador': {
+      podeCadastrar: true,
+      podeEditar: true,
+      podeExcluir: false,
+      podeConvidar: false,
+      podeVerUsuarios: false,
+      podeVerDashboard: true,
+      podeVerHistorico: true,
+      podeGerenciarPortaria: false
+    }
+  };
+
+  const perms = permissoes[tipo] || permissoes.operador;
+  return perms[acao] || false;
 }
 
 // ============================================================
@@ -2171,20 +2864,48 @@ async function iniciarApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('registerScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
-    document.getElementById('portariaNome').textContent = p.nome + (p.tipo === 'admin' ? ' · Administrador' : '');
-    if (p.tipo === 'admin') {
+    
+    // Mostra tipo de usuário
+    const tipoLabel = {
+      'mestre': '👑 Mestre',
+      'admin': '👑 Administrador',
+      'operador': '👤 Operador'
+    }[p.tipo] || '';
+    document.getElementById('portariaNome').textContent = p.nome + (tipoLabel ? ` · ${tipoLabel}` : '');
+    
+    // Configura visibilidade dos botões de admin
+    if (p.tipo === 'admin' || p.tipo === 'mestre') {
       document.getElementById('app').classList.add('role-admin');
       await carregarTodosMotoristas();
       await carregarPortarias();
       renderLista();
       setupInfiniteScroll();
+      
+      // Mostra botões de convite e usuários
+      document.getElementById('btnInvite').style.display = 'flex';
+      document.getElementById('btnUsers').style.display = 'flex';
+    } else {
+      // Operador não vê botões de convite/usuários
+      document.getElementById('btnInvite').style.display = 'none';
+      document.getElementById('btnUsers').style.display = 'none';
     }
+    
+    // Se for mestre, mostra todos os administradores também
+    if (p.tipo === 'mestre') {
+      // Mestre vê todas as portarias no filtro
+      await carregarPortarias();
+    }
+    
     renderLog();
     if (document.getElementById('page-dashboard').classList.contains('active')) {
       carregarDashboard();
     }
     hideLoading();
-  } catch (e) { hideLoading(); showToast('Erro ao carregar', 3000); }
+  } catch (e) { 
+    hideLoading(); 
+    showToast('Erro ao carregar', 3000);
+    console.error(e);
+  }
 }
 
 function showPage(id) {
@@ -2683,7 +3404,7 @@ async function exportarLogCSV() {
     if (!portaria) { showToast('Sessão expirada'); return; }
     
     let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(2000);
-    if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
+    if (portaria.tipo !== 'mestre' && portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { showToast('Nenhum registro'); return; }
@@ -2741,7 +3462,7 @@ async function exportarLogPDF() {
     if (!portaria) { showToast('Sessão expirada'); return; }
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(2000);
-    if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
+    if (portaria.tipo !== 'mestre' && portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { showToast('Nenhum registro'); return; }
@@ -2974,7 +3695,7 @@ async function renderLog() {
   if (!portaria) { div.innerHTML = '<p style="color:var(--red)">Sessão expirada</p>'; return; }
   try {
     let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(200);
-    if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
+    if (portaria.tipo !== 'mestre' && portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><p>Nenhuma validação ainda</p></div>`; return; }
@@ -3006,7 +3727,7 @@ async function renderLog() {
         <div class="log-dot" style="background:${l.ok ? 'var(--green)' : 'var(--red)'}"></div>
         <div class="log-info">
           <div class="log-name">${l.motorista_nome} ${dirLabel ? `<span style="color:var(--text2);font-weight:400">· ${dirLabel}</span>` : ''}${servicoLabel}</div>
-          <div class="log-sub">${l.motorista_placa||''} ${l.motorista_empresa ? '· '+l.motorista_empresa : ''}${empresaLabel} ${portaria.tipo === 'admin' && l.portaria_nome ? '· '+l.portaria_nome : ''}</div>
+          <div class="log-sub">${l.motorista_placa||''} ${l.motorista_empresa ? '· '+l.motorista_empresa : ''}${empresaLabel} ${(portaria.tipo === 'mestre' || portaria.tipo === 'admin') && l.portaria_nome ? '· '+l.portaria_nome : ''}</div>
           ${permanenciaHtml}
         </div>
         <div class="log-time">${new Date(l.dt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}<br>${new Date(l.dt).toLocaleDateString('pt-BR')}</div>
@@ -3039,7 +3760,7 @@ async function carregarDashboard() {
     if (!portaria) { showToast('Sessão expirada'); return; }
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(2000);
-    if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
+    if (portaria.tipo !== 'mestre' && portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     
@@ -3219,30 +3940,46 @@ function processarDashboard(data) {
 window.addEventListener('online', () => showToast('Conexão restaurada ✓', 1500));
 window.addEventListener('offline', () => showToast('Sem conexão com a internet ⚠', 3000));
 
-// Adicionar evento do botão tema quando o DOM carregar
+// Configura botões de convite e usuários no header
 document.addEventListener('DOMContentLoaded', function() {
   const btnTheme = document.getElementById('btnTheme');
   if (btnTheme) {
     btnTheme.addEventListener('click', alternarTema);
   }
+
+  const btnInvite = document.getElementById('btnInvite');
+  if (btnInvite) {
+    btnInvite.addEventListener('click', function() {
+      if (verificarPermissao('podeConvidar')) {
+        document.getElementById('inviteModal').classList.add('open');
+      } else {
+        showToast('⚠️ Você não tem permissão para convidar', 3000);
+      }
+    });
+  }
+
+  const btnUsers = document.getElementById('btnUsers');
+  if (btnUsers) {
+    btnUsers.addEventListener('click', function() {
+      if (verificarPermissao('podeVerUsuarios') || verificarPermissao('podeGerenciarPortaria')) {
+        abrirListaUsuarios();
+      } else {
+        showToast('⚠️ Você não tem permissão para ver usuários', 3000);
+      }
+    });
+  }
 });
 
 (async function start() {
-  // CARREGAR TEMA PRIMEIRO
   carregarTema();
-  
-  const storedVersion = localStorage.getItem('portariapro_version');
-  if (storedVersion && storedVersion !== APP_VERSION) {
-    localStorage.setItem('portariapro_version', APP_VERSION);
-    if (getPortaria()) { showToast('🔄 Nova versão! Atualizando...', 2000); setTimeout(forceUpdate, 1000); return; }
-  } else if (!storedVersion) localStorage.setItem('portariapro_version', APP_VERSION);
   
   if (!initSupabase()) return;
   
-  console.log('🚀 Iniciando aplicação...');
+  await criarUsuarioMestre();
+  await processarConvite();
+  
   const logado = await verificarSessao();
   if (!logado) {
-    console.log('ℹ️ Nenhuma sessão ativa, mostrando login');
     mostrarLogin();
   }
 })();
