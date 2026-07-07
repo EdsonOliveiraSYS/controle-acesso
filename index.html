@@ -352,7 +352,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .servico-btn:active { transform:scale(0.95); }
 .servico-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-/* FILTROS DO HISTÓRICO */
 .filtros-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -378,7 +377,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 .edit-sheet .field textarea { resize:vertical; min-height:60px; }
 
-/* RESPONSIVIDADE */
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -706,7 +704,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
 
     <div class="pages">
-      <!-- SCAN -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -726,7 +723,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scanResult"></div>
       </div>
 
-      <!-- CADASTRO -->
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
@@ -755,7 +751,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         </div>
       </div>
 
-      <!-- LISTA MOTORISTAS -->
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
@@ -771,7 +766,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
-      <!-- HISTÓRICO -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">📋 Histórico de validações</p>
@@ -782,7 +776,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
           </div>
         </div>
 
-        <!-- FILTROS DO HISTÓRICO -->
         <div class="filtros-container" id="filtrosContainer">
           <div class="field">
             <label>📅 DATA INICIAL</label>
@@ -845,7 +838,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- QR MODAL -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -866,7 +858,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
 <div class="detail-modal" id="detailModal" onclick="closeDetail(event)" role="dialog" aria-label="Detalhes do motorista">
   <div class="detail-sheet">
     <div class="handle"></div>
@@ -888,7 +879,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- EDIT MODAL -->
 <div class="edit-modal" id="editModal" onclick="closeEdit(event)" role="dialog" aria-label="Editar motorista">
   <div class="edit-sheet">
     <div class="handle"></div>
@@ -2070,7 +2060,7 @@ function exportarMotoristasCompleto() {
 }
 
 // ============================================================
-// RELATÓRIOS DE HISTÓRICO - COM FILTROS E PERMANÊNCIA
+// RELATÓRIOS DE HISTÓRICO - COM FILTROS E PERMANÊNCIA (CORRIGIDO)
 // ============================================================
 async function exportarLogCSV() {
   const btn = event.target;
@@ -2130,7 +2120,7 @@ async function exportarLogCSV() {
 }
 
 // ============================================================
-// EXPORTAR LOG PDF - COM TEMA AZUL PETRÓLEO (CORRIGIDO)
+// EXPORTAR LOG PDF - CORRIGIDO (TEMA AZUL PETRÓLEO)
 // ============================================================
 async function exportarLogPDF() {
   const btn = event.target;
@@ -2187,11 +2177,11 @@ async function exportarLogPDF() {
     doc.setFontSize(20);
     doc.setTextColor(colors.white[0], colors.white[1], colors.white[2]);
     doc.setFont('helvetica', 'bold');
-    doc.text('🚛 PORTARIAPRO', 40, 35);
+    doc.text('PortariaPro', 40, 35);
     
     doc.setFontSize(16);
     doc.setTextColor(colors.cyan[0], colors.cyan[1], colors.cyan[2]);
-    doc.text('HISTÓRICO DE VALIDAÇÕES', 40, 55);
+    doc.text('Histórico de Validações', 40, 55);
     
     doc.setFontSize(9);
     doc.setTextColor(200, 220, 230);
@@ -2201,10 +2191,10 @@ async function exportarLogPDF() {
     
     const f = getFiltrosLog();
     const filtroInfo = [];
-    if (f.dataInicio) filtroInfo.push(`📅 De: ${f.dataInicio}`);
-    if (f.dataFim) filtroInfo.push(`📅 Até: ${f.dataFim}`);
-    if (f.tipo) filtroInfo.push(`🔄 ${f.tipo === 'entrada' ? 'Entrada' : 'Saída'}`);
-    if (f.status !== '') filtroInfo.push(`📊 ${f.status === 'true' ? 'Autorizado' : 'Negado'}`);
+    if (f.dataInicio) filtroInfo.push(`De: ${f.dataInicio}`);
+    if (f.dataFim) filtroInfo.push(`Até: ${f.dataFim}`);
+    if (f.tipo) filtroInfo.push(`Tipo: ${f.tipo === 'entrada' ? 'Entrada' : 'Saída'}`);
+    if (f.status !== '') filtroInfo.push(`Status: ${f.status === 'true' ? 'Autorizado' : 'Negado'}`);
     
     if (filtroInfo.length) {
       doc.setFontSize(8);
@@ -2226,12 +2216,12 @@ async function exportarLogPDF() {
     
     const stats = [
       { label: 'Total', value: total, color: colors.primary },
-      { label: '↓ Entradas', value: entradasCount, color: colors.cyan },
-      { label: '↑ Saídas', value: saidasCount, color: colors.primaryLight },
-      { label: '✓ Autorizados', value: autorizados, color: colors.green },
-      { label: '✗ Negados', value: negados, color: colors.red },
-      { label: '📦 Serviços', value: servicos, color: colors.primary },
-      { label: '⏱️ Permanências', value: permanencias.length, color: colors.cyan },
+      { label: 'Entradas', value: entradasCount, color: colors.cyan },
+      { label: 'Saídas', value: saidasCount, color: colors.primaryLight },
+      { label: 'Autorizados', value: autorizados, color: colors.green },
+      { label: 'Negados', value: negados, color: colors.red },
+      { label: 'Serviços', value: servicos, color: colors.primary },
+      { label: 'Permanências', value: permanencias.length, color: colors.cyan },
     ];
     
     const statWidth = (pageWidth - 70) / stats.length;
@@ -2250,7 +2240,7 @@ async function exportarLogPDF() {
     });
     yPos += 45;
     
-    // TABELA
+    // TABELA - COM COLUNAS MAIS LARGAS PARA NOMES
     const headers = [['Data/Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Serviço', 'Empresa Serv.', 'Status', 'Permanência']];
     const maxRows = Math.min(filtrados.length, 150);
     const tableData = [];
@@ -2268,13 +2258,13 @@ async function exportarLogPDF() {
       
       tableData.push([
         new Date(l.dt).toLocaleString('pt-BR'),
-        (l.motorista_nome || '').substring(0, 25),
+        (l.motorista_nome || '').substring(0, 30),
         (l.motorista_placa || ''),
-        (l.motorista_empresa || '').substring(0, 20),
-        l.tipo === 'entrada' ? '↓ ENTRADA' : l.tipo === 'saida' ? '↑ SAÍDA' : '—',
+        (l.motorista_empresa || '').substring(0, 25),
+        l.tipo === 'entrada' ? 'Entrada' : l.tipo === 'saida' ? 'Saída' : '—',
         l.servico ? l.servico.toUpperCase() : '—',
-        (l.empresa_servico || '—').substring(0, 20),
-        l.ok ? '✓ OK' : '✗ NEGADO',
+        (l.empresa_servico || '—').substring(0, 25),
+        l.ok ? 'Autorizado' : 'Negado',
         permanencia
       ]);
     }
@@ -2285,8 +2275,8 @@ async function exportarLogPDF() {
       startY: yPos,
       theme: 'grid',
       styles: {
-        fontSize: 7,
-        cellPadding: 4,
+        fontSize: 7.5,
+        cellPadding: 5,
         valign: 'middle',
         halign: 'left',
         lineColor: [200, 210, 220],
@@ -2296,25 +2286,25 @@ async function exportarLogPDF() {
       headStyles: {
         fillColor: [11, 59, 74],
         textColor: [255, 255, 255],
-        fontSize: 8,
+        fontSize: 8.5,
         fontStyle: 'bold',
         halign: 'center',
         valign: 'middle',
-        cellPadding: 5,
+        cellPadding: 6,
       },
       alternateRowStyles: {
         fillColor: [245, 248, 250],
       },
       columnStyles: {
-        0: { cellWidth: 100, halign: 'center', textColor: [50, 50, 70] },
-        1: { cellWidth: 125, halign: 'left' },
-        2: { cellWidth: 60, halign: 'center', textColor: [11, 59, 74], fontStyle: 'bold' },
-        3: { cellWidth: 100, halign: 'left' },
-        4: { cellWidth: 65, halign: 'center', fontStyle: 'bold' },
+        0: { cellWidth: 105, halign: 'center' },
+        1: { cellWidth: 135, halign: 'left' },
+        2: { cellWidth: 65, halign: 'center', textColor: [11, 59, 74], fontStyle: 'bold' },
+        3: { cellWidth: 110, halign: 'left' },
+        4: { cellWidth: 60, halign: 'center', fontStyle: 'bold' },
         5: { cellWidth: 55, halign: 'center' },
-        6: { cellWidth: 95, halign: 'left' },
-        7: { cellWidth: 60, halign: 'center', fontStyle: 'bold' },
-        8: { cellWidth: 70, halign: 'center', textColor: [64, 212, 224], fontStyle: 'bold' },
+        6: { cellWidth: 100, halign: 'left' },
+        7: { cellWidth: 70, halign: 'center', fontStyle: 'bold' },
+        8: { cellWidth: 75, halign: 'center', textColor: [64, 212, 224], fontStyle: 'bold' },
       },
       margin: { left: 25, right: 25, top: 15 },
       showHead: 'everyPage',
@@ -2323,7 +2313,7 @@ async function exportarLogPDF() {
       tableLineWidth: 0.5,
       didParseCell: function(data) {
         if (data.column.index === 7 && data.cell.raw) {
-          data.cell.textColor = data.cell.raw.includes('OK') ? [61, 214, 182] : [255, 107, 91];
+          data.cell.textColor = data.cell.raw === 'Autorizado' ? [61, 214, 182] : [255, 107, 91];
           data.cell.fontStyle = 'bold';
         }
         if (data.column.index === 8 && data.cell.raw && data.cell.raw !== '—') {
@@ -2331,7 +2321,7 @@ async function exportarLogPDF() {
           data.cell.fontStyle = 'bold';
         }
         if (data.column.index === 4 && data.cell.raw) {
-          data.cell.textColor = data.cell.raw.includes('ENTRADA') ? [61, 214, 182] : [64, 212, 224];
+          data.cell.textColor = data.cell.raw === 'Entrada' ? [61, 214, 182] : [64, 212, 224];
         }
       },
     });
@@ -2355,7 +2345,7 @@ async function exportarLogPDF() {
       
       doc.setTextColor(11, 59, 74);
       doc.setFont('helvetica', 'bold');
-      doc.text('🚛 PortariaPro', 40, pageHeight - 15);
+      doc.text('PortariaPro', 40, pageHeight - 15);
       
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(6);
