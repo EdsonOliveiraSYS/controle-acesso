@@ -19,6 +19,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root {
@@ -129,6 +130,7 @@
   --edit-status-btn-font-size: 12px;
   --edit-qr-mini-btn-padding: 11px;
   --edit-qr-mini-btn-font-size: 13px;
+  --chart-height: 200px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -377,6 +379,105 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 .edit-sheet .field textarea { resize:vertical; min-height:60px; }
 
+/* ========================================================== */
+/* DASHBOARD - ESTILOS                                        */
+/* ========================================================== */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.dashboard-stat {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+}
+.dashboard-stat .number {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff;
+}
+.dashboard-stat .label {
+  font-size: 9px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+.dashboard-stat .number.entrada { color: var(--green); }
+.dashboard-stat .number.saida { color: var(--cyan); }
+.dashboard-stat .number.autorizado { color: var(--green); }
+.dashboard-stat .number.negado { color: var(--red); }
+
+.chart-container {
+  position: relative;
+  height: var(--chart-height);
+  margin: 8px 0 4px;
+}
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 8px;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dashboard-grid .card {
+  margin-bottom: 0;
+}
+.dashboard-grid .card .chart-container {
+  height: 140px;
+}
+
+.top-drivers-list {
+  list-style: none;
+  padding: 0;
+}
+.top-drivers-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.top-drivers-list li:last-child {
+  border-bottom: none;
+}
+.top-drivers-list .rank {
+  font-weight: 700;
+  color: var(--cyan);
+  min-width: 24px;
+  font-size: 14px;
+}
+.top-drivers-list .name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.top-drivers-list .count {
+  font-weight: 600;
+  color: var(--text2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -397,7 +498,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     --report-btn-padding:6px 4px; --stat-label-size:8px; --edit-title-size:16px; --edit-field-padding:8px 10px;
     --edit-field-font-size:13px; --edit-btn-padding:10px; --edit-btn-font-size:13px; --edit-photo-preview-size:48px;
     --edit-photo-btn-padding:8px; --edit-photo-btn-font-size:11px; --edit-status-btn-padding:8px; --edit-status-btn-font-size:10px;
-    --edit-qr-mini-btn-padding:8px; --edit-qr-mini-btn-font-size:10px;
+    --edit-qr-mini-btn-padding:8px; --edit-qr-mini-btn-font-size:10px; --chart-height:160px;
   }
   .login-screen { padding:20px 16px; }
   .login-screen input { letter-spacing:6px; }
@@ -415,6 +516,11 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .filtros-container .field:last-child { grid-column:auto; }
   .filtros-actions { flex-wrap:wrap; }
   .filtros-actions .btn { flex:1; min-width:60px; }
+  .dashboard-stats { grid-template-columns:1fr 1fr; gap:4px; }
+  .dashboard-stat .number { font-size:18px; }
+  .dashboard-grid { grid-template-columns:1fr; gap:6px; }
+  .dashboard-grid .card .chart-container { height:120px; }
+  .dashboard-stat { padding:8px 4px; }
 }
 
 @media (min-width: 375px) and (max-width: 767px) {
@@ -437,7 +543,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     --report-btn-padding:8px 6px; --stat-label-size:9px; --edit-title-size:17px; --edit-field-padding:10px 12px;
     --edit-field-font-size:14px; --edit-btn-padding:12px; --edit-btn-font-size:14px; --edit-photo-preview-size:56px;
     --edit-photo-btn-padding:10px; --edit-photo-btn-font-size:12px; --edit-status-btn-padding:10px; --edit-status-btn-font-size:11px;
-    --edit-qr-mini-btn-padding:10px; --edit-qr-mini-btn-font-size:11px;
+    --edit-qr-mini-btn-padding:10px; --edit-qr-mini-btn-font-size:11px; --chart-height:180px;
   }
   .login-screen { padding:24px 20px; }
   .login-screen input { letter-spacing:8px; }
@@ -452,6 +558,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .result-box .result-name { font-size:14px; }
   .result-box .result-sub { font-size:12px; }
   .filtros-container { grid-template-columns:1fr 1fr; padding:10px; }
+  .dashboard-stats { grid-template-columns:1fr 1fr; gap:6px; }
+  .dashboard-stat .number { font-size:20px; }
+  .dashboard-grid { grid-template-columns:1fr 1fr; gap:6px; }
+  .dashboard-grid .card .chart-container { height:130px; }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -474,7 +584,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     --report-btn-padding:12px 10px; --stat-label-size:11px; --edit-title-size:20px; --edit-field-padding:14px 16px;
     --edit-field-font-size:16px; --edit-btn-padding:16px; --edit-btn-font-size:16px; --edit-photo-preview-size:72px;
     --edit-photo-btn-padding:14px; --edit-photo-btn-font-size:14px; --edit-status-btn-padding:14px; --edit-status-btn-font-size:13px;
-    --edit-qr-mini-btn-padding:14px; --edit-qr-mini-btn-font-size:13px;
+    --edit-qr-mini-btn-padding:14px; --edit-qr-mini-btn-font-size:13px; --chart-height:220px;
   }
   .app { padding:20px 0; border-left:1px solid var(--border); border-right:1px solid var(--border); box-shadow:0 0 60px rgba(0,0,0,0.3); }
   .login-screen { padding:48px 32px; }
@@ -490,6 +600,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .result-box .result-name { font-size:16px; }
   .result-box .result-sub { font-size:14px; }
   .filtros-container { padding:14px; gap:10px; }
+  .dashboard-stats { grid-template-columns:repeat(4,1fr); gap:8px; }
+  .dashboard-grid { grid-template-columns:1fr 1fr; gap:10px; }
+  .dashboard-grid .card .chart-container { height:150px; }
 }
 
 @media (min-width: 1024px) and (max-width: 1439px) {
@@ -512,7 +625,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     --report-btn-padding:14px 12px; --stat-label-size:12px; --edit-title-size:22px; --edit-field-padding:16px 18px;
     --edit-field-font-size:17px; --edit-btn-padding:18px; --edit-btn-font-size:17px; --edit-photo-preview-size:80px;
     --edit-photo-btn-padding:16px; --edit-photo-btn-font-size:15px; --edit-status-btn-padding:16px; --edit-status-btn-font-size:14px;
-    --edit-qr-mini-btn-padding:16px; --edit-qr-mini-btn-font-size:14px;
+    --edit-qr-mini-btn-padding:16px; --edit-qr-mini-btn-font-size:14px; --chart-height:240px;
   }
   .app { padding:30px 0; border-radius:16px; margin-top:20px; margin-bottom:20px; box-shadow:0 0 80px rgba(0,0,0,0.4); max-height:calc(100vh - 40px); max-height:calc(100dvh - 40px); border:1px solid var(--border); }
   .login-screen { padding:60px 40px; }
@@ -530,6 +643,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .search-wrap input { font-size:15px; padding:12px 16px 12px 42px; }
   .search-wrap svg { width:18px; height:18px; }
   .filtros-container { padding:16px; gap:12px; }
+  .dashboard-stats { grid-template-columns:repeat(4,1fr); gap:10px; }
+  .dashboard-grid { grid-template-columns:1fr 1fr; gap:12px; }
+  .dashboard-grid .card .chart-container { height:160px; }
 }
 
 @media (min-width: 1440px) {
@@ -552,7 +668,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     --report-btn-padding:16px 14px; --stat-label-size:13px; --edit-title-size:24px; --edit-field-padding:18px 20px;
     --edit-field-font-size:18px; --edit-btn-padding:20px; --edit-btn-font-size:18px; --edit-photo-preview-size:88px;
     --edit-photo-btn-padding:18px; --edit-photo-btn-font-size:16px; --edit-status-btn-padding:18px; --edit-status-btn-font-size:15px;
-    --edit-qr-mini-btn-padding:18px; --edit-qr-mini-btn-font-size:15px;
+    --edit-qr-mini-btn-padding:18px; --edit-qr-mini-btn-font-size:15px; --chart-height:260px;
   }
   .app { padding:40px 0; border-radius:20px; margin-top:30px; margin-bottom:30px; box-shadow:0 0 100px rgba(0,0,0,0.5); max-height:calc(100vh - 60px); max-height:calc(100dvh - 60px); border:1px solid var(--border); }
   .login-screen { padding:80px 50px; }
@@ -570,6 +686,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .search-wrap input { font-size:16px; padding:14px 18px 14px 46px; }
   .search-wrap svg { width:20px; height:20px; }
   .filtros-container { padding:18px; gap:14px; }
+  .dashboard-stats { grid-template-columns:repeat(4,1fr); gap:12px; }
+  .dashboard-grid { grid-template-columns:1fr 1fr; gap:14px; }
+  .dashboard-grid .card .chart-container { height:180px; }
 }
 
 @media (min-width: 1600px) {
@@ -589,9 +708,15 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   #page-cadastro .card { grid-column:1 / -1; }
   #page-log.active { grid-template-columns:1fr 1fr; }
   #page-log .section-title, #page-log .card { grid-column:1 / -1; }
+  #page-dashboard.active { grid-template-columns:1fr 1fr; }
+  #page-dashboard .section-title { grid-column:1 / -1; }
+  #page-dashboard .dashboard-stats { grid-column:1 / -1; }
+  #page-dashboard .dashboard-grid { grid-column:1 / -1; }
   .filtros-container { grid-template-columns:1fr 1fr 1fr 1fr; padding:20px; gap:16px; }
   .filtros-container .field:last-child { grid-column:auto; }
   .filtros-actions { grid-column:1 / -1; }
+  .dashboard-stats { grid-template-columns:repeat(4,1fr) !important; gap:16px !important; }
+  .dashboard-grid { grid-template-columns:1fr 1fr !important; gap:16px !important; }
 }
 
 @media (max-width: 820px) and (orientation: landscape) {
@@ -666,6 +791,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .edit-sheet .qr-mini-btn { padding:6px; font-size:9px; }
   .filtros-container { grid-template-columns:1fr 1fr; padding:8px; }
   .filtros-container .field:last-child { grid-column:auto; }
+  .dashboard-stats { grid-template-columns:1fr 1fr; gap:4px; }
+  .dashboard-grid { grid-template-columns:1fr 1fr; gap:4px; }
+  .dashboard-grid .card .chart-container { height:100px; }
+  .dashboard-stat .number { font-size:16px; }
 }
 </style>
 </head>
@@ -704,6 +833,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
 
     <div class="pages">
+      <!-- SCAN -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -723,6 +853,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scanResult"></div>
       </div>
 
+      <!-- CADASTRO -->
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
@@ -751,6 +882,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         </div>
       </div>
 
+      <!-- LISTA MOTORISTAS -->
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
@@ -766,6 +898,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
+      <!-- HISTÓRICO -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">📋 Histórico de validações</p>
@@ -815,6 +948,65 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
         <div class="card" id="logList"></div>
       </div>
+
+      <!-- DASHBOARD - NOVA ABA -->
+      <div class="page" id="page-dashboard">
+        <p class="section-title">📊 Dashboard</p>
+        
+        <!-- Cards de resumo -->
+        <div class="dashboard-stats" id="dashboardStats">
+          <div class="dashboard-stat">
+            <div class="number entrada" id="dashEntradas">0</div>
+            <div class="label">↓ Entradas</div>
+          </div>
+          <div class="dashboard-stat">
+            <div class="number saida" id="dashSaidas">0</div>
+            <div class="label">↑ Saídas</div>
+          </div>
+          <div class="dashboard-stat">
+            <div class="number autorizado" id="dashAutorizados">0</div>
+            <div class="label">✓ Autorizados</div>
+          </div>
+          <div class="dashboard-stat">
+            <div class="number negado" id="dashNegados">0</div>
+            <div class="label">✗ Negados</div>
+          </div>
+        </div>
+
+        <!-- Gráfico 1: Entradas vs Saídas (últimos 7 dias) -->
+        <div class="card">
+          <div class="chart-title">📊 Entradas vs Saídas (últimos 7 dias)</div>
+          <div class="chart-container">
+            <canvas id="chartEntradasSaidas"></canvas>
+          </div>
+        </div>
+
+        <!-- Grid de gráficos menores -->
+        <div class="dashboard-grid">
+          <!-- Gráfico 2: Movimento por hora -->
+          <div class="card">
+            <div class="chart-title">📈 Movimento por hora</div>
+            <div class="chart-container">
+              <canvas id="chartMovimentoHora"></canvas>
+            </div>
+          </div>
+          <!-- Gráfico 3: Status dos motoristas -->
+          <div class="card">
+            <div class="chart-title">🥧 Status dos motoristas</div>
+            <div class="chart-container">
+              <canvas id="chartStatusMotoristas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top 5 motoristas -->
+        <div class="card">
+          <div class="chart-title">🏆 Top 5 motoristas mais frequentes</div>
+          <ul class="top-drivers-list" id="topDriversList">
+            <li style="color:var(--text3);text-align:center;padding:20px 0;">Carregando...</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <nav class="nav">
@@ -834,10 +1026,15 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
         Histórico
       </button>
+      <button class="nav-btn" onclick="showPage('dashboard')" id="nav-dashboard" aria-label="Dashboard" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
     </nav>
   </div>
 </div>
 
+<!-- QR MODAL -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -858,6 +1055,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
+<!-- DETAIL MODAL -->
 <div class="detail-modal" id="detailModal" onclick="closeDetail(event)" role="dialog" aria-label="Detalhes do motorista">
   <div class="detail-sheet">
     <div class="handle"></div>
@@ -879,6 +1077,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
+<!-- EDIT MODAL -->
 <div class="edit-modal" id="editModal" onclick="closeEdit(event)" role="dialog" aria-label="Editar motorista">
   <div class="edit-sheet">
     <div class="handle"></div>
@@ -916,7 +1115,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 // ============================================================
 // VERSÃO E SERVICE WORKER
 // ============================================================
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
@@ -1096,6 +1295,14 @@ let currentPage = 0;
 const PAGE_SIZE = 20;
 let selectedServico = null;
 let allPortarias = [];
+
+// ============================================================
+// GRÁFICOS - VARIÁVEIS
+// ============================================================
+let chartEntradasSaidas = null;
+let chartMovimentoHora = null;
+let chartStatusMotoristas = null;
+let dashboardLoaded = false;
 
 // ============================================================
 // LOADING E TOAST
@@ -1573,6 +1780,10 @@ async function iniciarApp() {
       setupInfiniteScroll();
     }
     renderLog();
+    // Carrega dashboard quando a página for exibida
+    if (document.getElementById('page-dashboard').classList.contains('active')) {
+      carregarDashboard();
+    }
     hideLoading();
   } catch (e) { hideLoading(); showToast('Erro ao carregar', 3000); }
 }
@@ -1587,6 +1798,7 @@ function showPage(id) {
   if (id !== 'scan') stopScan();
   if (id === 'lista') { renderLista(); setupInfiniteScroll(); }
   if (id === 'log') renderLog();
+  if (id === 'dashboard') { carregarDashboard(); }
   if (id === 'cadastro') {
     document.getElementById('cadastroTitle').textContent = 'Novo motorista';
     document.getElementById('btnCadastrar').textContent = 'Cadastrar e gerar QR Code';
@@ -2060,7 +2272,7 @@ function exportarMotoristasCompleto() {
 }
 
 // ============================================================
-// RELATÓRIOS DE HISTÓRICO - COM FILTROS E PERMANÊNCIA (CORRIGIDO)
+// RELATÓRIOS DE HISTÓRICO
 // ============================================================
 async function exportarLogCSV() {
   const btn = event.target;
@@ -2119,14 +2331,10 @@ async function exportarLogCSV() {
   finally { btn.disabled = false; btn.textContent = orig; }
 }
 
-// ============================================================
-// EXPORTAR LOG PDF - CORRIGIDO (TEMA AZUL PETRÓLEO)
-// ============================================================
 async function exportarLogPDF() {
   const btn = event.target;
   const orig = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = '⏳ Gerando...';
+  btn.disabled = true; btn.textContent = '⏳ Gerando...';
   
   try {
     if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
@@ -2151,26 +2359,22 @@ async function exportarLogPDF() {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     
-    // CORES DO TEMA AZUL PETRÓLEO
     const colors = {
       primary: [11, 59, 74],
       primaryDark: [7, 42, 53],
       primaryLight: [26, 91, 110],
       cyan: [64, 212, 224],
-      cyanLight: [180, 240, 245],
       green: [61, 214, 182],
       red: [255, 107, 91],
       white: [255, 255, 255],
       text: [40, 40, 50],
       textLight: [100, 110, 120],
       bgLight: [245, 248, 250],
-      bgAlt: [235, 240, 245],
     };
     
     // CABEÇALHO
     doc.setFillColor(colors.primary[0], colors.primary[1], colors.primary[2]);
     doc.rect(0, 0, pageWidth, 85, 'F');
-    
     doc.setFillColor(colors.cyan[0], colors.cyan[1], colors.cyan[2]);
     doc.rect(0, 85, pageWidth, 3, 'F');
     
@@ -2240,7 +2444,7 @@ async function exportarLogPDF() {
     });
     yPos += 45;
     
-    // TABELA - COM COLUNAS MAIS LARGAS PARA NOMES
+    // TABELA
     const headers = [['Data/Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Serviço', 'Empresa Serv.', 'Status', 'Permanência']];
     const maxRows = Math.min(filtrados.length, 150);
     const tableData = [];
@@ -2330,7 +2534,6 @@ async function exportarLogPDF() {
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      
       doc.setDrawColor(11, 59, 74);
       doc.setLineWidth(0.5);
       doc.line(25, pageHeight - 28, pageWidth - 25, pageHeight - 28);
@@ -2342,11 +2545,9 @@ async function exportarLogPDF() {
       doc.setTextColor(100, 110, 120);
       doc.setFont('helvetica', 'normal');
       doc.text(`Página ${i} de ${pageCount}`, pageWidth - 40, pageHeight - 15, { align: 'right' });
-      
       doc.setTextColor(11, 59, 74);
       doc.setFont('helvetica', 'bold');
       doc.text('PortariaPro', 40, pageHeight - 15);
-      
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(6);
       doc.setTextColor(150, 160, 170);
@@ -2374,7 +2575,7 @@ async function exportarLogPDF() {
 }
 
 // ============================================================
-// RENDER LOG COM FILTROS E PERMANÊNCIA
+// RENDER LOG
 // ============================================================
 async function renderLog() {
   const div = document.getElementById('logList');
@@ -2424,6 +2625,294 @@ async function renderLog() {
     
   } catch(e) {
     div.innerHTML = `<p style="color:var(--red);text-align:center;padding:20px 0">Erro ao carregar. <button onclick="renderLog()" style="background:none;border:none;color:var(--cyan);cursor:pointer;text-decoration:underline;">Tentar novamente</button></p>`;
+  }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+let chartInstances = {};
+
+function destroyChart(key) {
+  if (chartInstances[key]) {
+    chartInstances[key].destroy();
+    delete chartInstances[key];
+  }
+}
+
+async function carregarDashboard() {
+  if (dashboardLoaded) {
+    atualizarDashboard();
+    return;
+  }
+  
+  try {
+    const portaria = getPortaria();
+    if (!portaria) { showToast('Sessão expirada'); return; }
+    
+    // Busca validações
+    let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(2000);
+    if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    
+    if (!data || !data.length) {
+      document.querySelector('#page-dashboard .card .chart-title').textContent = 'Sem dados para exibir';
+      return;
+    }
+    
+    allValidacoes = data;
+    dashboardLoaded = true;
+    
+    // Processa e exibe os gráficos
+    processarDashboard(data);
+    
+  } catch (e) {
+    console.error('Erro ao carregar dashboard:', e);
+    showToast('Erro ao carregar dashboard');
+  }
+}
+
+function atualizarDashboard() {
+  if (allValidacoes.length) {
+    processarDashboard(allValidacoes);
+  }
+}
+
+function processarDashboard(data) {
+  // ============================================================
+  // 1. CARDS DE RESUMO
+  // ============================================================
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  
+  const hojeMs = hoje.getTime();
+  const validacoesHoje = data.filter(v => {
+    const dt = new Date(v.dt);
+    dt.setHours(0, 0, 0, 0);
+    return dt.getTime() === hojeMs;
+  });
+  
+  const entradasHoje = validacoesHoje.filter(v => v.tipo === 'entrada').length;
+  const saidasHoje = validacoesHoje.filter(v => v.tipo === 'saida').length;
+  const autorizadosHoje = validacoesHoje.filter(v => v.ok === true).length;
+  const negadosHoje = validacoesHoje.filter(v => v.ok === false).length;
+  
+  document.getElementById('dashEntradas').textContent = entradasHoje;
+  document.getElementById('dashSaidas').textContent = saidasHoje;
+  document.getElementById('dashAutorizados').textContent = autorizadosHoje;
+  document.getElementById('dashNegados').textContent = negadosHoje;
+  
+  // ============================================================
+  // 2. GRÁFICO: Entradas vs Saídas (últimos 7 dias)
+  // ============================================================
+  const dias = [];
+  const entradas7 = [];
+  const saidas7 = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    const diaStr = d.toLocaleDateString('pt-BR', { weekday: 'short' });
+    dias.push(diaStr);
+    
+    const diaMs = d.getTime();
+    const diaData = data.filter(v => {
+      const dt = new Date(v.dt);
+      dt.setHours(0, 0, 0, 0);
+      return dt.getTime() === diaMs;
+    });
+    
+    entradas7.push(diaData.filter(v => v.tipo === 'entrada').length);
+    saidas7.push(diaData.filter(v => v.tipo === 'saida').length);
+  }
+  
+  destroyChart('entradasSaidas');
+  
+  const ctx1 = document.getElementById('chartEntradasSaidas').getContext('2d');
+  chartInstances.entradasSaidas = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: dias,
+      datasets: [
+        {
+          label: 'Entradas',
+          data: entradas7,
+          backgroundColor: 'rgba(61, 214, 182, 0.7)',
+          borderColor: 'rgba(61, 214, 182, 1)',
+          borderWidth: 2,
+          borderRadius: 4,
+        },
+        {
+          label: 'Saídas',
+          data: saidas7,
+          backgroundColor: 'rgba(64, 212, 224, 0.7)',
+          borderColor: 'rgba(64, 212, 224, 1)',
+          borderWidth: 2,
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: '#8BB4C4',
+            font: { size: 10, family: 'Inter' },
+            boxWidth: 12,
+            padding: 8,
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(26, 91, 110, 0.15)' },
+          ticks: { color: '#8BB4C4', font: { size: 9 } },
+        },
+        y: {
+          grid: { color: 'rgba(26, 91, 110, 0.15)' },
+          ticks: { color: '#8BB4C4', font: { size: 9 }, stepSize: 1 },
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+  
+  // ============================================================
+  // 3. GRÁFICO: Movimento por hora
+  // ============================================================
+  const horas = Array.from({ length: 24 }, (_, i) => `${i}h`);
+  const movimentos = Array(24).fill(0);
+  
+  data.forEach(v => {
+    const hora = new Date(v.dt).getHours();
+    movimentos[hora]++;
+  });
+  
+  destroyChart('movimentoHora');
+  
+  const ctx2 = document.getElementById('chartMovimentoHora').getContext('2d');
+  chartInstances.movimentoHora = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: horas,
+      datasets: [{
+        label: 'Movimentos',
+        data: movimentos,
+        borderColor: 'rgba(64, 212, 224, 1)',
+        backgroundColor: 'rgba(64, 212, 224, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: 'rgba(64, 212, 224, 0.8)',
+        pointRadius: 2,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.parsed.y} movimentos`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#8BB4C4', font: { size: 7 }, maxTicksLimit: 12 },
+        },
+        y: {
+          grid: { color: 'rgba(26, 91, 110, 0.15)' },
+          ticks: { color: '#8BB4C4', font: { size: 8 }, stepSize: 1 },
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+  
+  // ============================================================
+  // 4. GRÁFICO: Status dos motoristas
+  // ============================================================
+  const motoristas = allMotoristas.length || 0;
+  const autorizados = allMotoristas.filter(m => m.status === 'autorizado').length || 0;
+  const pendentes = allMotoristas.filter(m => m.status === 'pendente').length || 0;
+  const bloqueados = allMotoristas.filter(m => m.status === 'bloqueado').length || 0;
+  
+  destroyChart('statusMotoristas');
+  
+  const ctx3 = document.getElementById('chartStatusMotoristas').getContext('2d');
+  chartInstances.statusMotoristas = new Chart(ctx3, {
+    type: 'doughnut',
+    data: {
+      labels: ['Autorizados', 'Pendentes', 'Bloqueados'],
+      datasets: [{
+        data: [autorizados, pendentes, bloqueados],
+        backgroundColor: [
+          'rgba(61, 214, 182, 0.8)',
+          'rgba(240, 184, 74, 0.8)',
+          'rgba(255, 107, 91, 0.8)'
+        ],
+        borderColor: [
+          'rgba(61, 214, 182, 1)',
+          'rgba(240, 184, 74, 1)',
+          'rgba(255, 107, 91, 1)'
+        ],
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#8BB4C4',
+            font: { size: 9, family: 'Inter' },
+            boxWidth: 10,
+            padding: 6,
+          }
+        }
+      },
+      cutout: '65%',
+    }
+  });
+  
+  // ============================================================
+  // 5. TOP 5 MOTORISTAS
+  // ============================================================
+  const contagemMotoristas = {};
+  data.forEach(v => {
+    if (v.motorista_nome && v.motorista_nome !== 'QR inválido') {
+      const nome = v.motorista_nome;
+      contagemMotoristas[nome] = (contagemMotoristas[nome] || 0) + 1;
+    }
+  });
+  
+  const top5 = Object.entries(contagemMotoristas)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  
+  const topList = document.getElementById('topDriversList');
+  if (top5.length === 0) {
+    topList.innerHTML = '<li style="color:var(--text3);text-align:center;padding:20px 0;">Nenhum motorista registrado</li>';
+  } else {
+    const emojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+    topList.innerHTML = top5.map(([nome, count], index) => `
+      <li>
+        <span class="rank">${emojis[index] || (index + 1)}</span>
+        <span class="name" title="${nome}">${nome}</span>
+        <span class="count">${count}x</span>
+      </li>
+    `).join('');
   }
 }
 
