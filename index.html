@@ -352,9 +352,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .servico-btn:active { transform:scale(0.95); }
 .servico-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-/* ========================================================== */
-/* FILTROS DO HISTÓRICO                                       */
-/* ========================================================== */
+/* FILTROS DO HISTÓRICO */
 .filtros-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -365,38 +363,13 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
 }
-.filtros-container .field {
-  margin-bottom: 0;
-}
-.filtros-container .field label {
-  font-size: 9px;
-  letter-spacing: 0.3px;
-}
+.filtros-container .field { margin-bottom: 0; }
+.filtros-container .field label { font-size: 9px; letter-spacing: 0.3px; }
 .filtros-container .field input,
-.filtros-container .field select {
-  font-size: 12px;
-  padding: 6px 8px;
-}
-.filtros-container .field:last-child {
-  grid-column: 1 / -1;
-}
-.filtros-actions {
-  display: flex;
-  gap: 6px;
-  grid-column: 1 / -1;
-}
-.filtros-actions .btn {
-  font-size: 11px;
-  padding: 6px 10px;
-  flex: 1;
-}
-.filtro-label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: var(--text2);
-}
+.filtros-container .field select { font-size: 12px; padding: 6px 8px; }
+.filtros-container .field:last-child { grid-column: 1 / -1; }
+.filtros-actions { display: flex; gap: 6px; grid-column: 1 / -1; }
+.filtros-actions .btn { font-size: 11px; padding: 6px 10px; flex: 1; }
 
 .report-btns { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
 .report-btn { flex:1; min-width:80px; padding:var(--report-btn-padding); border-radius:var(--radius-sm); background:var(--bg3); border:1px solid var(--border2); color:var(--text2); font-size:var(--report-btn-font-size); cursor:pointer; transition:all var(--transition-fast); font-family:'Inter',sans-serif; font-weight:600; }
@@ -405,6 +378,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 .edit-sheet .field textarea { resize:vertical; min-height:60px; }
 
+/* RESPONSIVIDADE */
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -732,6 +706,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
 
     <div class="pages">
+      <!-- SCAN -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -751,6 +726,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scanResult"></div>
       </div>
 
+      <!-- CADASTRO -->
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
@@ -779,6 +755,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         </div>
       </div>
 
+      <!-- LISTA MOTORISTAS -->
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="report-btns">
@@ -794,6 +771,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
+      <!-- HISTÓRICO -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">📋 Histórico de validações</p>
@@ -867,6 +845,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
+<!-- QR MODAL -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -887,6 +866,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
+<!-- DETAIL MODAL -->
 <div class="detail-modal" id="detailModal" onclick="closeDetail(event)" role="dialog" aria-label="Detalhes do motorista">
   <div class="detail-sheet">
     <div class="handle"></div>
@@ -908,6 +888,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
+<!-- EDIT MODAL -->
 <div class="edit-modal" id="editModal" onclick="closeEdit(event)" role="dialog" aria-label="Editar motorista">
   <div class="edit-sheet">
     <div class="handle"></div>
@@ -942,6 +923,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 <div class="toast" id="toast"></div>
 
 <script>
+// ============================================================
+// VERSÃO E SERVICE WORKER
+// ============================================================
 const APP_VERSION = '2.1.0';
 
 if ('serviceWorker' in navigator) {
@@ -981,9 +965,15 @@ async function forceUpdate() {
 }
 window.forceUpdate = forceUpdate;
 
+// ============================================================
+// CONFIGURAÇÃO SUPABASE
+// ============================================================
 const SUPABASE_URL = 'https://wqzbmlfiwmjhkjprnzrv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxemJtbGZpd21qaGtqcHJuenJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDA0MjEsImV4cCI6MjA5NzY3NjQyMX0.vza4qGtnkwq4LMM8HNCoHrfOPb8gzC4wse-qk9Yax9M';
 
+// ============================================================
+// UTILITÁRIOS
+// ============================================================
 const Utils = {
   now: () => new Date().toISOString(),
   formatCPF: (v) => {
@@ -1057,12 +1047,10 @@ const Utils = {
     const resultado = [];
     let saidasIndex = 0;
     
-    // Ordena entradas e saídas por data
     const entradasOrdenadas = [...entradas].sort((a, b) => new Date(a.dt) - new Date(b.dt));
     const saidasOrdenadas = [...saidas].sort((a, b) => new Date(a.dt) - new Date(b.dt));
     
     for (const entrada of entradasOrdenadas) {
-      // Procura a saída mais próxima após esta entrada
       let saidaEncontrada = null;
       let saidaIndex = -1;
       
@@ -1091,7 +1079,6 @@ const Utils = {
           empresa_servico: entrada.empresa_servico || '—'
         });
         
-        // Atualiza o índice de saídas para não reutilizar a mesma saída
         saidasIndex = saidaIndex + 1;
       }
     }
@@ -1100,6 +1087,9 @@ const Utils = {
   }
 };
 
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
 let supa = null;
 let currentDriverId = null;
 let editDriverId = null;
@@ -1117,6 +1107,9 @@ const PAGE_SIZE = 20;
 let selectedServico = null;
 let allPortarias = [];
 
+// ============================================================
+// LOADING E TOAST
+// ============================================================
 function showLoading(text) {
   document.getElementById('loadingText').textContent = text || 'Carregando...';
   document.getElementById('loadingOverlay').classList.add('active');
@@ -1132,6 +1125,9 @@ function showToast(msg, duration) {
   t._timeout = setTimeout(() => t.classList.remove('show'), duration || 2500);
 }
 
+// ============================================================
+// SUPABASE
+// ============================================================
 function initSupabase() {
   try {
     supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1145,7 +1141,6 @@ function initSupabase() {
 // ============================================================
 // FILTROS DO HISTÓRICO
 // ============================================================
-
 function getFiltrosLog() {
   return {
     dataInicio: document.getElementById('filtroDataInicio').value,
@@ -1175,7 +1170,6 @@ function getValidacoesFiltradas(data) {
   const filtros = getFiltrosLog();
   
   return data.filter(v => {
-    // Filtro de data
     const dataVal = new Date(v.dt);
     if (filtros.dataInicio) {
       const inicio = Utils.parseDate(filtros.dataInicio);
@@ -1186,19 +1180,12 @@ function getValidacoesFiltradas(data) {
       fim.setHours(23, 59, 59);
       if (dataVal > fim) return false;
     }
-    
-    // Filtro de tipo
     if (filtros.tipo && v.tipo !== filtros.tipo) return false;
-    
-    // Filtro de status (ok)
     if (filtros.status !== '') {
       const ok = filtros.status === 'true';
       if (v.ok !== ok) return false;
     }
-    
-    // Filtro de portaria
     if (filtros.portaria && v.portaria_id !== filtros.portaria) return false;
-    
     return true;
   });
 }
@@ -1217,9 +1204,8 @@ async function carregarPortarias() {
 }
 
 // ============================================================
-// FUNÇÕES EXISTENTES (mantidas)
+// VALIDAÇÃO CPF DUPLICADO
 // ============================================================
-
 async function verificarCPFDuplicado(cpf) {
   try {
     const cpfLimpo = cpf.replace(/\D/g, '');
@@ -1240,11 +1226,47 @@ async function verificarCPFDuplicadoEdicao(cpf, idAtual) {
   } catch (e) { return { duplicado: false }; }
 }
 
+// ============================================================
+// LOGIN
+// ============================================================
 function getPortaria() {
   try { return JSON.parse(localStorage.getItem('portaria_atual') || 'null'); } 
   catch(e) { return null; }
 }
 
+async function fazerLogin() {
+  const codigo = document.getElementById('loginCodigo').value.trim();
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!codigo) { errEl.textContent = 'Digite o código.'; return; }
+  
+  const btn = document.getElementById('btnLogin');
+  const loadingEl = document.getElementById('loginLoading');
+  btn.disabled = true;
+  btn.textContent = '⏳ Verificando...';
+  loadingEl.textContent = 'Verificando código...';
+  try {
+    const { data, error } = await supa.from('portarias').select('id,nome,codigo,tipo').eq('codigo', codigo).maybeSingle();
+    if (error) { errEl.textContent = 'Erro de conexão.'; return; }
+    if (!data) { errEl.textContent = 'Código inválido.'; loadingEl.textContent = ''; return; }
+    loadingEl.textContent = '✅ Logando...';
+    localStorage.setItem('portaria_atual', JSON.stringify({ id: data.id, nome: data.nome, tipo: data.tipo || 'porteiro' }));
+    await iniciarApp();
+  } catch (e) { errEl.textContent = 'Erro inesperado.'; }
+  finally { btn.disabled = false; btn.textContent = 'Entrar'; loadingEl.textContent = ''; }
+}
+
+function logout() {
+  if (!confirm('Deseja sair?')) return;
+  localStorage.removeItem('portaria_atual');
+  location.reload();
+}
+
+document.getElementById('loginCodigo').addEventListener('keypress', e => { if (e.key === 'Enter') fazerLogin(); });
+
+// ============================================================
+// CADASTRO
+// ============================================================
 async function cadastrar() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   
@@ -1361,6 +1383,7 @@ function previewEditFoto(e) {
   reader.readAsDataURL(file);
 }
 
+// Máscaras
 document.getElementById('f-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
 document.getElementById('f-cnh').addEventListener('input', function() { this.value = this.value.replace(/\D/g,'').slice(0,11); });
 document.getElementById('f-placa').addEventListener('input', function() { this.value = this.value.toUpperCase(); });
@@ -1392,6 +1415,9 @@ document.getElementById('f-cnh').addEventListener('input', function() {
   }
 });
 
+// ============================================================
+// SCAN QR CODE
+// ============================================================
 async function startScan() {
   if (isScanning) return;
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
@@ -1538,36 +1564,9 @@ async function registrarDirecao(tipo) {
   finally { document.querySelectorAll('.dir-btn').forEach(btn => btn.disabled = false); }
 }
 
-async function fazerLogin() {
-  const codigo = document.getElementById('loginCodigo').value.trim();
-  const errEl = document.getElementById('loginError');
-  errEl.textContent = '';
-  if (!codigo) { errEl.textContent = 'Digite o código.'; return; }
-  
-  const btn = document.getElementById('btnLogin');
-  const loadingEl = document.getElementById('loginLoading');
-  btn.disabled = true;
-  btn.textContent = '⏳ Verificando...';
-  loadingEl.textContent = 'Verificando código...';
-  try {
-    const { data, error } = await supa.from('portarias').select('id,nome,codigo,tipo').eq('codigo', codigo).maybeSingle();
-    if (error) { errEl.textContent = 'Erro de conexão.'; return; }
-    if (!data) { errEl.textContent = 'Código inválido.'; loadingEl.textContent = ''; return; }
-    loadingEl.textContent = '✅ Logando...';
-    localStorage.setItem('portaria_atual', JSON.stringify({ id: data.id, nome: data.nome, tipo: data.tipo || 'porteiro' }));
-    await iniciarApp();
-  } catch (e) { errEl.textContent = 'Erro inesperado.'; }
-  finally { btn.disabled = false; btn.textContent = 'Entrar'; loadingEl.textContent = ''; }
-}
-
-function logout() {
-  if (!confirm('Deseja sair?')) return;
-  localStorage.removeItem('portaria_atual');
-  location.reload();
-}
-
-document.getElementById('loginCodigo').addEventListener('keypress', e => { if (e.key === 'Enter') fazerLogin(); });
-
+// ============================================================
+// APP INIT E NAVEGAÇÃO
+// ============================================================
 async function iniciarApp() {
   showLoading('Carregando aplicação...');
   try {
@@ -1610,6 +1609,9 @@ function showPage(id) {
   }
 }
 
+// ============================================================
+// QR CODE MODAL
+// ============================================================
 let qrWhatsAtual = '';
 
 function showQRFor(id, nome, placa, empresa, whatsapp) {
@@ -1648,6 +1650,9 @@ function closeQR(e) { if (e.target === document.getElementById('qrModal')) docum
 function closeDetail(e) { if (e.target === document.getElementById('detailModal')) document.getElementById('detailModal').classList.remove('open'); }
 function closeEdit(e) { if (e.target === document.getElementById('editModal')) document.getElementById('editModal').classList.remove('open'); }
 
+// ============================================================
+// COMPARTILHAMENTO QR
+// ============================================================
 async function enviarImagemWhatsapp() {
   if (!qrWhatsAtual) { showToast('Número não cadastrado'); return; }
   const nome = document.getElementById('qrNome').textContent;
@@ -1717,6 +1722,9 @@ function enviarPorEmail() {
   baixarQRCode();
 }
 
+// ============================================================
+// LISTA DE MOTORISTAS
+// ============================================================
 async function carregarTodosMotoristas() {
   try {
     const { data, error } = await supa.from('motoristas').select('*').order('nome');
@@ -1831,6 +1839,9 @@ async function carregarMais() {
 const renderListaDebounced = Utils.debounce(() => { currentPage = 0; hasMoreData = true; renderLista(); setupInfiniteScroll(); }, 300);
 document.getElementById('busca').addEventListener('input', renderListaDebounced);
 
+// ============================================================
+// EDIÇÃO DE MOTORISTAS
+// ============================================================
 function openEditModal(id) {
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { showToast('Motorista não encontrado'); return; }
@@ -1928,6 +1939,9 @@ document.getElementById('e-cnh').addEventListener('input', function() { this.val
 document.getElementById('e-placa').addEventListener('input', function() { this.value = this.value.toUpperCase(); });
 document.getElementById('e-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
+// ============================================================
+// DETAIL MODAL
+// ============================================================
 function openDetail(id) {
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { showToast('Motorista não encontrado'); return; }
@@ -1976,6 +1990,9 @@ async function deleteDriver() {
   finally { btn.disabled = false; btn.textContent = originalText; }
 }
 
+// ============================================================
+// RELATÓRIOS DE MOTORISTAS
+// ============================================================
 function exportarMotoristasCSV() {
   const btn = event.target;
   const orig = btn.textContent;
@@ -2053,9 +2070,8 @@ function exportarMotoristasCompleto() {
 }
 
 // ============================================================
-// RELATÓRIOS DE HISTÓRICO COM FILTROS E PERMANÊNCIA
+// RELATÓRIOS DE HISTÓRICO - COM FILTROS E PERMANÊNCIA
 // ============================================================
-
 async function exportarLogCSV() {
   const btn = event.target;
   const orig = btn.textContent;
@@ -2071,18 +2087,15 @@ async function exportarLogCSV() {
     if (error) throw new Error(error.message);
     if (!data.length) { showToast('Nenhum registro'); return; }
     
-    // Aplica filtros
     const filtrados = getValidacoesFiltradas(data);
     if (!filtrados.length) { showToast('Nenhum registro com os filtros atuais'); return; }
     
-    // Calcula permanências
     const entradas = filtrados.filter(v => v.tipo === 'entrada' && v.ok === true);
     const saidas = filtrados.filter(v => v.tipo === 'saida' && v.ok === true);
     const permanencias = Utils.calcularPermanencia(entradas, saidas);
     
     const headers = ['DATA/HORA','MOTORISTA','CPF','PLACA','EMPRESA','TIPO','SERVIÇO','EMPRESA SERVIÇO','PORTARIA','STATUS','PERMANÊNCIA'];
     const rows = filtrados.map(l => {
-      // Procura permanência para esta entrada
       let permanencia = '—';
       if (l.tipo === 'entrada' && l.ok) {
         const p = permanencias.find(p => p.motorista === l.motorista_nome && new Date(p.entrada).getTime() === new Date(l.dt).getTime());
@@ -2116,45 +2129,90 @@ async function exportarLogCSV() {
   finally { btn.disabled = false; btn.textContent = orig; }
 }
 
+// ============================================================
+// EXPORTAR LOG PDF - COM TEMA AZUL PETRÓLEO (CORRIGIDO)
+// ============================================================
 async function exportarLogPDF() {
   const btn = event.target;
   const orig = btn.textContent;
-  btn.disabled = true; btn.textContent = '⏳ Gerando...';
+  btn.disabled = true;
+  btn.textContent = '⏳ Gerando...';
+  
   try {
     if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
     const portaria = getPortaria();
     if (!portaria) { showToast('Sessão expirada'); return; }
     
-    let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(2000);
+    let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(2000);
     if (portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { showToast('Nenhum registro'); return; }
     
-    // Aplica filtros
     const filtrados = getValidacoesFiltradas(data);
     if (!filtrados.length) { showToast('Nenhum registro com os filtros atuais'); return; }
     
-    // Calcula permanências
     const entradas = filtrados.filter(v => v.tipo === 'entrada' && v.ok === true);
     const saidas = filtrados.filter(v => v.tipo === 'saida' && v.ok === true);
     const permanencias = Utils.calcularPermanencia(entradas, saidas);
     
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l','pt','a4');
-    doc.setFillColor(11,59,74); doc.rect(0,0,doc.internal.pageSize.width,70,'F');
-    doc.setFontSize(18); doc.setTextColor(255,255,255); doc.text('📊 PORTARIAPRO - HISTÓRICO DE VALIDAÇÕES',40,35);
-    doc.setFontSize(9); doc.setTextColor(200,220,230);
+    const doc = new jsPDF('l', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    
+    // CORES DO TEMA AZUL PETRÓLEO
+    const colors = {
+      primary: [11, 59, 74],
+      primaryDark: [7, 42, 53],
+      primaryLight: [26, 91, 110],
+      cyan: [64, 212, 224],
+      cyanLight: [180, 240, 245],
+      green: [61, 214, 182],
+      red: [255, 107, 91],
+      white: [255, 255, 255],
+      text: [40, 40, 50],
+      textLight: [100, 110, 120],
+      bgLight: [245, 248, 250],
+      bgAlt: [235, 240, 245],
+    };
+    
+    // CABEÇALHO
+    doc.setFillColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+    doc.rect(0, 0, pageWidth, 85, 'F');
+    
+    doc.setFillColor(colors.cyan[0], colors.cyan[1], colors.cyan[2]);
+    doc.rect(0, 85, pageWidth, 3, 'F');
+    
+    doc.setFontSize(20);
+    doc.setTextColor(colors.white[0], colors.white[1], colors.white[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.text('🚛 PORTARIAPRO', 40, 35);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(colors.cyan[0], colors.cyan[1], colors.cyan[2]);
+    doc.text('HISTÓRICO DE VALIDAÇÕES', 40, 55);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(200, 220, 230);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth - 40, 32, { align: 'right' });
+    doc.text(`Portaria: ${portaria.nome}`, pageWidth - 40, 45, { align: 'right' });
     
     const f = getFiltrosLog();
     const filtroInfo = [];
-    if (f.dataInicio) filtroInfo.push(`De: ${f.dataInicio}`);
-    if (f.dataFim) filtroInfo.push(`Até: ${f.dataFim}`);
-    if (f.tipo) filtroInfo.push(`Tipo: ${f.tipo === 'entrada' ? 'Entrada' : 'Saída'}`);
-    if (f.status !== '') filtroInfo.push(`Status: ${f.status === 'true' ? 'Autorizado' : 'Negado'}`);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} ${filtroInfo.length ? '| Filtros: '+filtroInfo.join(' ') : ''}`,40,55);
-    doc.text(`Portaria: ${portaria.nome}`,400,55);
+    if (f.dataInicio) filtroInfo.push(`📅 De: ${f.dataInicio}`);
+    if (f.dataFim) filtroInfo.push(`📅 Até: ${f.dataFim}`);
+    if (f.tipo) filtroInfo.push(`🔄 ${f.tipo === 'entrada' ? 'Entrada' : 'Saída'}`);
+    if (f.status !== '') filtroInfo.push(`📊 ${f.status === 'true' ? 'Autorizado' : 'Negado'}`);
     
+    if (filtroInfo.length) {
+      doc.setFontSize(8);
+      doc.setTextColor(180, 210, 220);
+      doc.text(`Filtros: ${filtroInfo.join(' | ')}`, pageWidth - 40, 58, { align: 'right' });
+    }
+    
+    // ESTATÍSTICAS
     const total = filtrados.length;
     const entradasCount = filtrados.filter(x => x.tipo === 'entrada').length;
     const saidasCount = filtrados.filter(x => x.tipo === 'saida').length;
@@ -2162,80 +2220,172 @@ async function exportarLogPDF() {
     const negados = filtrados.filter(x => x.ok === false).length;
     const servicos = filtrados.filter(x => x.servico).length;
     
-    doc.setFontSize(10); doc.setTextColor(50,50,50);
-    let yPos = 90;
-    doc.text(`Total de registros: ${total}`,40,yPos);
-    doc.text(`↓ Entradas: ${entradasCount}`,180,yPos);
-    doc.text(`↑ Saídas: ${saidasCount}`,310,yPos);
-    doc.text(`✓ Autorizados: ${autorizados}`,440,yPos);
-    yPos = 110;
-    doc.text(`✗ Negados: ${negados}`,40,yPos);
-    doc.text(`📦 Com serviço: ${servicos}`,180,yPos);
-    doc.text(`⏱️ Permanências calculadas: ${permanencias.length}`,310,yPos);
+    let yPos = 108;
+    doc.setFillColor(colors.bgLight[0], colors.bgLight[1], colors.bgLight[2]);
+    doc.roundedRect(35, yPos - 8, pageWidth - 70, 35, 4, 4, 'F');
     
-    const headers = [['Data/Hora','Motorista','Placa','Empresa','Tipo','Serviço','Empresa Serv.','Status','Permanência']];
-    const tableData = filtrados.slice(0,100).map(l => {
+    const stats = [
+      { label: 'Total', value: total, color: colors.primary },
+      { label: '↓ Entradas', value: entradasCount, color: colors.cyan },
+      { label: '↑ Saídas', value: saidasCount, color: colors.primaryLight },
+      { label: '✓ Autorizados', value: autorizados, color: colors.green },
+      { label: '✗ Negados', value: negados, color: colors.red },
+      { label: '📦 Serviços', value: servicos, color: colors.primary },
+      { label: '⏱️ Permanências', value: permanencias.length, color: colors.cyan },
+    ];
+    
+    const statWidth = (pageWidth - 70) / stats.length;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    stats.forEach((stat, index) => {
+      const x = 35 + (index * statWidth);
+      doc.setTextColor(stat.color[0], stat.color[1], stat.color[2]);
+      doc.text(stat.value.toString(), x + 5, yPos + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(colors.textLight[0], colors.textLight[1], colors.textLight[2]);
+      doc.text(stat.label, x + 5, yPos + 22);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+    });
+    yPos += 45;
+    
+    // TABELA
+    const headers = [['Data/Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Serviço', 'Empresa Serv.', 'Status', 'Permanência']];
+    const maxRows = Math.min(filtrados.length, 150);
+    const tableData = [];
+    
+    for (let i = 0; i < maxRows; i++) {
+      const l = filtrados[i];
       let permanencia = '—';
       if (l.tipo === 'entrada' && l.ok) {
-        const p = permanencias.find(p => p.motorista === l.motorista_nome && new Date(p.entrada).getTime() === new Date(l.dt).getTime());
+        const p = permanencias.find(p => 
+          p.motorista === l.motorista_nome && 
+          new Date(p.entrada).getTime() === new Date(l.dt).getTime()
+        );
         if (p) permanencia = p.duracaoFormatada;
       }
-      return [
+      
+      tableData.push([
         new Date(l.dt).toLocaleString('pt-BR'),
-        l.motorista_nome||'',
-        l.motorista_placa||'',
-        l.motorista_empresa||'',
-        l.tipo==='entrada'?'ENTRADA':l.tipo==='saida'?'SAÍDA':'—',
+        (l.motorista_nome || '').substring(0, 25),
+        (l.motorista_placa || ''),
+        (l.motorista_empresa || '').substring(0, 20),
+        l.tipo === 'entrada' ? '↓ ENTRADA' : l.tipo === 'saida' ? '↑ SAÍDA' : '—',
         l.servico ? l.servico.toUpperCase() : '—',
-        l.empresa_servico||'—',
+        (l.empresa_servico || '—').substring(0, 20),
         l.ok ? '✓ OK' : '✗ NEGADO',
         permanencia
-      ];
-    });
-    
-    doc.autoTable({
-      startY:130,
-      head:[headers],
-      body:tableData,
-      theme:'striped',
-      styles:{ fontSize:7, cellPadding:4 },
-      headStyles:{ fillColor:[11,59,74], textColor:[255,255,255], fontSize:8, fontStyle:'bold' },
-      alternateRowStyles:{ fillColor:[245,248,245] },
-      columnStyles:{
-        0:{ cellWidth:100 },
-        1:{ cellWidth:110 },
-        2:{ cellWidth:60 },
-        3:{ cellWidth:80 },
-        4:{ cellWidth:50, halign:'center' },
-        5:{ cellWidth:50, halign:'center' },
-        6:{ cellWidth:80 },
-        7:{ cellWidth:55, halign:'center' },
-        8:{ cellWidth:60, halign:'center' }
-      },
-      margin:{ left:20, right:20 }
-    });
-    
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i=1; i<=pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(7);
-      doc.setTextColor(150,150,150);
-      const pw = doc.internal.pageSize.width;
-      doc.text(`Página ${i} de ${pageCount}`, pw-80, doc.internal.pageSize.height-20);
-      doc.text('PortariaPro - Controle de Acesso',40,doc.internal.pageSize.height-20);
+      ]);
     }
     
-    const dataStr = new Date().toISOString().slice(0,10);
+    doc.autoTable({
+      head: headers,
+      body: tableData,
+      startY: yPos,
+      theme: 'grid',
+      styles: {
+        fontSize: 7,
+        cellPadding: 4,
+        valign: 'middle',
+        halign: 'left',
+        lineColor: [200, 210, 220],
+        lineWidth: 0.3,
+        textColor: [40, 40, 50],
+      },
+      headStyles: {
+        fillColor: [11, 59, 74],
+        textColor: [255, 255, 255],
+        fontSize: 8,
+        fontStyle: 'bold',
+        halign: 'center',
+        valign: 'middle',
+        cellPadding: 5,
+      },
+      alternateRowStyles: {
+        fillColor: [245, 248, 250],
+      },
+      columnStyles: {
+        0: { cellWidth: 100, halign: 'center', textColor: [50, 50, 70] },
+        1: { cellWidth: 125, halign: 'left' },
+        2: { cellWidth: 60, halign: 'center', textColor: [11, 59, 74], fontStyle: 'bold' },
+        3: { cellWidth: 100, halign: 'left' },
+        4: { cellWidth: 65, halign: 'center', fontStyle: 'bold' },
+        5: { cellWidth: 55, halign: 'center' },
+        6: { cellWidth: 95, halign: 'left' },
+        7: { cellWidth: 60, halign: 'center', fontStyle: 'bold' },
+        8: { cellWidth: 70, halign: 'center', textColor: [64, 212, 224], fontStyle: 'bold' },
+      },
+      margin: { left: 25, right: 25, top: 15 },
+      showHead: 'everyPage',
+      pageBreak: 'auto',
+      tableLineColor: [200, 210, 220],
+      tableLineWidth: 0.5,
+      didParseCell: function(data) {
+        if (data.column.index === 7 && data.cell.raw) {
+          data.cell.textColor = data.cell.raw.includes('OK') ? [61, 214, 182] : [255, 107, 91];
+          data.cell.fontStyle = 'bold';
+        }
+        if (data.column.index === 8 && data.cell.raw && data.cell.raw !== '—') {
+          data.cell.textColor = [64, 212, 224];
+          data.cell.fontStyle = 'bold';
+        }
+        if (data.column.index === 4 && data.cell.raw) {
+          data.cell.textColor = data.cell.raw.includes('ENTRADA') ? [61, 214, 182] : [64, 212, 224];
+        }
+      },
+    });
+    
+    // RODAPÉ
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      
+      doc.setDrawColor(11, 59, 74);
+      doc.setLineWidth(0.5);
+      doc.line(25, pageHeight - 28, pageWidth - 25, pageHeight - 28);
+      doc.setDrawColor(64, 212, 224);
+      doc.setLineWidth(1);
+      doc.line(25, pageHeight - 27, pageWidth - 25, pageHeight - 27);
+      
+      doc.setFontSize(7);
+      doc.setTextColor(100, 110, 120);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Página ${i} de ${pageCount}`, pageWidth - 40, pageHeight - 15, { align: 'right' });
+      
+      doc.setTextColor(11, 59, 74);
+      doc.setFont('helvetica', 'bold');
+      doc.text('🚛 PortariaPro', 40, pageHeight - 15);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(150, 160, 170);
+      doc.text(`Exportado em: ${new Date().toLocaleString('pt-BR')}`, 40, pageHeight - 8);
+      
+      if (i === pageCount) {
+        doc.setFontSize(7);
+        doc.setTextColor(100, 110, 120);
+        doc.text(`Total: ${total} | Entradas: ${entradasCount} | Saídas: ${saidasCount} | Autorizados: ${autorizados} | Negados: ${negados}`, 
+          40, pageHeight - 8, { align: 'left' });
+      }
+    }
+    
+    const dataStr = new Date().toISOString().slice(0, 10);
     doc.save(`HISTORICO_VALIDACOES_${dataStr}.pdf`);
     showToast('Histórico PDF exportado ✓');
-  } catch(e) { showToast('Erro: '+e.message); }
-  finally { btn.disabled = false; btn.textContent = orig; }
+    
+  } catch (e) {
+    console.error('Erro ao exportar PDF:', e);
+    showToast('Erro ao exportar: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
 }
 
 // ============================================================
 // RENDER LOG COM FILTROS E PERMANÊNCIA
 // ============================================================
-
 async function renderLog() {
   const div = document.getElementById('logList');
   div.innerHTML = '<p style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0">⏳ Carregando...</p>';
@@ -2248,14 +2398,12 @@ async function renderLog() {
     if (error) throw new Error(error.message);
     if (!data.length) { div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><p>Nenhuma validação ainda</p></div>`; return; }
     
-    // Aplica filtros
     const filtrados = getValidacoesFiltradas(data);
     if (!filtrados.length) {
       div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><p>Nenhum registro com os filtros atuais</p></div>`;
       return;
     }
     
-    // Calcula permanências para exibição
     const entradas = filtrados.filter(v => v.tipo === 'entrada' && v.ok === true);
     const saidas = filtrados.filter(v => v.tipo === 'saida' && v.ok === true);
     const permanencias = Utils.calcularPermanencia(entradas, saidas);
@@ -2265,7 +2413,6 @@ async function renderLog() {
       const servicoLabel = l.servico ? ` · ${l.servico.charAt(0).toUpperCase() + l.servico.slice(1)}` : '';
       const empresaLabel = l.empresa_servico ? ` · ${l.empresa_servico}` : '';
       
-      // Verifica se é uma entrada com permanência
       let permanenciaHtml = '';
       if (l.tipo === 'entrada' && l.ok) {
         const p = permanencias.find(p => p.motorista === l.motorista_nome && new Date(p.entrada).getTime() === new Date(l.dt).getTime());
@@ -2290,6 +2437,9 @@ async function renderLog() {
   }
 }
 
+// ============================================================
+// START
+// ============================================================
 window.addEventListener('online', () => showToast('Conexão restaurada ✓', 1500));
 window.addEventListener('offline', () => showToast('Sem conexão com a internet ⚠', 3000));
 
