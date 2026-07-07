@@ -1278,7 +1278,7 @@ function initSupabase() {
 }
 
 // ============================================================
-// AUTENTICAÇÃO
+// AUTENTICAÇÃO - CORRIGIDA (PERSISTÊNCIA DE SESSÃO)
 // ============================================================
 function mostrarLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
@@ -1320,7 +1320,7 @@ function getPortaria() {
 }
 
 // ============================================================
-// CADASTRO DE USUÁRIO - CORRIGIDO
+// CADASTRO DE USUÁRIO
 // ============================================================
 async function fazerCadastro() {
   const nome = document.getElementById('registerNome').value.trim();
@@ -1362,7 +1362,6 @@ async function fazerCadastro() {
   document.getElementById('registerLoading').textContent = 'Criando conta...';
 
   try {
-    // 🔧 URL CORRETA PARA REDIRECIONAMENTO DO EMAIL
     const redirectUrl = 'https://edsonoliveirasys.github.io/controle-acesso/';
     
     const { data: authData, error: authError } = await supa.auth.signUp({
@@ -1385,7 +1384,6 @@ async function fazerCadastro() {
     }
     if (!authData || !authData.user) throw new Error('Falha ao criar usuário');
 
-    // Insere na tabela portarias
     const { error: portariaError } = await supa
       .from('portarias')
       .insert({
@@ -1425,7 +1423,7 @@ async function fazerCadastro() {
 }
 
 // ============================================================
-// LOGIN
+// LOGIN - CORRIGIDO
 // ============================================================
 async function fazerLoginAuth() {
   const email = document.getElementById('loginEmail').value.trim();
@@ -1455,15 +1453,54 @@ async function fazerLoginAuth() {
   document.getElementById('loginLoading').textContent = 'Verificando credenciais...';
 
   try {
-    const { data, error } = await supa.auth.signInWithPassword({ email, password });
+    // 🔧 Usando signInWithPassword que retorna a sessão
+    const { data, error } = await supa.auth.signInWithPassword({ 
+      email, 
+      password 
+    });
+    
     if (error) throw new Error(error.message);
-    if (!data.user) throw new Error('Usuário não encontrado');
+    if (!data || !data.user) throw new Error('Usuário não encontrado');
+    if (!data.session) throw new Error('Sessão não criada');
 
-    const { data: portaria } = await supa
+    // 🔧 Salva a sessão no localStorage (já feito pelo Supabase)
+    console.log('✅ Sessão criada para:', data.user.email);
+    console.log('📅 Expira em:', new Date(data.session.expires_at * 1000).toLocaleString());
+
+    // Busca ou cria a portaria
+    let { data: portaria, error: portariaError } = await supa
       .from('portarias')
       .select('*')
       .eq('id', data.user.id)
       .maybeSingle();
+
+    if (portariaError) throw new Error('Erro ao buscar portaria');
+
+    if (!portaria) {
+      // Tenta criar a portaria
+      const { error: insertError } = await supa
+        .from('portarias')
+        .insert({
+          id: data.user.id,
+          nome: data.user.user_metadata?.nome || 'Portaria',
+          email: email,
+          tipo: 'porteiro'
+        });
+      
+      if (insertError) {
+        console.warn('⚠️ Erro ao criar portaria:', insertError);
+        // Continua mesmo sem portaria, mas com aviso
+      }
+      
+      // Busca novamente
+      const { data: newPortaria } = await supa
+        .from('portarias')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+      
+      portaria = newPortaria;
+    }
 
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: data.user.id,
@@ -1537,6 +1574,8 @@ async function logoutAuth() {
   try {
     await supa.auth.signOut();
     localStorage.removeItem('portaria_atual');
+    // 🔧 Limpa também o localStorage do Supabase para garantir
+    localStorage.removeItem('supabase.auth.token');
     mostrarLogin();
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPassword').value = '';
@@ -1548,34 +1587,108 @@ async function logoutAuth() {
 }
 
 // ============================================================
-// VERIFICAR SESSÃO
+// VERIFICAR SESSÃO - CORRIGIDA
 // ============================================================
 async function verificarSessao() {
   try {
-    const { data: { session } } = await supa.auth.getSession();
-    if (session) {
-      const { data: portaria } = await supa
-        .from('portarias')
-        .select('*')
-        .eq('id', session.user.id)
-        .maybeSingle();
-      
-      if (portaria) {
-        localStorage.setItem('portaria_atual', JSON.stringify({
-          id: portaria.id,
-          nome: portaria.nome,
-          tipo: portaria.tipo || 'porteiro',
-          email: portaria.email
-        }));
-        await iniciarApp();
-        return true;
+    console.log('🔍 Verificando sessão...');
+    
+    // 🔧 Usa getSession() que restaura a sessão do localStorage
+    const { data: { session }, error: sessionError } = await supa.auth.getSession();
+    
+    if (sessionError) {
+      console.error('❌ Erro ao obter sessão:', sessionError);
+      return false;
+    }
+
+    if (!session) {
+      console.log('ℹ️ Nenhuma sessão ativa');
+      return false;
+    }
+
+    console.log('✅ Sessão encontrada para:', session.user.email);
+    console.log('📅 Expira em:', new Date(session.expires_at * 1000).toLocaleString());
+
+    // Verifica se o token ainda é válido
+    if (session.expires_at && Date.now() > session.expires_at * 1000) {
+      console.log('⚠️ Token expirado. Tentando renovar...');
+      const { error: refreshError } = await supa.auth.refreshSession();
+      if (refreshError) {
+        console.error('❌ Erro ao renovar token:', refreshError);
+        return false;
       }
     }
-    return false;
+
+    // Busca a portaria
+    const { data: portaria, error: portariaError } = await supa
+      .from('portarias')
+      .select('*')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    if (portariaError) {
+      console.error('❌ Erro ao buscar portaria:', portariaError);
+      // Mesmo sem portaria, tenta usar os dados do usuário
+      const userData = session.user.user_metadata || {};
+      localStorage.setItem('portaria_atual', JSON.stringify({
+        id: session.user.id,
+        nome: userData.nome || 'Portaria',
+        tipo: userData.tipo || 'porteiro',
+        email: session.user.email
+      }));
+      await iniciarApp();
+      return true;
+    }
+
+    if (portaria) {
+      console.log('✅ Portaria encontrada:', portaria.nome);
+      localStorage.setItem('portaria_atual', JSON.stringify({
+        id: portaria.id,
+        nome: portaria.nome,
+        tipo: portaria.tipo || 'porteiro',
+        email: portaria.email || session.user.email
+      }));
+      await iniciarApp();
+      return true;
+    }
+
+    // Se chegou aqui, não tem portaria mas tem sessão
+    console.warn('⚠️ Sessão ativa mas sem portaria');
+    const userData = session.user.user_metadata || {};
+    localStorage.setItem('portaria_atual', JSON.stringify({
+      id: session.user.id,
+      nome: userData.nome || 'Portaria',
+      tipo: userData.tipo || 'porteiro',
+      email: session.user.email
+    }));
+    await iniciarApp();
+    return true;
+
   } catch (e) {
     console.error('❌ Erro ao verificar sessão:', e);
     return false;
   }
+}
+
+// ============================================================
+// RENOVAÇÃO DE TOKEN AUTOMÁTICA
+// ============================================================
+if (supabase) {
+  supa.auth.onAuthStateChange((event, session) => {
+    console.log('🔐 Evento de autenticação:', event);
+    if (event === 'SIGNED_IN') {
+      console.log('✅ Usuário logado:', session?.user?.email);
+    }
+    if (event === 'SIGNED_OUT') {
+      console.log('👋 Usuário deslogado');
+    }
+    if (event === 'TOKEN_REFRESHED') {
+      console.log('🔄 Token renovado automaticamente');
+    }
+    if (event === 'USER_UPDATED') {
+      console.log('📝 Usuário atualizado');
+    }
+  });
 }
 
 // ============================================================
@@ -3020,8 +3133,10 @@ window.addEventListener('offline', () => showToast('Sem conexão com a internet 
   
   if (!initSupabase()) return;
   
+  console.log('🚀 Iniciando aplicação...');
   const logado = await verificarSessao();
   if (!logado) {
+    console.log('ℹ️ Nenhuma sessão ativa, mostrando login');
     mostrarLogin();
   }
 })();
