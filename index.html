@@ -750,9 +750,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   <div class="status-bar"></div>
   <div id="configCheck"></div>
 
-  <!-- ========================================================== -->
-  <!-- TELA DE LOGIN                                               -->
-  <!-- ========================================================== -->
+  <!-- TELA DE LOGIN -->
   <div class="auth-screen" id="loginScreen" style="display:none">
     <span class="auth-logo">🚛</span>
     <h1>PortariaPro</h1>
@@ -777,9 +775,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
   </div>
 
-  <!-- ========================================================== -->
-  <!-- TELA DE CADASTRO                                           -->
-  <!-- ========================================================== -->
+  <!-- TELA DE CADASTRO -->
   <div class="auth-screen" id="registerScreen" style="display:none">
     <span class="auth-logo">🚛</span>
     <h1>Criar conta</h1>
@@ -810,9 +806,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
   </div>
 
-  <!-- ========================================================== -->
-  <!-- APP PRINCIPAL                                               -->
-  <!-- ========================================================== -->
+  <!-- APP PRINCIPAL -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
       <span class="header-logo">🚛</span>
@@ -987,9 +981,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- ========================================================== -->
-<!-- MODAL: RESET SENHA                                         -->
-<!-- ========================================================== -->
+<!-- MODAL: RESET SENHA -->
 <div class="reset-modal" id="resetModal" onclick="closeResetModal(event)">
   <div class="reset-sheet">
     <div class="handle"></div>
@@ -1005,9 +997,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- ========================================================== -->
-<!-- MODAIS EXISTENTES                                          -->
-<!-- ========================================================== -->
+<!-- MODAIS EXISTENTES -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -1330,7 +1320,7 @@ function getPortaria() {
 }
 
 // ============================================================
-// CADASTRO DE USUÁRIO
+// CADASTRO DE USUÁRIO - CORRIGIDO
 // ============================================================
 async function fazerCadastro() {
   const nome = document.getElementById('registerNome').value.trim();
@@ -1372,15 +1362,27 @@ async function fazerCadastro() {
   document.getElementById('registerLoading').textContent = 'Criando conta...';
 
   try {
+    // 🔧 URL CORRETA PARA REDIRECIONAMENTO DO EMAIL
+    const redirectUrl = 'https://edsonoliveirasys.github.io/controle-acesso/';
+    
     const { data: authData, error: authError } = await supa.auth.signUp({
       email,
       password,
       options: {
-        data: { nome: nome, tipo: 'porteiro' }
+        data: { 
+          nome: nome, 
+          tipo: 'porteiro' 
+        },
+        emailRedirectTo: redirectUrl
       }
     });
 
-    if (authError) throw new Error(authError.message);
+    if (authError) {
+      if (authError.message.includes('rate limit')) {
+        throw new Error('Muitas tentativas. Aguarde 15 minutos e tente novamente.');
+      }
+      throw new Error(authError.message);
+    }
     if (!authData || !authData.user) throw new Error('Falha ao criar usuário');
 
     // Insere na tabela portarias
@@ -1395,8 +1397,7 @@ async function fazerCadastro() {
       });
 
     if (portariaError) {
-      // Se falhar, tenta sem o campo codigo
-      if (portariaError.message.includes('codigo')) {
+      if (portariaError.message.includes('codigo') || portariaError.message.includes('duplicate')) {
         await supa.from('portarias').insert({
           id: authData.user.id,
           nome: nome,
@@ -1408,10 +1409,9 @@ async function fazerCadastro() {
       }
     }
 
-    showToast('✅ Conta criada com sucesso! Faça login.', 3000);
+    showToast('✅ Conta criada! Verifique seu email para confirmar.', 5000);
     mostrarLogin();
     document.getElementById('loginEmail').value = email;
-    document.getElementById('loginPassword').focus();
 
   } catch (e) {
     console.error('❌ Erro no cadastro:', e);
@@ -1509,8 +1509,9 @@ async function enviarResetSenha() {
   document.getElementById('resetLoading').textContent = 'Enviando link...';
 
   try {
+    const redirectUrl = 'https://edsonoliveirasys.github.io/controle-acesso/';
     const { error } = await supa.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/controle-acesso/'
+      redirectTo: redirectUrl
     });
     if (error) throw new Error(error.message);
 
