@@ -187,7 +187,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .auth-link { color:var(--cyan); cursor:pointer; text-decoration:none; font-weight:500; }
 .auth-link:hover { text-decoration:underline; }
 
-/* ===== MODAIS DE CONVITE E USUÁRIOS ===== */
 .invite-modal, .users-modal {
   display:none;
   position:fixed;
@@ -265,29 +264,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 }
 .user-actions button:hover { background:var(--bg3); }
 .user-actions button.danger:hover { background:var(--red-bg); color:var(--red); }
-
-.role-badge {
-  font-size:9px;
-  padding:2px 10px;
-  border-radius:var(--radius-full);
-  font-weight:600;
-  text-transform:uppercase;
-  margin-left:6px;
-}
-.role-badge.master { background:rgba(64,212,224,0.2); color:var(--cyan); }
-.role-badge.admin { background:var(--green-bg); color:var(--green); }
-.role-badge.operador { background:var(--amber-bg); color:var(--amber); }
-
-.header-role {
-  font-size:9px;
-  padding:2px 10px;
-  border-radius:var(--radius-full);
-  font-weight:600;
-  text-transform:uppercase;
-  background:var(--bg3);
-  color:var(--text2);
-}
-.hidden { display:none !important; }
 
 .reset-modal { display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px; }
 .reset-modal.open { display:flex; animation:fadeIn 0.3s ease; }
@@ -617,7 +593,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   font-size: 11px;
 }
 
-/* ===== RESPONSIVO ===== */
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -892,7 +867,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   <div class="status-bar"></div>
   <div id="configCheck"></div>
 
-  <!-- ===== TELA DE LOGIN ===== -->
+  <!-- TELA DE LOGIN -->
   <div class="auth-screen" id="loginScreen" style="display:none">
     <span class="auth-logo">🚛</span>
     <h1>PortariaPro</h1>
@@ -917,7 +892,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
   </div>
 
-  <!-- ===== TELA DE CADASTRO ===== -->
+  <!-- TELA DE CADASTRO -->
   <div class="auth-screen" id="registerScreen" style="display:none">
     <span class="auth-logo">🚛</span>
     <h1>Criar conta</h1>
@@ -948,7 +923,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
   </div>
 
-  <!-- ===== APP PRINCIPAL ===== -->
+  <!-- APP PRINCIPAL -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
       <span class="header-logo">🚛</span>
@@ -1126,7 +1101,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- ===== MODAL DE RESET SENHA ===== -->
+<!-- MODAL DE RESET SENHA -->
 <div class="reset-modal" id="resetModal" onclick="closeResetModal(event)">
   <div class="reset-sheet">
     <div class="handle"></div>
@@ -1142,7 +1117,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- ===== MODAL DE CONVITE ===== -->
+<!-- MODAL DE CONVITE -->
 <div class="invite-modal" id="inviteModal" onclick="closeInviteModal(event)">
   <div class="invite-sheet">
     <div class="handle"></div>
@@ -1174,7 +1149,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- ===== MODAL DE USUÁRIOS ===== -->
+<!-- MODAL DE USUÁRIOS -->
 <div class="users-modal" id="usersModal" onclick="closeUsersModal(event)">
   <div class="users-sheet">
     <div class="handle"></div>
@@ -1185,7 +1160,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- ===== MODAIS QR, DETAIL E EDIT ===== -->
+<!-- MODAIS QR, DETAIL E EDIT -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -1498,7 +1473,7 @@ let selectedServico = null;
 let allPortarias = [];
 let chartInstances = {};
 let dashboardLoaded = false;
-let window._conviteAtual = null;
+let conviteAtual = null;
 
 // ============================================================
 // LOADING E TOAST
@@ -1820,7 +1795,7 @@ function closeInviteModal(e) {
 async function carregarUsuarios() {
   try {
     const portaria = getPortaria();
-    if (!portaria) return;
+    if (!portaria) return [];
 
     const { data, error } = await supa
       .from('portarias')
@@ -1986,7 +1961,7 @@ async function processarConvite() {
     
     showToast(`📧 Cadastre-se para entrar na portaria "${invite.portaria_nome}"`, 4000);
     
-    window._conviteAtual = {
+    conviteAtual = {
       codigo: codigo,
       portaria_id: invite.portaria_id,
       role: invite.role,
@@ -2047,7 +2022,7 @@ function getPortaria() {
 // CADASTRO DE USUÁRIO (COM CONVITE)
 // ============================================================
 async function fazerCadastro() {
-  const convite = window._conviteAtual;
+  const convite = conviteAtual;
   
   const nome = document.getElementById('registerNome').value.trim();
   const email = document.getElementById('registerEmail').value.trim();
@@ -2088,7 +2063,6 @@ async function fazerCadastro() {
   document.getElementById('registerLoading').textContent = 'Criando conta...';
 
   try {
-    // Se tem convite, usa os dados dele
     if (convite) {
       const { data: authData, error: authError } = await supa.auth.signUp({
         email: convite.email,
@@ -2119,12 +2093,11 @@ async function fazerCadastro() {
       }).eq('codigo', convite.codigo);
 
       showToast('✅ Cadastro realizado com sucesso!', 3000);
-      window._conviteAtual = null;
+      conviteAtual = null;
       mostrarLogin();
       return;
     }
 
-    // Cadastro normal (sem convite) - criando nova portaria
     const redirectUrl = 'https://edsonoliveirasys.github.io/controle-acesso/';
     
     const { data: authData, error: authError } = await supa.auth.signUp({
@@ -2865,7 +2838,6 @@ async function iniciarApp() {
     document.getElementById('registerScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
     
-    // Mostra tipo de usuário
     const tipoLabel = {
       'mestre': '👑 Mestre',
       'admin': '👑 Administrador',
@@ -2873,7 +2845,6 @@ async function iniciarApp() {
     }[p.tipo] || '';
     document.getElementById('portariaNome').textContent = p.nome + (tipoLabel ? ` · ${tipoLabel}` : '');
     
-    // Configura visibilidade dos botões de admin
     if (p.tipo === 'admin' || p.tipo === 'mestre') {
       document.getElementById('app').classList.add('role-admin');
       await carregarTodosMotoristas();
@@ -2881,19 +2852,11 @@ async function iniciarApp() {
       renderLista();
       setupInfiniteScroll();
       
-      // Mostra botões de convite e usuários
       document.getElementById('btnInvite').style.display = 'flex';
       document.getElementById('btnUsers').style.display = 'flex';
     } else {
-      // Operador não vê botões de convite/usuários
       document.getElementById('btnInvite').style.display = 'none';
       document.getElementById('btnUsers').style.display = 'none';
-    }
-    
-    // Se for mestre, mostra todos os administradores também
-    if (p.tipo === 'mestre') {
-      // Mestre vê todas as portarias no filtro
-      await carregarPortarias();
     }
     
     renderLog();
@@ -3940,7 +3903,7 @@ function processarDashboard(data) {
 window.addEventListener('online', () => showToast('Conexão restaurada ✓', 1500));
 window.addEventListener('offline', () => showToast('Sem conexão com a internet ⚠', 3000));
 
-// Configura botões de convite e usuários no header
+// Configura botões
 document.addEventListener('DOMContentLoaded', function() {
   const btnTheme = document.getElementById('btnTheme');
   if (btnTheme) {
