@@ -22,9 +22,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ========================================================== */
-/* TEMA AZUL PETRÓLEO                                        */
-/* ========================================================== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -144,18 +141,12 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .app > * { position: relative; z-index: 1; }
 .status-bar { height: var(--safe-top); background: var(--bg); flex-shrink: 0; }
 
-/* ========================================================== */
-/* LOADING                                                    */
-/* ========================================================== */
 .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
 .loading-overlay.active { display: flex; }
 .spinner { width: var(--spinner-size); height: var(--spinner-size); border: var(--spinner-thickness) solid var(--border2); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { font-size: 14px; color: var(--text2); font-weight: 500; }
 
-/* ========================================================== */
-/* TELAS DE AUTENTICAÇÃO                                      */
-/* ========================================================== */
 .auth-screen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:32px 24px; text-align:center; background: radial-gradient(ellipse at 50% 40%, rgba(11, 59, 74, 0.12) 0%, transparent 70%); }
 .auth-logo { font-size: var(--login-logo-size); margin-bottom:8px; display:block; line-height:1; }
 .auth-screen h1 { font-size: var(--login-title-size); font-weight:800; margin-bottom:2px; background: linear-gradient(135deg, #E8F4F7 40%, var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-0.5px; }
@@ -172,10 +163,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .auth-loading { color:var(--text2); font-size:13px; margin-top:16px; }
 .auth-link { color:var(--cyan); cursor:pointer; text-decoration:none; font-weight:500; }
 .auth-link:hover { text-decoration:underline; }
-.auth-divider { display:flex; align-items:center; gap:12px; margin:16px 0; color:var(--text3); font-size:12px; }
-.auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--border2); }
 
-/* Reset password modal */
 .reset-modal { display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px; }
 .reset-modal.open { display:flex; animation:fadeIn 0.3s ease; }
 .reset-sheet { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius); padding:32px 24px; width:100%; max-width:380px; text-align:center; }
@@ -186,9 +174,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .reset-sheet .field input:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(64, 212, 224, 0.08); }
 .reset-sheet .btn { margin-top:4px; }
 
-/* ========================================================== */
-/* HEADER E NAVEGACAO                                         */
-/* ========================================================== */
 .header { display:flex; align-items:center; gap:12px; padding:var(--header-padding); flex-shrink:0; border-bottom:1px solid var(--border); background:rgba(6, 13, 16, 0.9); backdrop-filter:blur(8px); }
 .header-logo { font-size:var(--header-logo-size); flex-shrink:0; }
 .header-title { font-size:var(--header-title-size); font-weight:700; letter-spacing:-0.3px; color:#fff; }
@@ -222,9 +207,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:var(--card-padding); margin-bottom:12px; box-shadow:var(--shadow-card); transition:border-color var(--transition-fast); }
 .card:hover { border-color:var(--border2); }
 
-/* ========================================================== */
-/* SCAN                                                       */
-/* ========================================================== */
 .scan-zone { position:relative; background:#000; border:2px solid var(--border); border-radius:var(--radius); overflow:hidden; aspect-ratio:1; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:12px; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
 .scan-zone:active { transform:scale(0.99); }
 .scan-zone video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; }
@@ -276,9 +258,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%238BB4C4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
 .field select option { background:var(--bg3); color:var(--text); }
 
-/* ========================================================== */
-/* MODAIS                                                     */
-/* ========================================================== */
 .qr-modal, .detail-modal, .edit-modal { display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); align-items:flex-end; justify-content:center; padding-bottom:var(--safe-bottom); }
 .qr-modal.open, .detail-modal.open, .edit-modal.open { display:flex; animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
 @keyframes slideUp { from{transform:translateY(60px);opacity:0;} to{transform:translateY(0);opacity:1;} }
@@ -416,9 +395,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 .edit-sheet .field textarea { resize:vertical; min-height:60px; }
 
-/* ========================================================== */
-/* DASHBOARD                                                  */
-/* ========================================================== */
 .dashboard-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -507,9 +483,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   font-size: 11px;
 }
 
-/* ========================================================== */
-/* RESPONSIVIDADE                                              */
-/* ========================================================== */
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -874,7 +847,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scanResult"></div>
       </div>
 
-      <!-- CADASTRO -->
+      <!-- CADASTRO MOTORISTAS -->
       <div class="page" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
@@ -1280,10 +1253,6 @@ let currentPage = 0;
 const PAGE_SIZE = 20;
 let selectedServico = null;
 let allPortarias = [];
-
-// ============================================================
-// GRÁFICOS
-// ============================================================
 let chartInstances = {};
 let dashboardLoaded = false;
 
@@ -1319,10 +1288,8 @@ function initSupabase() {
 }
 
 // ============================================================
-// AUTENTICAÇÃO - NOVAS FUNÇÕES
+// AUTENTICAÇÃO
 // ============================================================
-
-// Mostrar telas
 function mostrarLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('registerScreen').style.display = 'none';
@@ -1357,7 +1324,14 @@ function closeResetModal(e) {
   }
 }
 
-// Cadastro
+function getPortaria() {
+  try { return JSON.parse(localStorage.getItem('portaria_atual') || 'null'); } 
+  catch(e) { return null; }
+}
+
+// ============================================================
+// CADASTRO DE USUÁRIO
+// ============================================================
 async function fazerCadastro() {
   const nome = document.getElementById('registerNome').value.trim();
   const email = document.getElementById('registerEmail').value.trim();
@@ -1398,23 +1372,18 @@ async function fazerCadastro() {
   document.getElementById('registerLoading').textContent = 'Criando conta...';
 
   try {
-    // 1. Cria usuário no Supabase Auth
     const { data: authData, error: authError } = await supa.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          nome: nome,
-          tipo: 'porteiro'
-        }
+        data: { nome: nome, tipo: 'porteiro' }
       }
     });
 
     if (authError) throw new Error(authError.message);
+    if (!authData || !authData.user) throw new Error('Falha ao criar usuário');
 
-    if (!authData.user) throw new Error('Erro ao criar usuário');
-
-    // 2. Insere na tabela portarias
+    // Insere na tabela portarias
     const { error: portariaError } = await supa
       .from('portarias')
       .insert({
@@ -1426,9 +1395,17 @@ async function fazerCadastro() {
       });
 
     if (portariaError) {
-      // Se falhar ao inserir na tabela portarias, deleta o usuário criado
-      await supa.auth.admin.deleteUser(authData.user.id);
-      throw new Error('Erro ao criar perfil da portaria');
+      // Se falhar, tenta sem o campo codigo
+      if (portariaError.message.includes('codigo')) {
+        await supa.from('portarias').insert({
+          id: authData.user.id,
+          nome: nome,
+          email: email,
+          tipo: 'porteiro'
+        });
+      } else {
+        throw new Error('Erro ao criar perfil: ' + portariaError.message);
+      }
     }
 
     showToast('✅ Conta criada com sucesso! Faça login.', 3000);
@@ -1437,7 +1414,7 @@ async function fazerCadastro() {
     document.getElementById('loginPassword').focus();
 
   } catch (e) {
-    console.error('Erro no cadastro:', e);
+    console.error('❌ Erro no cadastro:', e);
     document.getElementById('registerError').textContent = 'Erro: ' + e.message;
     showToast('Erro ao cadastrar: ' + e.message);
   } finally {
@@ -1447,7 +1424,9 @@ async function fazerCadastro() {
   }
 }
 
-// Login
+// ============================================================
+// LOGIN
+// ============================================================
 async function fazerLoginAuth() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -1476,64 +1455,28 @@ async function fazerLoginAuth() {
   document.getElementById('loginLoading').textContent = 'Verificando credenciais...';
 
   try {
-    const { data, error } = await supa.auth.signInWithPassword({
-      email,
-      password
-    });
-
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
-
     if (!data.user) throw new Error('Usuário não encontrado');
 
-    // Busca dados da portaria
-    const { data: portaria, error: portariaError } = await supa
+    const { data: portaria } = await supa
       .from('portarias')
       .select('*')
       .eq('id', data.user.id)
       .maybeSingle();
 
-    if (portariaError) throw new Error('Erro ao buscar dados da portaria');
-
-    if (!portaria) {
-      // Se não encontrar, cria o registro
-      const { error: insertError } = await supa
-        .from('portarias')
-        .insert({
-          id: data.user.id,
-          nome: data.user.user_metadata?.nome || 'Portaria',
-          email: email,
-          tipo: 'porteiro',
-          codigo: 'AUTH_' + Math.random().toString(36).substring(2, 8).toUpperCase()
-        });
-      if (insertError) throw new Error('Erro ao criar perfil');
-      
-      // Busca novamente
-      const { data: newPortaria } = await supa
-        .from('portarias')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-      
-      localStorage.setItem('portaria_atual', JSON.stringify({
-        id: newPortaria.id,
-        nome: newPortaria.nome,
-        tipo: newPortaria.tipo || 'porteiro',
-        email: newPortaria.email
-      }));
-    } else {
-      localStorage.setItem('portaria_atual', JSON.stringify({
-        id: portaria.id,
-        nome: portaria.nome,
-        tipo: portaria.tipo || 'porteiro',
-        email: portaria.email
-      }));
-    }
+    localStorage.setItem('portaria_atual', JSON.stringify({
+      id: data.user.id,
+      nome: portaria?.nome || data.user.user_metadata?.nome || 'Portaria',
+      tipo: portaria?.tipo || 'porteiro',
+      email: email
+    }));
 
     showToast('✅ Login realizado com sucesso!', 2000);
     await iniciarApp();
 
   } catch (e) {
-    console.error('Erro no login:', e);
+    console.error('❌ Erro no login:', e);
     document.getElementById('loginError').textContent = 'Erro: ' + e.message;
     showToast('Erro ao fazer login: ' + e.message);
   } finally {
@@ -1543,7 +1486,9 @@ async function fazerLoginAuth() {
   }
 }
 
-// Reset senha
+// ============================================================
+// RESET SENHA
+// ============================================================
 async function enviarResetSenha() {
   const email = document.getElementById('resetEmail').value.trim();
   
@@ -1567,7 +1512,6 @@ async function enviarResetSenha() {
     const { error } = await supa.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + '/controle-acesso/'
     });
-
     if (error) throw new Error(error.message);
 
     showToast('✅ Link de recuperação enviado para seu email!', 4000);
@@ -1575,7 +1519,7 @@ async function enviarResetSenha() {
     setTimeout(fecharResetModal, 3000);
 
   } catch (e) {
-    console.error('Erro ao enviar reset:', e);
+    console.error('❌ Erro ao enviar reset:', e);
     showToast('Erro: ' + e.message);
     document.getElementById('resetLoading').textContent = '❌ ' + e.message;
   } finally {
@@ -1584,29 +1528,31 @@ async function enviarResetSenha() {
   }
 }
 
-// Logout
+// ============================================================
+// LOGOUT
+// ============================================================
 async function logoutAuth() {
   if (!confirm('Deseja sair?')) return;
   try {
     await supa.auth.signOut();
     localStorage.removeItem('portaria_atual');
-    localStorage.removeItem('supabase.auth.token');
     mostrarLogin();
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPassword').value = '';
     showToast('✅ Desconectado com sucesso', 2000);
   } catch (e) {
-    console.error('Erro ao sair:', e);
+    console.error('❌ Erro ao sair:', e);
     showToast('Erro ao sair: ' + e.message);
   }
 }
 
-// Verificar sessão ao carregar
+// ============================================================
+// VERIFICAR SESSÃO
+// ============================================================
 async function verificarSessao() {
   try {
     const { data: { session } } = await supa.auth.getSession();
     if (session) {
-      // Busca dados da portaria
       const { data: portaria } = await supa
         .from('portarias')
         .select('*')
@@ -1626,7 +1572,7 @@ async function verificarSessao() {
     }
     return false;
   } catch (e) {
-    console.error('Erro ao verificar sessão:', e);
+    console.error('❌ Erro ao verificar sessão:', e);
     return false;
   }
 }
@@ -1719,13 +1665,8 @@ async function verificarCPFDuplicadoEdicao(cpf, idAtual) {
 }
 
 // ============================================================
-// CADASTRO DE MOTORISTAS (parte do sistema)
+// CADASTRO DE MOTORISTAS
 // ============================================================
-function getPortaria() {
-  try { return JSON.parse(localStorage.getItem('portaria_atual') || 'null'); } 
-  catch(e) { return null; }
-}
-
 async function cadastrar() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   
@@ -3078,7 +3019,6 @@ window.addEventListener('offline', () => showToast('Sem conexão com a internet 
   
   if (!initSupabase()) return;
   
-  // Verifica se já está logado
   const logado = await verificarSessao();
   if (!logado) {
     mostrarLogin();
