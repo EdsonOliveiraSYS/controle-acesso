@@ -1814,7 +1814,30 @@ async function enviarConviteWhatsApp() {
           `Att,\nPortariaPro`
         );
         
-        window.open(`https://wa.me/55${numLimpo}?text=${mensagem}`, '_blank');
+        // ============================================================
+        // CORREÇÃO: Tenta abrir o app primeiro, depois fallback para web
+        // ============================================================
+        const numeroCompleto = `55${numLimpo}`;
+        const waLink = `https://wa.me/${numeroCompleto}?text=${mensagem}`;
+        const waAppLink = `whatsapp://send?phone=${numeroCompleto}&text=${mensagem}`;
+        
+        // Tenta abrir o aplicativo primeiro
+        let appOpened = false;
+        try {
+          const win = window.open(waAppLink, '_blank');
+          if (win !== null) {
+            appOpened = true;
+          }
+        } catch(e) {
+          appOpened = false;
+        }
+        
+        // Se não abrir, usa o fallback após 800ms
+        setTimeout(() => {
+          if (!appOpened) {
+            window.open(waLink, '_blank');
+          }
+        }, 800);
         
         document.getElementById('inviteStatus').textContent = '✅ WhatsApp aberto! Envie a mensagem.';
         showToast('✅ WhatsApp aberto!', 2000);
@@ -1840,7 +1863,6 @@ async function enviarConviteWhatsApp() {
     if (btn) { btn.disabled = false; btn.textContent = '📱 WhatsApp'; }
   }
 }
-
 async function copiarLinkConvite() {
   const email = document.getElementById('inviteEmail').value.trim();
   const nome = document.getElementById('inviteNome').value.trim();
