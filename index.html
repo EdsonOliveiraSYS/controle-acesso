@@ -1939,7 +1939,7 @@ function closeInviteModal(e) {
 }
 
 // ============================================================
-// PROCESSAMENTO DE CONVITE
+// PROCESSAMENTO DE CONVITE (CORRIGIDO)
 // ============================================================
 async function processarConvite() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1953,6 +1953,7 @@ async function processarConvite() {
   console.log('🔍 Processando convite:', codigo);
 
   try {
+    // Aguarda o Supabase estar pronto
     if (!supa) {
       console.log('⏳ Aguardando Supabase...');
       let tentativas = 0;
@@ -1973,37 +1974,70 @@ async function processarConvite() {
       return;
     }
 
-    const { data: invite, error } = await supa
-      .from('convites')
-      .select('*')
-      .eq('codigo', codigo)
-      .eq('status', 'pendente')
-      .maybeSingle();
-
-    if (error) {
-      if (error.message.includes('relation "convites" does not exist')) {
-        console.warn('⚠️ Tabela convites não existe');
-        showToast('⚠️ Sistema de convites não configurado. Contate o administrador.', 5000);
-        return;
+    // Verifica se a tabela convites existe
+    let invite = null;
+    let erroTabela = false;
+    
+    try {
+      const { data, error } = await supa
+        .from('convites')
+        .select('*')
+        .eq('codigo', codigo)
+        .eq('status', 'pendente')
+        .maybeSingle();
+      
+      if (error) {
+        if (error.message.includes('relation "convites" does not exist')) {
+          console.warn('⚠️ Tabela convites não existe');
+          erroTabela = true;
+        } else {
+          throw error;
+        }
+      } else {
+        invite = data;
       }
-      throw error;
+    } catch (e) {
+      if (e.message.includes('relation "convites" does not exist')) {
+        erroTabela = true;
+      } else {
+        throw e;
+      }
+    }
+
+    // Se a tabela não existe, mostra mensagem amigável
+    if (erroTabela) {
+      showToast('⚠️ Sistema de convites não configurado. Contate o administrador.', 5000);
+      // Remove o parâmetro da URL para não ficar mostrando o erro
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      return;
     }
 
     if (!invite) {
       console.log('❌ Convite não encontrado ou já usado');
       showToast('❌ Convite inválido ou expirado', 4000);
+      // Remove o parâmetro da URL
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
       return;
     }
 
+    // Verifica expiração
     if (new Date(invite.expira_em) < new Date()) {
       console.log('❌ Convite expirado');
       await supa.from('convites').update({ status: 'expirado' }).eq('codigo', codigo);
       showToast('❌ Convite expirado', 4000);
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
       return;
     }
 
     console.log('✅ Convite válido para:', invite.nome);
 
+    // Preenche o cadastro com os dados do convite
     document.getElementById('registerNome').value = invite.nome;
     document.getElementById('registerEmail').value = invite.email;
     
@@ -2017,11 +2051,16 @@ async function processarConvite() {
       email: invite.email
     };
 
+    // Mostra a tela de cadastro
     mostrarCadastro();
 
   } catch (e) {
     console.error('❌ Erro ao processar convite:', e);
     showToast('Erro ao processar convite: ' + e.message, 4000);
+    // Remove o parâmetro da URL para não ficar mostrando o erro
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }
 }
 
