@@ -22,6 +22,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* ===== CSS COMPLETO ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -600,6 +601,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   font-size: 11px;
 }
 
+/* ===== RESPONSIVO ===== */
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -774,6 +776,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   #page-dashboard .section-title { grid-column:1 / -1; }
   #page-dashboard .dashboard-stats { grid-column:1 / -1; }
   #page-dashboard .dashboard-grid { grid-column:1 / -1; }
+  #page-master.active { grid-template-columns:1fr 1fr; }
+  #page-master .master-header { grid-column:1 / -1; }
+  #page-master .dashboard-stats { grid-column:1 / -1; }
+  #page-master .card { grid-column:1 / -1; }
   .filtros-container { grid-template-columns:1fr 1fr 1fr 1fr; padding:20px; gap:16px; }
   .filtros-container .field:last-child { grid-column:auto; }
   .filtros-actions { grid-column:1 / -1; }
@@ -860,6 +866,124 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .dashboard-stat .number { font-size:16px; }
   .reset-sheet { padding:20px 16px; }
   .invite-sheet, .users-sheet { padding:16px; max-width:100%; }
+}
+
+/* ===== ESTILOS DO PAINEL MASTER ===== */
+.master-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.master-header .section-title {
+  margin: 0;
+}
+.master-header .btn {
+  width: auto;
+  padding: 10px 20px;
+}
+.master-filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.master-filtros input,
+.master-filtros select {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+}
+.master-filtros input::placeholder {
+  color: var(--text3);
+}
+.master-filtros input:focus,
+.master-filtros select:focus {
+  border-color: var(--cyan);
+  outline: none;
+}
+
+/* ===== MODAL GERENCIAR ASSINATURA ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-content {
+  background: var(--bg2);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid var(--border2);
+}
+.modal-content .handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-content h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.modal-content p {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 16px;
+}
+.modal-content .field {
+  margin-bottom: 14px;
+}
+.modal-content .field label {
+  display: block;
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 5px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.modal-content .field input,
+.modal-content .field select {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+.modal-content .field input:focus,
+.modal-content .field select:focus {
+  border-color: var(--cyan);
+}
+.modal-content .field .status-display {
+  padding: 12px;
+  background: var(--bg3);
+  border-radius: 8px;
+  font-weight: 600;
+}
+.modal-content .btn {
+  width: 100%;
 }
 </style>
 </head>
@@ -1081,6 +1205,60 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
           <ul class="top-drivers-list" id="topDriversList"><li style="color:var(--text3);text-align:center;padding:20px 0;">Cadastre e valide motoristas para ver o ranking</li></ul>
         </div>
       </div>
+
+      <!-- PAINEL MASTER -->
+      <div class="page" id="page-master">
+        <div class="master-header">
+          <div>
+            <p class="section-title" style="margin:0;">👑 Painel Master</p>
+            <p style="font-size:13px;color:var(--text2);">Gerencie todas as portarias e assinaturas</p>
+          </div>
+          <button class="btn btn-primary" onclick="openPlanoModal()" style="width:auto;padding:10px 20px;font-size:13px;">+ Novo Plano</button>
+        </div>
+
+        <div class="dashboard-stats" id="masterStats">
+          <div class="dashboard-stat">
+            <div class="number" id="totalPortarias">0</div>
+            <div class="label">🏢 Total de Portarias</div>
+          </div>
+          <div class="dashboard-stat">
+            <div class="number" style="color:var(--green);" id="ativasCount">0</div>
+            <div class="label">✅ Assinaturas Ativas</div>
+          </div>
+          <div class="dashboard-stat">
+            <div class="number" style="color:var(--red);" id="vencidasCount">0</div>
+            <div class="label">🔴 Vencidas/Trial</div>
+          </div>
+          <div class="dashboard-stat">
+            <div class="number" style="color:var(--amber);" id="faturamentoTotal">R$ 0</div>
+            <div class="label">💰 Faturamento Mensal</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div class="chart-title" style="margin:0;">📋 Portarias Cadastradas</div>
+            <div class="master-filtros" style="margin:0;">
+              <input type="text" id="buscaPortaria" placeholder="🔍 Buscar portaria..." oninput="renderizarListaPortariasMaster()">
+              <select id="filtroStatusAssinatura" onchange="renderizarListaPortariasMaster()">
+                <option value="">Todos os status</option>
+                <option value="ativa">✅ Ativas</option>
+                <option value="vencida">🔴 Vencidas</option>
+                <option value="trial">⚠️ Trial</option>
+                <option value="cancelada">❌ Canceladas</option>
+              </select>
+            </div>
+          </div>
+          <div id="listaPortariasMaster"></div>
+        </div>
+
+        <div class="card">
+          <div class="chart-title">📝 Últimas Ações</div>
+          <div id="logAcoes" style="padding:8px 0;">
+            <p style="color:var(--text3);font-size:13px;text-align:center;">Nenhuma ação registrada ainda</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <nav class="nav">
@@ -1103,6 +1281,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <button class="nav-btn" onclick="showPage('dashboard')" id="nav-dashboard" aria-label="Dashboard" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         Dashboard
+      </button>
+      <button class="nav-btn admin-only" onclick="showPage('master')" id="nav-master" aria-label="Painel Master" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Painel
       </button>
     </nav>
   </div>
@@ -1490,6 +1672,13 @@ let dashboardLoaded = false;
 let conviteAtual = null;
 let ultimoLinkConvite = '';
 let qrWhatsAtual = '';
+
+// ============================================================
+// VARIÁVEIS DO PAINEL MASTER
+// ============================================================
+let todasPortarias = [];
+let todasAssinaturas = [];
+let planosDisponiveis = [];
 
 // ============================================================
 // LOADING E TOAST
@@ -2451,7 +2640,7 @@ async function verificarSessao() {
 }
 
 // ============================================================
-// PERMISSÕES (CORRIGIDO - Conforme solicitado)
+// PERMISSÕES (CORRIGIDO)
 // Mestre: vê tudo de todos
 // Admin: tudo, menos ver outras portarias (vê somente a sua)
 // Operador: tudo, menos ver outras portarias e excluir dados
@@ -2533,6 +2722,17 @@ async function iniciarApp() {
     
     renderLog();
     carregarDashboard();
+    
+    // Se for mestre, carrega o painel master também
+    if (p.tipo === 'mestre') {
+      // Carrega em background
+      setTimeout(() => {
+        if (document.getElementById('page-master').classList.contains('active')) {
+          carregarPainelMaster();
+        }
+      }, 500);
+    }
+    
     hideLoading();
   } catch (e) { 
     hideLoading(); 
@@ -2552,6 +2752,7 @@ function showPage(id) {
   if (id === 'lista') { renderLista(); setupInfiniteScroll(); }
   if (id === 'log') renderLog();
   if (id === 'dashboard') { carregarDashboard(); }
+  if (id === 'master') { carregarPainelMaster(); }
   if (id === 'cadastro') {
     document.getElementById('cadastroTitle').textContent = 'Novo motorista';
     document.getElementById('btnCadastrar').textContent = 'Cadastrar e gerar QR Code';
@@ -3666,6 +3867,474 @@ function atualizarDashboard() {
   } else {
     carregarDashboard();
   }
+}
+
+// ============================================================
+// PAINEL MASTER - GERENCIAMENTO DE ASSINATURAS
+// ============================================================
+
+// ============================================================
+// CARREGAR DADOS DO PAINEL MASTER
+// ============================================================
+async function carregarPainelMaster() {
+  const portaria = getPortaria();
+  if (portaria?.tipo !== 'mestre') {
+    showToast('⚠️ Apenas o mestre pode acessar este painel', 3000);
+    return;
+  }
+
+  showLoading('Carregando painel master...');
+  
+  try {
+    // Carrega todas as portarias
+    const { data: portarias, error: pError } = await supa
+      .from('portarias')
+      .select('*')
+      .order('criado_em', { ascending: false });
+    
+    if (pError) throw pError;
+    todasPortarias = portarias || [];
+
+    // Carrega todas as assinaturas
+    const { data: assinaturas, error: aError } = await supa
+      .from('assinaturas')
+      .select('*')
+      .order('data_vencimento', { ascending: true });
+    
+    if (aError && !aError.message.includes('relation "assinaturas" does not exist')) {
+      throw aError;
+    }
+    todasAssinaturas = assinaturas || [];
+
+    // Carrega planos
+    const { data: planos, error: planError } = await supa
+      .from('planos')
+      .select('*')
+      .eq('ativo', true);
+    
+    if (planError && !planError.message.includes('relation "planos" does not exist')) {
+      throw planError;
+    }
+    planosDisponiveis = planos || [];
+
+    // Atualiza estatísticas
+    atualizarEstatisticasMaster();
+    
+    // Renderiza lista de portarias
+    renderizarListaPortariasMaster();
+    
+    hideLoading();
+    
+  } catch (e) {
+    console.error('❌ Erro ao carregar painel master:', e);
+    // Se a tabela não existe, mostra mensagem amigável
+    if (e.message.includes('relation "assinaturas" does not exist')) {
+      showToast('⚠️ Tabelas de assinaturas não configuradas. Execute o SQL no Supabase.', 5000);
+    } else {
+      showToast('Erro ao carregar painel: ' + e.message, 4000);
+    }
+    hideLoading();
+  }
+}
+
+// ============================================================
+// ATUALIZAR ESTATÍSTICAS
+// ============================================================
+function atualizarEstatisticasMaster() {
+  const total = todasPortarias.length;
+  const ativas = todasAssinaturas.filter(a => a.status === 'ativa').length;
+  const vencidas = todasAssinaturas.filter(a => a.status === 'vencida' || a.status === 'trial').length;
+  
+  let faturamento = 0;
+  todasAssinaturas.forEach(a => {
+    if (a.status === 'ativa') {
+      faturamento += a.valor_mensal || 0;
+    }
+  });
+
+  document.getElementById('totalPortarias').textContent = total;
+  document.getElementById('ativasCount').textContent = ativas;
+  document.getElementById('vencidasCount').textContent = vencidas;
+  document.getElementById('faturamentoTotal').textContent = 
+    `R$ ${faturamento.toFixed(2)}`;
+}
+
+// ============================================================
+// RENDERIZAR LISTA DE PORTARIAS
+// ============================================================
+function renderizarListaPortariasMaster() {
+  const div = document.getElementById('listaPortariasMaster');
+  const busca = document.getElementById('buscaPortaria')?.value?.toLowerCase() || '';
+  const filtroStatus = document.getElementById('filtroStatusAssinatura')?.value || '';
+
+  let portariasFiltradas = todasPortarias.filter(p => p.tipo !== 'mestre');
+
+  // Filtro por nome
+  if (busca) {
+    portariasFiltradas = portariasFiltradas.filter(p => 
+      p.nome.toLowerCase().includes(busca) || 
+      p.email.toLowerCase().includes(busca)
+    );
+  }
+
+  // Filtro por status da assinatura
+  if (filtroStatus) {
+    portariasFiltradas = portariasFiltradas.filter(p => {
+      const assinatura = todasAssinaturas.find(a => a.portaria_id === p.id);
+      return assinatura?.status === filtroStatus;
+    });
+  }
+
+  if (!portariasFiltradas.length) {
+    div.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <p>Nenhuma portaria encontrada</p>
+      </div>
+    `;
+    return;
+  }
+
+  div.innerHTML = portariasFiltradas.map(p => {
+    const assinatura = todasAssinaturas.find(a => a.portaria_id === p.id);
+    const plano = planosDisponiveis.find(pl => pl.chave === assinatura?.plano);
+    
+    const statusLabel = {
+      'ativa': '✅ Ativa',
+      'vencida': '🔴 Vencida',
+      'trial': '⚠️ Trial',
+      'cancelada': '❌ Cancelada'
+    }[assinatura?.status] || '❓ Sem assinatura';
+
+    const statusClass = {
+      'ativa': 'badge-green',
+      'vencida': 'badge-red',
+      'trial': 'badge-amber',
+      'cancelada': 'badge-red'
+    }[assinatura?.status] || '';
+
+    const vencimento = assinatura?.data_vencimento 
+      ? new Date(assinatura.data_vencimento).toLocaleDateString('pt-BR')
+      : '—';
+
+    return `
+      <div class="driver-item" style="padding:14px 8px;">
+        <div>
+          <div class="driver-name">🏢 ${p.nome}</div>
+          <div class="driver-sub">${p.email}</div>
+        </div>
+        <div style="flex:1;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;">
+          <span style="font-size:12px;color:var(--text2);">
+            ${plano?.nome || 'Sem plano'}
+          </span>
+          <span style="font-size:12px;color:var(--text2);">
+            📅 ${vencimento}
+          </span>
+          <span class="badge ${statusClass}">${statusLabel}</span>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <button class="icon-btn" onclick="verDetalhesPortaria('${p.id}')" title="Ver detalhes">👁️</button>
+          <button class="icon-btn" onclick="abrirGerenciarAssinatura('${p.id}')" title="Gerenciar assinatura">💳</button>
+          <button class="icon-btn" onclick="toggleBloqueioPortaria('${p.id}')" title="${assinatura?.status === 'vencida' ? '🔓 Desbloquear' : '🔒 Bloquear'}">
+            ${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓' : '🔒'}
+          </button>
+          <button class="icon-btn" onclick="excluirPortaria('${p.id}')" title="Excluir portaria" style="color:var(--red);">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// GERENCIAR ASSINATURA
+// ============================================================
+async function abrirGerenciarAssinatura(portariaId) {
+  const portaria = todasPortarias.find(p => p.id === portariaId);
+  const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
+  
+  if (!portaria) {
+    showToast('Portaria não encontrada', 3000);
+    return;
+  }
+
+  const statusLabels = {
+    'ativa': '✅ Ativa',
+    'vencida': '🔴 Vencida',
+    'trial': '⚠️ Trial',
+    'cancelada': '❌ Cancelada'
+  };
+
+  const modalHtml = `
+    <div class="modal-overlay" id="modalAssinatura" onclick="if(event.target===this)this.remove()">
+      <div class="modal-content">
+        <div class="handle"></div>
+        <h3>💳 Gerenciar Assinatura</h3>
+        <p>${portaria.nome}</p>
+        
+        <div class="field">
+          <label>STATUS ATUAL</label>
+          <div class="status-display">
+            ${assinatura ? statusLabels[assinatura.status] || '❓ Desconhecido' : 'Sem assinatura'}
+          </div>
+        </div>
+
+        <div class="field">
+          <label>PLANO</label>
+          <select id="selectPlano">
+            ${planosDisponiveis.length ? planosDisponiveis.map(p => `
+              <option value="${p.chave}" ${assinatura?.plano === p.chave ? 'selected' : ''}>
+                ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês
+              </option>
+            `).join('') : `
+              <option value="basico">Básico - R$ 49,90/mês</option>
+              <option value="profissional">Profissional - R$ 99,90/mês</option>
+              <option value="enterprise">Enterprise - R$ 199,90/mês</option>
+            `}
+          </select>
+        </div>
+
+        <div class="field">
+          <label>DATA DE VENCIMENTO</label>
+          <input type="date" id="inputVencimento" value="${assinatura?.data_vencimento?.split('T')[0] || ''}">
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn btn-primary" onclick="salvarAssinatura('${portariaId}')" style="flex:1;">💾 Salvar</button>
+          ${assinatura && assinatura.status !== 'cancelada' ? `
+            <button class="btn btn-ghost" onclick="cancelarAssinatura('${portariaId}')" style="flex:1;color:var(--red);border-color:var(--red);">❌ Cancelar</button>
+          ` : ''}
+          ${assinatura && (assinatura.status === 'vencida' || assinatura.status === 'trial') ? `
+            <button class="btn btn-success" onclick="renovarAssinatura('${portariaId}')" style="flex:1;">🔄 Renovar</button>
+          ` : ''}
+        </div>
+        
+        <button class="btn btn-ghost" style="margin-top:8px;" onclick="document.getElementById('modalAssinatura').remove()">Fechar</button>
+      </div>
+    </div>
+  `;
+
+  const modalDiv = document.createElement('div');
+  modalDiv.innerHTML = modalHtml;
+  document.body.appendChild(modalDiv.firstElementChild);
+}
+
+// ============================================================
+// SALVAR ASSINATURA
+// ============================================================
+async function salvarAssinatura(portariaId) {
+  const plano = document.getElementById('selectPlano').value;
+  const vencimento = document.getElementById('inputVencimento').value;
+  
+  if (!vencimento) {
+    showToast('⚠️ Selecione uma data de vencimento', 3000);
+    return;
+  }
+
+  const planoData = planosDisponiveis.find(p => p.chave === plano);
+  
+  try {
+    const { error } = await supa
+      .from('assinaturas')
+      .upsert({
+        portaria_id: portariaId,
+        plano: plano,
+        status: 'ativa',
+        data_vencimento: new Date(vencimento).toISOString(),
+        valor_mensal: planoData?.valor_mensal || 49.90,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'portaria_id' });
+
+    if (error) throw error;
+
+    showToast('✅ Assinatura salva com sucesso!', 3000);
+    document.getElementById('modalAssinatura').remove();
+    carregarPainelMaster();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message, 3000);
+  }
+}
+
+// ============================================================
+// CANCELAR ASSINATURA
+// ============================================================
+async function cancelarAssinatura(portariaId) {
+  if (!confirm('Tem certeza que deseja cancelar esta assinatura?')) return;
+
+  try {
+    const { error } = await supa
+      .from('assinaturas')
+      .update({
+        status: 'cancelada',
+        data_cancelamento: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('portaria_id', portariaId);
+
+    if (error) throw error;
+
+    showToast('❌ Assinatura cancelada', 3000);
+    document.getElementById('modalAssinatura').remove();
+    carregarPainelMaster();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message, 3000);
+  }
+}
+
+// ============================================================
+// RENOVAR ASSINATURA
+// ============================================================
+async function renovarAssinatura(portariaId) {
+  if (!confirm('Renovar assinatura por mais 30 dias?')) return;
+
+  try {
+    const hoje = new Date();
+    const novoVencimento = new Date();
+    novoVencimento.setDate(hoje.getDate() + 30);
+
+    const { error } = await supa
+      .from('assinaturas')
+      .update({
+        status: 'ativa',
+        data_vencimento: novoVencimento.toISOString(),
+        ultimo_pagamento: hoje.toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('portaria_id', portariaId);
+
+    if (error) throw error;
+
+    showToast('✅ Assinatura renovada até ' + novoVencimento.toLocaleDateString('pt-BR'), 3000);
+    document.getElementById('modalAssinatura').remove();
+    carregarPainelMaster();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message, 3000);
+  }
+}
+
+// ============================================================
+// BLOQUEAR/DESBLOQUEAR PORTARIA
+// ============================================================
+async function toggleBloqueioPortaria(portariaId) {
+  const portaria = todasPortarias.find(p => p.id === portariaId);
+  const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
+  const isBloqueado = assinatura?.status === 'vencida' || assinatura?.status === 'cancelada';
+
+  const acao = isBloqueado ? 'desbloquear' : 'bloquear';
+  const confirmMsg = isBloqueado 
+    ? `Deseja DESBLOQUEAR a portaria "${portaria.nome}"?` 
+    : `Deseja BLOQUEAR a portaria "${portaria.nome}"?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const novoStatus = isBloqueado ? 'ativa' : 'vencida';
+    
+    const { error } = await supa
+      .from('assinaturas')
+      .update({
+        status: novoStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('portaria_id', portariaId);
+
+    if (error) throw error;
+
+    showToast(isBloqueado ? '✅ Portaria desbloqueada' : '🔒 Portaria bloqueada', 3000);
+    carregarPainelMaster();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message, 3000);
+  }
+}
+
+// ============================================================
+// EXCLUIR PORTARIA
+// ============================================================
+async function excluirPortaria(portariaId) {
+  const portaria = todasPortarias.find(p => p.id === portariaId);
+  if (!portaria) return;
+  if (!confirm(`Tem certeza que deseja EXCLUIR a portaria "${portaria.nome}"? Esta ação é irreversível!`)) return;
+
+  try {
+    // Remove assinatura
+    await supa.from('assinaturas').delete().eq('portaria_id', portariaId).catch(() => {});
+    
+    // Remove portaria
+    const { error } = await supa.from('portarias').delete().eq('id', portariaId);
+    if (error) throw error;
+
+    showToast('🗑️ Portaria excluída com sucesso', 3000);
+    carregarPainelMaster();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message, 3000);
+  }
+}
+
+// ============================================================
+// VER DETALHES DA PORTARIA
+// ============================================================
+function verDetalhesPortaria(portariaId) {
+  const portaria = todasPortarias.find(p => p.id === portariaId);
+  const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
+  const plano = planosDisponiveis.find(p => p.chave === assinatura?.plano);
+
+  const statusLabel = {
+    'ativa': '✅ Ativa',
+    'vencida': '🔴 Vencida',
+    'trial': '⚠️ Trial',
+    'cancelada': '❌ Cancelada'
+  }[assinatura?.status] || '❓ Desconhecido';
+
+  const detalhesHtml = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal-content" style="max-width:480px;">
+        <div class="handle"></div>
+        <h3>🏢 ${portaria.nome}</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">${portaria.email}</p>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--bg3);padding:12px;border-radius:8px;">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;">Status</div>
+            <div style="font-weight:600;">${statusLabel}</div>
+          </div>
+          <div style="background:var(--bg3);padding:12px;border-radius:8px;">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;">Plano</div>
+            <div style="font-weight:600;">${plano?.nome || '—'}</div>
+          </div>
+          <div style="background:var(--bg3);padding:12px;border-radius:8px;">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;">Vencimento</div>
+            <div style="font-weight:600;">${assinatura?.data_vencimento ? new Date(assinatura.data_vencimento).toLocaleDateString('pt-BR') : '—'}</div>
+          </div>
+          <div style="background:var(--bg3);padding:12px;border-radius:8px;">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;">Valor Mensal</div>
+            <div style="font-weight:600;">R$ ${(assinatura?.valor_mensal || 0).toFixed(2)}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding:12px;background:var(--bg3);border-radius:8px;">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;">Tipo de Usuário</div>
+          <div style="font-weight:600;">${portaria.tipo === 'mestre' ? '👑 Mestre' : portaria.tipo === 'admin' ? '👑 Administrador' : '👤 Operador'}</div>
+        </div>
+
+        <button class="btn btn-ghost" style="margin-top:16px;" onclick="this.closest('.modal-overlay').remove()">Fechar</button>
+      </div>
+    </div>
+  `;
+
+  const modalDiv = document.createElement('div');
+  modalDiv.innerHTML = detalhesHtml;
+  document.body.appendChild(modalDiv.firstElementChild);
+}
+
+// ============================================================
+// ABRIR MODAL DE PLANO
+// ============================================================
+function openPlanoModal() {
+  showToast('⚙️ Gerenciamento de planos em desenvolvimento', 3000);
 }
 
 // ============================================================
