@@ -600,7 +600,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   font-size: 11px;
 }
 
-/* ===== RESPONSIVO ===== */
 @media (max-width: 374px) {
   :root {
     --app-max-width:100%; --header-padding:10px 12px 8px; --page-padding:12px 10px 16px; --card-padding:12px;
@@ -1525,13 +1524,12 @@ function initSupabase() {
 }
 
 // ============================================================
-// CRIAÇÃO DO USUÁRIO MESTRE (CORRIGIDO)
+// CRIAÇÃO DO USUÁRIO MESTRE
 // ============================================================
 async function criarUsuarioMestre() {
   try {
     console.log('👑 Verificando usuário mestre...');
     
-    // Tenta fazer login como mestre
     const { data: loginData, error: loginError } = await supa.auth.signInWithPassword({
       email: 'master@portariapro.com',
       password: 'Master@2024#Admin'
@@ -1543,8 +1541,6 @@ async function criarUsuarioMestre() {
     }
 
     console.log('👑 Criando usuário mestre...');
-    
-    // Tenta criar o usuário
     const { data: authData, error: authError } = await supa.auth.signUp({
       email: 'master@portariapro.com',
       password: 'Master@2024#Admin',
@@ -1568,7 +1564,6 @@ async function criarUsuarioMestre() {
       throw new Error('Falha ao criar usuário mestre');
     }
 
-    // Tenta criar a portaria (pode falhar por RLS, mas o usuário já existe)
     try {
       await supa.from('portarias').insert({
         id: authData.user.id,
@@ -1642,36 +1637,7 @@ async function enviarConviteEmail() {
 
     const codigo = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
     
-    // Verifica se a tabela convites existe antes de inserir
     try {
-      const { data: invite, error: inviteError } = await supa
-        .from('convites')
-        .insert({
-          email: email,
-          nome: nome,
-          role: role,
-          portaria_id: portaria.id,
-          portaria_nome: portaria.nome,
-          codigo: codigo,
-          criado_por: portaria.id,
-          status: 'pendente',
-          expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        })
-        .select()
-        .single();
-
-      if (inviteError) {
-        if (inviteError.message.includes('relation "convites" does not exist')) {
-          throw new Error('Tabela de convites não existe. Execute o SQL no Supabase.');
-        }
-        throw new Error(inviteError.message);
-      }
-    } catch (e) {
-      if (e.message.includes('Tabela de convites não existe')) {
-        throw e;
-      }
-      // Se falhar por outro motivo, pode ser que a tabela não tenha RLS configurado
-      // Tenta inserir sem select
       await supa.from('convites').insert({
         email: email,
         nome: nome,
@@ -1683,6 +1649,11 @@ async function enviarConviteEmail() {
         status: 'pendente',
         expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       });
+    } catch (e) {
+      if (e.message.includes('relation "convites" does not exist')) {
+        throw new Error('Tabela de convites não existe. Execute o SQL no Supabase.');
+      }
+      throw e;
     }
 
     ultimoLinkConvite = `${window.location.origin}${window.location.pathname}?convite=${codigo}`;
@@ -1800,7 +1771,6 @@ async function enviarConviteWhatsApp() {
         const mensagemEncoded = encodeURIComponent(mensagem);
         const numeroCompleto = `55${numLimpo}`;
         
-        // Tenta abrir o app primeiro, depois fallback para web
         const waAppLink = `whatsapp://send?phone=${numeroCompleto}&text=${mensagemEncoded}`;
         const waWebLink = `https://wa.me/${numeroCompleto}?text=${mensagemEncoded}`;
         
@@ -1939,7 +1909,7 @@ function closeInviteModal(e) {
 }
 
 // ============================================================
-// PROCESSAMENTO DE CONVITE (CORRIGIDO)
+// PROCESSAMENTO DE CONVITE
 // ============================================================
 async function processarConvite() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1953,7 +1923,6 @@ async function processarConvite() {
   console.log('🔍 Processando convite:', codigo);
 
   try {
-    // Aguarda o Supabase estar pronto
     if (!supa) {
       console.log('⏳ Aguardando Supabase...');
       let tentativas = 0;
@@ -1974,7 +1943,6 @@ async function processarConvite() {
       return;
     }
 
-    // Verifica se a tabela convites existe
     let invite = null;
     let erroTabela = false;
     
@@ -2004,10 +1972,8 @@ async function processarConvite() {
       }
     }
 
-    // Se a tabela não existe, mostra mensagem amigável
     if (erroTabela) {
       showToast('⚠️ Sistema de convites não configurado. Contate o administrador.', 5000);
-      // Remove o parâmetro da URL para não ficar mostrando o erro
       if (window.history && window.history.replaceState) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
@@ -2017,14 +1983,12 @@ async function processarConvite() {
     if (!invite) {
       console.log('❌ Convite não encontrado ou já usado');
       showToast('❌ Convite inválido ou expirado', 4000);
-      // Remove o parâmetro da URL
       if (window.history && window.history.replaceState) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
       return;
     }
 
-    // Verifica expiração
     if (new Date(invite.expira_em) < new Date()) {
       console.log('❌ Convite expirado');
       await supa.from('convites').update({ status: 'expirado' }).eq('codigo', codigo);
@@ -2037,7 +2001,6 @@ async function processarConvite() {
 
     console.log('✅ Convite válido para:', invite.nome);
 
-    // Preenche o cadastro com os dados do convite
     document.getElementById('registerNome').value = invite.nome;
     document.getElementById('registerEmail').value = invite.email;
     
@@ -2051,13 +2014,11 @@ async function processarConvite() {
       email: invite.email
     };
 
-    // Mostra a tela de cadastro
     mostrarCadastro();
 
   } catch (e) {
     console.error('❌ Erro ao processar convite:', e);
     showToast('Erro ao processar convite: ' + e.message, 4000);
-    // Remove o parâmetro da URL para não ficar mostrando o erro
     if (window.history && window.history.replaceState) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -2490,7 +2451,10 @@ async function verificarSessao() {
 }
 
 // ============================================================
-// PERMISSÕES
+// PERMISSÕES (CORRIGIDO - Conforme solicitado)
+// Mestre: vê tudo de todos
+// Admin: tudo, menos ver outras portarias (vê somente a sua)
+// Operador: tudo, menos ver outras portarias e excluir dados
 // ============================================================
 function verificarPermissao(acao) {
   const user = getPortaria();
@@ -2498,6 +2462,7 @@ function verificarPermissao(acao) {
 
   const tipo = user.tipo;
 
+  // Mestre tem todas as permissões
   if (tipo === 'mestre') return true;
 
   const permissoes = {
@@ -2509,7 +2474,8 @@ function verificarPermissao(acao) {
       podeVerUsuarios: true,
       podeVerDashboard: true,
       podeVerHistorico: true,
-      podeGerenciarPortaria: true
+      podeGerenciarPortaria: true,
+      podeVerTodasPortarias: false
     },
     'operador': {
       podeCadastrar: true,
@@ -2519,7 +2485,8 @@ function verificarPermissao(acao) {
       podeVerUsuarios: false,
       podeVerDashboard: true,
       podeVerHistorico: true,
-      podeGerenciarPortaria: false
+      podeGerenciarPortaria: false,
+      podeVerTodasPortarias: false
     }
   };
 
@@ -2925,7 +2892,7 @@ function exportarMotoristasCompleto() {
 }
 
 // ============================================================
-// FUNÇÕES DE USUÁRIOS
+// FUNÇÕES DE USUÁRIOS (CORRIGIDO - Admin vê só sua portaria)
 // ============================================================
 async function abrirListaUsuarios() {
   const portaria = getPortaria();
@@ -2935,11 +2902,14 @@ async function abrirListaUsuarios() {
   document.getElementById('usersModal').classList.add('open');
 
   try {
-    const { data, error } = await supa
-      .from('portarias')
-      .select('*')
-      .eq('portaria_id', portaria.id);
-
+    let query = supa.from('portarias').select('*');
+    
+    // Mestre vê todos, Admin vê só os da sua portaria
+    if (portaria.tipo !== 'mestre') {
+      query = query.eq('portaria_id', portaria.id);
+    }
+    
+    const { data, error } = await query;
     if (error) throw error;
     allUsers = data || [];
     
@@ -3022,7 +2992,17 @@ function limparFiltrosLog() {
 
 async function carregarPortarias() {
   try {
-    const { data, error } = await supa.from('portarias').select('id, nome').order('nome');
+    const portaria = getPortaria();
+    if (!portaria) return;
+    
+    let query = supa.from('portarias').select('id, nome').order('nome');
+    
+    // Mestre vê todas, Admin vê só a sua
+    if (portaria.tipo !== 'mestre') {
+      query = query.eq('id', portaria.id);
+    }
+    
+    const { data, error } = await query;
     if (error) throw error;
     allPortarias = data || [];
     const select = document.getElementById('filtroPortaria');
@@ -3062,6 +3042,9 @@ function getValidacoesFiltradas(data) {
   });
 }
 
+// ============================================================
+// RENDER LOG (CORRIGIDO - Admin/Operador vê só sua portaria)
+// ============================================================
 async function renderLog() {
   const div = document.getElementById('logList');
   div.innerHTML = '<p style="text-align:center;color:var(--text2);font-size:13px;padding:20px 0">⏳ Carregando...</p>';
@@ -3069,7 +3052,12 @@ async function renderLog() {
   if (!portaria) { div.innerHTML = '<p style="color:var(--red)">Sessão expirada</p>'; return; }
   try {
     let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(100);
-    if (portaria.tipo !== 'mestre' && portaria.tipo !== 'admin') query = query.eq('portaria_id', portaria.id);
+    
+    // Mestre vê tudo, Admin e Operador veem só sua portaria
+    if (portaria.tipo !== 'mestre') {
+      query = query.eq('portaria_id', portaria.id);
+    }
+    
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data.length) { div.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg><p>Nenhuma validação ainda</p></div>`; return; }
@@ -3084,11 +3072,14 @@ async function renderLog() {
       const dirLabel = l.tipo === 'entrada' ? 'Entrada' : l.tipo === 'saida' ? 'Saída' : '';
       const servicoLabel = l.servico ? ` · ${l.servico.charAt(0).toUpperCase() + l.servico.slice(1)}` : '';
       
+      // Mostra o nome da portaria apenas para o Mestre
+      const portariaLabel = (portaria.tipo === 'mestre' && l.portaria_nome) ? ` · ${l.portaria_nome}` : '';
+      
       return `<div class="log-item">
         <div class="log-dot" style="background:${l.ok ? 'var(--green)' : 'var(--red)'}"></div>
         <div class="log-info">
           <div class="log-name">${l.motorista_nome} ${dirLabel ? `<span style="color:var(--text2);font-weight:400">· ${dirLabel}</span>` : ''}${servicoLabel}</div>
-          <div class="log-sub">${l.motorista_placa||''} ${l.motorista_empresa ? '· '+l.motorista_empresa : ''} ${(portaria.tipo === 'mestre' || portaria.tipo === 'admin') && l.portaria_nome ? '· '+l.portaria_nome : ''}</div>
+          <div class="log-sub">${l.motorista_placa||''} ${l.motorista_empresa ? '· '+l.motorista_empresa : ''}${portariaLabel}</div>
         </div>
         <div class="log-time">${new Date(l.dt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}<br>${new Date(l.dt).toLocaleDateString('pt-BR')}</div>
       </div>`;
@@ -3387,7 +3378,7 @@ async function verificarCPFDuplicadoEdicao(cpf, idAtual) {
 }
 
 // ============================================================
-// FUNÇÕES DE DASHBOARD (COMPLETAS)
+// FUNÇÕES DE DASHBOARD (CORRIGIDO - Admin vê só sua portaria)
 // ============================================================
 async function carregarDashboard() {
   try {
@@ -3400,7 +3391,9 @@ async function carregarDashboard() {
     console.log('📊 Carregando dashboard...');
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(500);
-    if (portaria.tipo !== 'mestre' && portaria.tipo !== 'admin') {
+    
+    // Mestre vê tudo, Admin e Operador veem só sua portaria
+    if (portaria.tipo !== 'mestre') {
       query = query.eq('portaria_id', portaria.id);
     }
     
