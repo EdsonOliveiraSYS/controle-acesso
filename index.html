@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS COMPLETO (mesmo do anterior) ===== */
+/* ===== CSS COMPLETO (mesmo do anterior, mantido para não repetir) ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -725,12 +725,26 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   gap: 4px;
   flex-wrap: wrap;
 }
-.portaria-card .actions .icon-btn {
+.portaria-card .actions .action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
   font-size: 16px;
   padding: 4px 6px;
+  border-radius: 4px;
+  transition: background var(--transition-fast);
+  color: var(--text3);
+}
+.portaria-card .actions .action-btn:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+.portaria-card .actions .action-btn.danger:hover {
+  background: var(--red-bg);
+  color: var(--red);
 }
 
-/* ===== RESPONSIVO (resumido) ===== */
+/* ===== RESPONSIVO ===== */
 @media (max-width: 374px) {
   .master-stats { grid-template-columns:1fr 1fr; gap:4px; }
   .master-stat .number { font-size:18px; }
@@ -1225,7 +1239,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT COMPLETO
+// JAVASCRIPT COMPLETO - VERSÃO CORRIGIDA COM EVENT DELEGATION
 // ============================================================
 
 // ============================================================
@@ -1546,7 +1560,7 @@ async function criarUsuarioMestre() {
 }
 
 // ============================================================
-// FUNÇÃO PARA CRIAR PLANOS PADRÃO (SE NÃO EXISTIREM)
+// FUNÇÃO PARA CRIAR PLANOS PADRÃO
 // ============================================================
 async function criarPlanosPadrao() {
   try {
@@ -3714,7 +3728,7 @@ function atualizarDashboard() {
 }
 
 // ============================================================
-// PAINEL MASTER - CORRIGIDO (com eventos de clique funcionando)
+// PAINEL MASTER - CORRIGIDO COM EVENT DELEGATION
 // ============================================================
 
 // ============================================================
@@ -4062,7 +4076,7 @@ function renderizarGraficosMaster() {
 }
 
 // ============================================================
-// RENDERIZAR LISTA DE PORTARIAS - CORRIGIDA (com eventos)
+// RENDERIZAR LISTA DE PORTARIAS - COM EVENT DELEGATION
 // ============================================================
 function renderizarListaPortariasMaster() {
   const div = document.getElementById('listaPortariasMaster');
@@ -4095,7 +4109,7 @@ function renderizarListaPortariasMaster() {
     return;
   }
 
-  // Usa data-* attributes para eventos
+  // Usa data attributes para identificar os botões
   div.innerHTML = portariasFiltradas.map(p => {
     const assinatura = todasAssinaturas.find(a => a.portaria_id === p.id);
     const plano = planosDisponiveis.find(pl => pl.chave === assinatura?.plano);
@@ -4122,9 +4136,8 @@ function renderizarListaPortariasMaster() {
       ? `R$ ${assinatura.valor_mensal.toFixed(2)}`
       : '—';
 
-    // Usa onclick diretamente com função global
     return `
-      <div class="portaria-card" data-id="${p.id}">
+      <div class="portaria-card" data-portaria-id="${p.id}">
         <div class="info">
           <div class="nome">🏢 ${p.nome}</div>
           <div class="email">${p.email || 'Sem email'}</div>
@@ -4136,17 +4149,58 @@ function renderizarListaPortariasMaster() {
           <span class="badge ${statusClass}">${statusLabel}</span>
         </div>
         <div class="actions">
-          <button class="icon-btn" onclick="verDetalhesPortaria('${p.id}')" title="Ver detalhes">👁️</button>
-          <button class="icon-btn" onclick="abrirGerenciarAssinatura('${p.id}')" title="Gerenciar assinatura">💳</button>
-          <button class="icon-btn" onclick="abrirEditarPortaria('${p.id}')" title="Editar portaria">✏️</button>
-          <button class="icon-btn" onclick="toggleBloqueioPortaria('${p.id}')" title="${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓 Desbloquear' : '🔒 Bloquear'}">
+          <button class="action-btn" data-action="detalhes" title="Ver detalhes">👁️</button>
+          <button class="action-btn" data-action="assinatura" title="Gerenciar assinatura">💳</button>
+          <button class="action-btn" data-action="editar" title="Editar portaria">✏️</button>
+          <button class="action-btn" data-action="bloquear" title="${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓 Desbloquear' : '🔒 Bloquear'}">
             ${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓' : '🔒'}
           </button>
-          <button class="icon-btn" onclick="excluirPortaria('${p.id}')" title="Excluir portaria" style="color:var(--red);">🗑️</button>
+          <button class="action-btn danger" data-action="excluir" title="Excluir portaria">🗑️</button>
         </div>
       </div>
     `;
   }).join('');
+
+  // Adiciona os event listeners via delegação
+  // Remove listeners antigos se existirem
+  if (div._clickHandler) {
+    div.removeEventListener('click', div._clickHandler);
+  }
+  
+  div._clickHandler = function(e) {
+    const btn = e.target.closest('.action-btn');
+    if (!btn) return;
+    
+    const card = btn.closest('.portaria-card');
+    if (!card) return;
+    
+    const portariaId = card.dataset.portariaId;
+    const action = btn.dataset.action;
+    
+    e.stopPropagation();
+    
+    switch(action) {
+      case 'detalhes':
+        verDetalhesPortaria(portariaId);
+        break;
+      case 'assinatura':
+        abrirGerenciarAssinatura(portariaId);
+        break;
+      case 'editar':
+        abrirEditarPortaria(portariaId);
+        break;
+      case 'bloquear':
+        toggleBloqueioPortaria(portariaId);
+        break;
+      case 'excluir':
+        excluirPortaria(portariaId);
+        break;
+      default:
+        console.log('Ação desconhecida:', action);
+    }
+  };
+  
+  div.addEventListener('click', div._clickHandler);
 }
 
 // ============================================================
