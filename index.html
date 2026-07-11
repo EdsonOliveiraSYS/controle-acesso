@@ -985,6 +985,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .modal-content .btn {
   width: 100%;
 }
+.modal-content .btn-primary {
+  margin-top: 4px;
+}
 </style>
 </head>
 <body>
@@ -1213,7 +1216,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
             <p class="section-title" style="margin:0;">👑 Painel Master</p>
             <p style="font-size:13px;color:var(--text2);">Gerencie todas as portarias e assinaturas</p>
           </div>
-          <button class="btn btn-primary" onclick="openPlanoModal()" style="width:auto;padding:10px 20px;font-size:13px;">+ Novo Plano</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="openAdicionarPortariaModal()" style="width:auto;padding:10px 20px;font-size:13px;">🏢 Nova Portaria</button>
+            <button class="btn btn-primary" onclick="openPlanoModal()" style="width:auto;padding:10px 20px;font-size:13px;">➕ Novo Plano</button>
+          </div>
         </div>
 
         <div class="dashboard-stats" id="masterStats">
@@ -4331,10 +4337,318 @@ function verDetalhesPortaria(portariaId) {
 }
 
 // ============================================================
+// ABRIR MODAL PARA ADICIONAR PORTARIA
+// ============================================================
+function openAdicionarPortariaModal() {
+  const modalHtml = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal-content" style="max-width:480px;">
+        <div class="handle"></div>
+        <h3>🏢 Nova Portaria</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Crie uma nova portaria no sistema</p>
+        
+        <div class="field">
+          <label>NOME DA PORTARIA *</label>
+          <input type="text" id="novaPortariaNome" placeholder="Ex: Portaria Centro" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <div class="field">
+          <label>EMAIL DO ADMINISTRADOR *</label>
+          <input type="email" id="novaPortariaEmail" placeholder="admin@portaria.com" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Este será o email do administrador da portaria</div>
+        </div>
+
+        <div class="field">
+          <label>SENHA DO ADMINISTRADOR</label>
+          <input type="text" id="novaPortariaSenha" placeholder="Deixe em branco para enviar convite" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Se deixar em branco, o administrador receberá um convite por email</div>
+        </div>
+
+        <div class="field">
+          <label>PLANO INICIAL</label>
+          <select id="novaPortariaPlano" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+            ${planosDisponiveis.map(p => `
+              <option value="${p.chave}">${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês</option>
+            `).join('')}
+            <option value="trial">Trial - R$ 0,00/mês (7 dias)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>DATA DE VENCIMENTO</label>
+          <input type="date" id="novaPortariaVencimento" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <button class="btn btn-primary" onclick="criarPortaria()">🏢 Criar Portaria</button>
+        <button class="btn btn-ghost" style="margin-top:8px;" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      </div>
+    </div>
+  `;
+
+  const modalDiv = document.createElement('div');
+  modalDiv.innerHTML = modalHtml;
+  document.body.appendChild(modalDiv.firstElementChild);
+}
+
+// ============================================================
+// CRIAR PORTARIA
+// ============================================================
+async function criarPortaria() {
+  const nome = document.getElementById('novaPortariaNome').value.trim();
+  const email = document.getElementById('novaPortariaEmail').value.trim();
+  const senha = document.getElementById('novaPortariaSenha').value.trim();
+  const plano = document.getElementById('novaPortariaPlano').value;
+  const vencimento = document.getElementById('novaPortariaVencimento').value;
+
+  if (!nome || !email) {
+    showToast('⚠️ Preencha Nome e Email do administrador', 3000);
+    return;
+  }
+
+  if (!email.includes('@')) {
+    showToast('⚠️ Email inválido', 3000);
+    return;
+  }
+
+  const portaria = getPortaria();
+  if (!portaria || portaria.tipo !== 'mestre') {
+    showToast('⚠️ Apenas o mestre pode criar portarias', 3000);
+    return;
+  }
+
+  try {
+    showLoading('Criando portaria...');
+
+    let userId = null;
+    let adminCriado = false;
+
+    // Se a senha foi fornecida, cria o usuário diretamente
+    if (senha && senha.length >= 6) {
+      const { data: authData, error: authError } = await supa.auth.signUp({
+        email: email,
+        password: senha,
+        options: {
+          data: {
+            nome: nome,
+            tipo: 'admin'
+          }
+        }
+      });
+
+      if (authError) {
+        if (authError.message.includes('already registered')) {
+          // Usuário já existe, vamos usar o existente
+          const { data: { users } } = await supa.auth.admin.listUsers();
+          const user = users?.find(u => u.email === email);
+          if (user) userId = user.id;
+        } else {
+          throw authError;
+        }
+      } else if (authData?.user) {
+        userId = authData.user.id;
+        adminCriado = true;
+      }
+    } else {
+      // Sem senha: envia convite
+      showToast('📧 Enviando convite para o administrador...', 3000);
+      
+      // Cria um convite para o admin
+      const codigo = 'ADMIN_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      await supa.from('convites').insert({
+        email: email,
+        nome: nome,
+        role: 'admin',
+        portaria_id: 'PENDING_' + Date.now(),
+        portaria_nome: nome,
+        codigo: codigo,
+        criado_por: portaria.id,
+        status: 'pendente',
+        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
+      const link = `${window.location.origin}${window.location.pathname}?convite=${codigo}`;
+      
+      // Envia email
+      const assunto = encodeURIComponent(`Convite PortariaPro - ${nome}`);
+      const corpo = encodeURIComponent(
+        `Olá,\n\n` +
+        `Você foi convidado para administrar a portaria "${nome}".\n\n` +
+        `🔗 Clique no link para criar sua conta: ${link}\n\n` +
+        `O link expira em 7 dias.\n\n` +
+        `Att,\nPortariaPro`
+      );
+
+      window.open(`mailto:${email}?subject=${assunto}&body=${corpo}`, '_blank');
+      
+      showToast('✅ Convite enviado! O administrador criará sua conta.', 4000);
+      hideLoading();
+      
+      // Remove o modal
+      document.querySelector('.modal-overlay')?.remove();
+      carregarPainelMaster();
+      return;
+    }
+
+    // Se não temos userId, não podemos continuar
+    if (!userId) {
+      throw new Error('Não foi possível criar ou encontrar o usuário administrador');
+    }
+
+    // Cria a portaria
+    const { data: portariaData, error: portariaError } = await supa
+      .from('portarias')
+      .insert({
+        id: userId,
+        nome: nome,
+        email: email,
+        tipo: 'admin',
+        codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        portaria_id: portaria.id // Vincula ao mestre
+      })
+      .select()
+      .single();
+
+    if (portariaError) throw portariaError;
+
+    // Cria a assinatura
+    const planoData = planosDisponiveis.find(p => p.chave === plano);
+    const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    await supa.from('assinaturas').insert({
+      portaria_id: portariaData.id,
+      plano: plano,
+      status: 'ativa',
+      data_vencimento: dataVencimento,
+      valor_mensal: planoData?.valor_mensal || 0
+    });
+
+    showToast('✅ Portaria criada com sucesso!', 3000);
+    document.querySelector('.modal-overlay')?.remove();
+    carregarPainelMaster();
+
+  } catch (e) {
+    console.error('❌ Erro ao criar portaria:', e);
+    showToast('Erro: ' + e.message, 4000);
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
 // ABRIR MODAL DE PLANO
 // ============================================================
 function openPlanoModal() {
-  showToast('⚙️ Gerenciamento de planos em desenvolvimento', 3000);
+  const modalHtml = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal-content" style="max-width:480px;">
+        <div class="handle"></div>
+        <h3>➕ Novo Plano</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Crie um novo plano de assinatura</p>
+        
+        <div class="field">
+          <label>NOME DO PLANO</label>
+          <input type="text" id="planoNome" placeholder="Ex: Básico" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <div class="field">
+          <label>CHAVE (identificador único)</label>
+          <input type="text" id="planoChave" placeholder="Ex: basico" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Use letras minúsculas, sem espaços</div>
+        </div>
+
+        <div class="field">
+          <label>DESCRIÇÃO</label>
+          <input type="text" id="planoDescricao" placeholder="Ex: Para pequenas portarias" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <div class="field">
+          <label>VALOR MENSAL (R$)</label>
+          <input type="number" id="planoValor" placeholder="49.90" step="0.01" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field">
+            <label>MÁX. PORTARIAS</label>
+            <input type="number" id="planoMaxPortarias" value="1" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+          </div>
+          <div class="field">
+            <label>MÁX. USUÁRIOS</label>
+            <input type="number" id="planoMaxUsuarios" value="3" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-bottom:12px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);">
+            <input type="checkbox" id="planoSuporte"> Suporte Prioritário
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);">
+            <input type="checkbox" id="planoRelatorios"> Relatórios Avançados
+          </label>
+        </div>
+
+        <button class="btn btn-primary" onclick="salvarPlano()">💾 Salvar Plano</button>
+        <button class="btn btn-ghost" style="margin-top:8px;" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      </div>
+    </div>
+  `;
+
+  const modalDiv = document.createElement('div');
+  modalDiv.innerHTML = modalHtml;
+  document.body.appendChild(modalDiv.firstElementChild);
+}
+
+// ============================================================
+// SALVAR PLANO
+// ============================================================
+async function salvarPlano() {
+  const nome = document.getElementById('planoNome').value.trim();
+  const chave = document.getElementById('planoChave').value.trim().toLowerCase();
+  const descricao = document.getElementById('planoDescricao').value.trim();
+  const valor = parseFloat(document.getElementById('planoValor').value) || 0;
+  const maxPortarias = parseInt(document.getElementById('planoMaxPortarias').value) || 1;
+  const maxUsuarios = parseInt(document.getElementById('planoMaxUsuarios').value) || 3;
+  const suporte = document.getElementById('planoSuporte').checked;
+  const relatorios = document.getElementById('planoRelatorios').checked;
+
+  if (!nome || !chave) {
+    showToast('⚠️ Preencha Nome e Chave do plano', 3000);
+    return;
+  }
+
+  if (!/^[a-z0-9_]+$/.test(chave)) {
+    showToast('⚠️ Chave deve conter apenas letras minúsculas, números e _', 3000);
+    return;
+  }
+
+  try {
+    const { error } = await supa
+      .from('planos')
+      .insert({
+        nome: nome,
+        chave: chave,
+        descricao: descricao,
+        valor_mensal: valor,
+        max_portarias: maxPortarias,
+        max_usuarios: maxUsuarios,
+        possui_suporte: suporte,
+        possui_relatorios: relatorios,
+        ativo: true
+      });
+
+    if (error) {
+      if (error.message.includes('duplicate')) {
+        throw new Error('Já existe um plano com esta chave');
+      }
+      throw error;
+    }
+
+    showToast('✅ Plano criado com sucesso!', 3000);
+    document.querySelector('.modal-overlay')?.remove();
+    carregarPainelMaster();
+
+  } catch (e) {
+    showToast('Erro: ' + e.message, 3000);
+  }
 }
 
 // ============================================================
