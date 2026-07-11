@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS COMPLETO (mesmo do anterior, mantido para não repetir) ===== */
+/* ===== CSS COMPLETO (mantido do código anterior) ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -1239,7 +1239,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT COMPLETO - VERSÃO CORRIGIDA COM EVENT DELEGATION
+// JAVASCRIPT COMPLETO - CORRIGIDO
 // ============================================================
 
 // ============================================================
@@ -4076,12 +4076,21 @@ function renderizarGraficosMaster() {
 }
 
 // ============================================================
-// RENDERIZAR LISTA DE PORTARIAS - COM EVENT DELEGATION
+// RENDERIZAR LISTA DE PORTARIAS - CORRIGIDO (FUNÇÃO PRINCIPAL)
 // ============================================================
 function renderizarListaPortariasMaster() {
+  console.log('🔍 renderizarListaPortariasMaster chamada');
   const div = document.getElementById('listaPortariasMaster');
+  if (!div) {
+    console.error('❌ Elemento listaPortariasMaster não encontrado');
+    return;
+  }
+  
   const busca = document.getElementById('buscaPortaria')?.value?.toLowerCase() || '';
   const filtroStatus = document.getElementById('filtroStatusAssinatura')?.value || '';
+
+  console.log('📋 Portarias disponíveis:', todasPortarias.length);
+  console.log('📋 Assinaturas disponíveis:', todasAssinaturas.length);
 
   let portariasFiltradas = todasPortarias.filter(p => p.tipo !== 'mestre');
 
@@ -4099,6 +4108,8 @@ function renderizarListaPortariasMaster() {
     });
   }
 
+  console.log('📋 Portarias filtradas:', portariasFiltradas.length);
+
   if (!portariasFiltradas.length) {
     div.innerHTML = `
       <div class="empty">
@@ -4109,7 +4120,7 @@ function renderizarListaPortariasMaster() {
     return;
   }
 
-  // Usa data attributes para identificar os botões
+  // Gera o HTML com data attributes
   div.innerHTML = portariasFiltradas.map(p => {
     const assinatura = todasAssinaturas.find(a => a.portaria_id === p.id);
     const plano = planosDisponiveis.find(pl => pl.chave === assinatura?.plano);
@@ -4161,52 +4172,77 @@ function renderizarListaPortariasMaster() {
     `;
   }).join('');
 
-  // Adiciona os event listeners via delegação
-  // Remove listeners antigos se existirem
+  // ADICIONA O EVENT LISTENER USANDO DELEGAÇÃO
+  // Remove listener antigo se existir
   if (div._clickHandler) {
     div.removeEventListener('click', div._clickHandler);
+    console.log('🔄 Listener antigo removido');
   }
   
   div._clickHandler = function(e) {
+    console.log('🖱️ Clique detectado no container');
     const btn = e.target.closest('.action-btn');
-    if (!btn) return;
+    if (!btn) {
+      console.log('ℹ️ Clique não foi em um botão de ação');
+      return;
+    }
     
     const card = btn.closest('.portaria-card');
-    if (!card) return;
+    if (!card) {
+      console.log('⚠️ Card não encontrado');
+      return;
+    }
     
     const portariaId = card.dataset.portariaId;
     const action = btn.dataset.action;
     
+    console.log(`🎯 Ação: ${action}, Portaria: ${portariaId}`);
+    
+    if (!portariaId) {
+      console.error('❌ ID da portaria não encontrado');
+      showToast('Erro: ID da portaria não encontrado', 3000);
+      return;
+    }
+    
     e.stopPropagation();
+    e.preventDefault();
     
     switch(action) {
       case 'detalhes':
+        console.log('👁️ Ver detalhes da portaria:', portariaId);
         verDetalhesPortaria(portariaId);
         break;
       case 'assinatura':
+        console.log('💳 Gerenciar assinatura:', portariaId);
         abrirGerenciarAssinatura(portariaId);
         break;
       case 'editar':
+        console.log('✏️ Editar portaria:', portariaId);
         abrirEditarPortaria(portariaId);
         break;
       case 'bloquear':
+        console.log('🔒 Bloquear/Desbloquear:', portariaId);
         toggleBloqueioPortaria(portariaId);
         break;
       case 'excluir':
+        console.log('🗑️ Excluir portaria:', portariaId);
         excluirPortaria(portariaId);
         break;
       default:
-        console.log('Ação desconhecida:', action);
+        console.log('❓ Ação desconhecida:', action);
+        showToast('Ação desconhecida: ' + action, 2000);
     }
   };
   
   div.addEventListener('click', div._clickHandler);
+  console.log('✅ Event listener adicionado ao container');
 }
 
 // ============================================================
 // GERENCIAR ASSINATURA
 // ============================================================
 async function abrirGerenciarAssinatura(portariaId) {
+  console.log('🔍 abrirGerenciarAssinatura chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
   const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
   
@@ -4395,6 +4431,7 @@ async function renovarAssinatura(portariaId) {
 // BLOQUEAR/DESBLOQUEAR PORTARIA
 // ============================================================
 async function toggleBloqueioPortaria(portariaId) {
+  console.log('🔒 toggleBloqueioPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) {
     showToast('Portaria não encontrada', 3000);
@@ -4455,6 +4492,7 @@ async function toggleBloqueioPortaria(portariaId) {
 // EXCLUIR PORTARIA
 // ============================================================
 async function excluirPortaria(portariaId) {
+  console.log('🗑️ excluirPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) {
     showToast('Portaria não encontrada', 3000);
@@ -4506,6 +4544,7 @@ async function excluirPortaria(portariaId) {
 // EDITAR PORTARIA
 // ============================================================
 function abrirEditarPortaria(portariaId) {
+  console.log('✏️ abrirEditarPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) {
     showToast('Portaria não encontrada', 3000);
@@ -4655,6 +4694,7 @@ async function salvarEdicaoPortaria(portariaId) {
 // VER DETALHES DA PORTARIA
 // ============================================================
 function verDetalhesPortaria(portariaId) {
+  console.log('👁️ verDetalhesPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
   const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
   const plano = planosDisponiveis.find(p => p.chave === assinatura?.plano);
