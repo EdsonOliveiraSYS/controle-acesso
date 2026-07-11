@@ -3163,13 +3163,36 @@ async function abrirListaUsuarios() {
 
 async function removerUsuario(userId) {
   if (!confirm('Tem certeza que deseja remover este usuário?')) return;
+  
   try {
-    const { error } = await supa.from('portarias').delete().eq('id', userId);
-    if (error) throw error;
-    showToast('Usuário removido ✓');
-    abrirListaUsuarios();
+    showLoading('Removendo usuário...');
+    
+    const { error } = await supa
+      .from('portarias')
+      .delete()
+      .eq('id', userId);
+
+    if (error) throw new Error(error.message);
+
+    showToast('Usuário removido ✓', 3000);
+    
+    // Atualiza a lista local
+    allUsers = allUsers.filter(u => u.id !== userId);
+    
+    // Re-renderiza
+    const portaria = getPortaria();
+    if (portaria?.tipo === 'mestre') {
+      carregarPainelMaster();
+    } else {
+      renderizarUsuarios();
+    }
+    
+    hideLoading();
+    
   } catch (e) {
-    showToast('Erro: ' + e.message);
+    console.error('❌ Erro ao remover usuário:', e);
+    showToast('Erro: ' + e.message, 4000);
+    hideLoading();
   }
 }
 
@@ -4221,21 +4244,27 @@ async function renovarAssinatura(portariaId) {
 }
 
 // ============================================================
-// BLOQUEAR/DESBLOQUEAR PORTARIA
+// BLOQUEAR/DESBLOQUEAR PORTARIA (CORRIGIDO)
 // ============================================================
 async function toggleBloqueioPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
+  if (!portaria) {
+    showToast('Portaria não encontrada', 3000);
+    return;
+  }
+  
   const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
   const isBloqueado = assinatura?.status === 'vencida' || assinatura?.status === 'cancelada';
 
-  const acao = isBloqueado ? 'desbloquear' : 'bloquear';
   const confirmMsg = isBloqueado 
     ? `Deseja DESBLOQUEAR a portaria "${portaria.nome}"?` 
-    : `Deseja BLOQUEAR a portaria "${portaria.nome}"?`;
+    : `Deseja BLOQUEAR a portaria "${portaria.nome}"? Isso impedirá o acesso.`;
 
   if (!confirm(confirmMsg)) return;
 
   try {
+    showLoading(isBloqueado ? 'Desbloqueando...' : 'Bloqueando...');
+    
     const novoStatus = isBloqueado ? 'ativa' : 'vencida';
     
     const { error } = await supa
@@ -4246,37 +4275,89 @@ async function toggleBloqueioPortaria(portariaId) {
       })
       .eq('portaria_id', portariaId);
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('relation "assinaturas" does not exist')) {
+        showToast('⚠️ Tabela de assinaturas não configurada. Execute o SQL no Supabase.', 5000);
+        hideLoading();
+        return;
+      }
+      throw error;
+    }
+
+    // Atualiza o array local
+    const assinaturaAtualizada = todasAssinaturas.find(a => a.portaria_id === portariaId);
+    if (assinaturaAtualizada) {
+      assinaturaAtualizada.status = novoStatus;
+      assinaturaAtualizada.updated_at = new Date().toISOString();
+    }
 
     showToast(isBloqueado ? '✅ Portaria desbloqueada' : '🔒 Portaria bloqueada', 3000);
-    carregarPainelMaster();
+    atualizarEstatisticasMaster();
+    renderizarListaPortariasMaster();
+    hideLoading();
 
   } catch (e) {
-    showToast('Erro: ' + e.message, 3000);
+    console.error('❌ Erro ao bloquear/desbloquear:', e);
+    showToast('Erro: ' + e.message, 4000);
+    hideLoading();
   }
 }
 
 // ============================================================
-// EXCLUIR PORTARIA
+// EXCLUIR PORTARIA (CORRIGIDO)
 // ============================================================
 async function excluirPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
-  if (!portaria) return;
+  if (!portaria) {
+    showToast('Portaria não encontrada', 3000);
+    return;
+  }
+  
   if (!confirm(`Tem certeza que deseja EXCLUIR a portaria "${portaria.nome}"? Esta ação é irreversível!`)) return;
 
   try {
-    // Remove assinatura
-    await supa.from('assinaturas').delete().eq('portaria_id', portariaId).catch(() => {});
-    
-    // Remove portaria
-    const { error } = await supa.from('portarias').delete().eq('id', portariaId);
-    if (error) throw error;
+    showLoading('Excluindo portaria...');
 
-    showToast('🗑️ Portaria excluída com sucesso', 3000);
-    carregarPainelMaster();
+    // Remove assinatura (se existir) - usando try/catch separado
+    try {
+      const { error: assinaturaError } = await supa
+        .from('assinaturas')
+        .delete()
+        .eq('portaria_id', portariaId);
+      
+      if (assinaturaError) {
+        console.log('⚠️ Erro ao excluir assinatura:', assinaturaError.message);
+        // Continua mesmo se não tiver assinatura
+      }
+    } catch (e) {
+      console.log('⚠️ Tabela assinaturas não existe ou erro ao excluir:', e.message);
+      // Continua mesmo se não tiver assinatura
+    }
+
+    // Remove a portaria
+    const { error: portariaError } = await supa
+      .from('portarias')
+      .delete()
+      .eq('id', portariaId);
+
+    if (portariaError) throw new Error(portariaError.message);
+
+    showToast('🗑️ Portaria excluída com sucesso!', 3000);
+    
+    // Remove do array local
+    todasPortarias = todasPortarias.filter(p => p.id !== portariaId);
+    todasAssinaturas = todasAssinaturas.filter(a => a.portaria_id !== portariaId);
+    
+    // Atualiza a lista e estatísticas
+    atualizarEstatisticasMaster();
+    renderizarListaPortariasMaster();
+    
+    hideLoading();
 
   } catch (e) {
-    showToast('Erro: ' + e.message, 3000);
+    console.error('❌ Erro ao excluir portaria:', e);
+    showToast('Erro ao excluir: ' + e.message, 4000);
+    hideLoading();
   }
 }
 
