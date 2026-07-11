@@ -382,9 +382,14 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .share-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--share-grid-gap); margin-bottom:8px; }
 .share-grid .btn-ghost { margin:0; font-size:var(--share-btn-font-size); padding:var(--share-btn-padding); }
 
-.driver-item { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border); cursor:pointer; transition:background var(--transition-fast), border-color 0.3s ease; border-radius:4px; }
+.driver-item { display:flex; align-items:center; gap:12px; padding:12px 8px; border-bottom:1px solid var(--border); cursor:pointer; transition:background var(--transition-fast), border-color 0.3s ease; border-radius:4px; flex-wrap:wrap; }
 .driver-item:hover { background:rgba(64, 212, 224, 0.03); }
 .driver-item:last-child { border-bottom:none; }
+.driver-item .driver-info { flex:1; min-width:120px; }
+.driver-item .driver-actions { display:flex; gap:4px; flex-wrap:wrap; align-items:center; margin-top:4px; }
+@media (max-width: 420px) {
+  .driver-item .driver-actions { width:100%; justify-content:flex-start; margin-top:6px; }
+}
 .avatar { width:var(--avatar-size); height:var(--avatar-size); border-radius:12px; background:linear-gradient(135deg, rgba(11, 59, 74, 0.3), rgba(64, 212, 224, 0.1)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--cyan); flex-shrink:0; letter-spacing:0.5px; overflow:hidden; border:1px solid var(--border); transition: background-color 0.3s ease, border-color 0.3s ease; }
 .driver-name { font-size:var(--driver-name-size); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .driver-sub { font-size:var(--driver-sub-size); color:var(--text2); margin-top:1px; }
@@ -3989,7 +3994,7 @@ function atualizarEstatisticasMaster() {
 }
 
 // ============================================================
-// RENDERIZAR LISTA DE PORTARIAS
+// RENDERIZAR LISTA DE PORTARIAS (CORRIGIDO - Layout melhorado)
 // ============================================================
 function renderizarListaPortariasMaster() {
   const div = document.getElementById('listaPortariasMaster');
@@ -4047,12 +4052,12 @@ function renderizarListaPortariasMaster() {
       : '—';
 
     return `
-      <div class="driver-item" style="padding:14px 8px;">
-        <div>
+      <div class="driver-item" style="padding:14px 8px;flex-wrap:wrap;gap:8px;">
+        <div style="flex:1;min-width:150px;">
           <div class="driver-name">🏢 ${p.nome}</div>
           <div class="driver-sub">${p.email}</div>
         </div>
-        <div style="flex:1;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <span style="font-size:12px;color:var(--text2);">
             ${plano?.nome || 'Sem plano'}
           </span>
@@ -4061,9 +4066,10 @@ function renderizarListaPortariasMaster() {
           </span>
           <span class="badge ${statusClass}">${statusLabel}</span>
         </div>
-        <div style="display:flex;gap:4px;">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;width:100%;justify-content:flex-start;">
           <button class="icon-btn" onclick="verDetalhesPortaria('${p.id}')" title="Ver detalhes">👁️</button>
           <button class="icon-btn" onclick="abrirGerenciarAssinatura('${p.id}')" title="Gerenciar assinatura">💳</button>
+          <button class="icon-btn" onclick="abrirEditarPortaria('${p.id}')" title="Editar portaria">✏️</button>
           <button class="icon-btn" onclick="toggleBloqueioPortaria('${p.id}')" title="${assinatura?.status === 'vencida' ? '🔓 Desbloquear' : '🔒 Bloquear'}">
             ${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓' : '🔒'}
           </button>
@@ -4304,7 +4310,7 @@ async function toggleBloqueioPortaria(portariaId) {
 }
 
 // ============================================================
-// EXCLUIR PORTARIA (CORRIGIDO)
+// EXCLUIR PORTARIA (CORRIGIDO - Persistência garantida)
 // ============================================================
 async function excluirPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -4348,15 +4354,142 @@ async function excluirPortaria(portariaId) {
     todasPortarias = todasPortarias.filter(p => p.id !== portariaId);
     todasAssinaturas = todasAssinaturas.filter(a => a.portaria_id !== portariaId);
     
-    // Atualiza a lista e estatísticas
-    atualizarEstatisticasMaster();
-    renderizarListaPortariasMaster();
+    // Recarrega do banco para garantir consistência
+    await carregarPainelMaster();
     
     hideLoading();
 
   } catch (e) {
     console.error('❌ Erro ao excluir portaria:', e);
     showToast('Erro ao excluir: ' + e.message, 4000);
+    hideLoading();
+  }
+}
+
+// ============================================================
+// EDITAR PORTARIA (NOVA FUNCIONALIDADE)
+// ============================================================
+function abrirEditarPortaria(portariaId) {
+  const portaria = todasPortarias.find(p => p.id === portariaId);
+  if (!portaria) {
+    showToast('Portaria não encontrada', 3000);
+    return;
+  }
+
+  const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
+  const plano = planosDisponiveis.find(p => p.chave === assinatura?.plano);
+
+  const modalHtml = `
+    <div class="modal-overlay" id="modalEditarPortaria" onclick="if(event.target===this)this.remove()">
+      <div class="modal-content" style="max-width:480px;">
+        <div class="handle"></div>
+        <h3>✏️ Editar Portaria</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Altere as informações da portaria</p>
+        
+        <div class="field">
+          <label>NOME DA PORTARIA *</label>
+          <input type="text" id="editPortariaNome" value="${portaria.nome}" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <div class="field">
+          <label>EMAIL DO ADMINISTRADOR</label>
+          <input type="email" id="editPortariaEmail" value="${portaria.email}" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <div class="field">
+          <label>PLANO</label>
+          <select id="editPortariaPlano" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+            ${planosDisponiveis.map(p => `
+              <option value="${p.chave}" ${assinatura?.plano === p.chave ? 'selected' : ''}>
+                ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês
+              </option>
+            `).join('')}
+            <option value="trial" ${assinatura?.plano === 'trial' ? 'selected' : ''}>Trial - R$ 0,00/mês (7 dias)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>DATA DE VENCIMENTO</label>
+          <input type="date" id="editPortariaVencimento" value="${assinatura?.data_vencimento?.split('T')[0] || ''}" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+        </div>
+
+        <div class="field">
+          <label>STATUS</label>
+          <select id="editPortariaStatus" style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);">
+            <option value="ativa" ${assinatura?.status === 'ativa' ? 'selected' : ''}>✅ Ativa</option>
+            <option value="vencida" ${assinatura?.status === 'vencida' ? 'selected' : ''}>🔴 Vencida</option>
+            <option value="trial" ${assinatura?.status === 'trial' ? 'selected' : ''}>⚠️ Trial</option>
+            <option value="cancelada" ${assinatura?.status === 'cancelada' ? 'selected' : ''}>❌ Cancelada</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="salvarEdicaoPortaria('${portariaId}')">💾 Salvar Alterações</button>
+        <button class="btn btn-ghost" style="margin-top:8px;" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      </div>
+    </div>
+  `;
+
+  const modalDiv = document.createElement('div');
+  modalDiv.innerHTML = modalHtml;
+  document.body.appendChild(modalDiv.firstElementChild);
+}
+
+// ============================================================
+// SALVAR EDIÇÃO PORTARIA
+// ============================================================
+async function salvarEdicaoPortaria(portariaId) {
+  const nome = document.getElementById('editPortariaNome').value.trim();
+  const email = document.getElementById('editPortariaEmail').value.trim();
+  const plano = document.getElementById('editPortariaPlano').value;
+  const vencimento = document.getElementById('editPortariaVencimento').value;
+  const status = document.getElementById('editPortariaStatus').value;
+
+  if (!nome) {
+    showToast('⚠️ O nome da portaria é obrigatório', 3000);
+    return;
+  }
+
+  try {
+    showLoading('Salvando alterações...');
+
+    // Atualiza a portaria
+    const { error: portariaError } = await supa
+      .from('portarias')
+      .update({ nome: nome, email: email })
+      .eq('id', portariaId);
+
+    if (portariaError) throw new Error(portariaError.message);
+
+    // Atualiza a assinatura
+    const planoData = planosDisponiveis.find(p => p.chave === plano);
+    const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { error: assinaturaError } = await supa
+      .from('assinaturas')
+      .upsert({
+        portaria_id: portariaId,
+        plano: plano,
+        status: status,
+        data_vencimento: dataVencimento,
+        valor_mensal: planoData?.valor_mensal || 0,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'portaria_id' });
+
+    if (assinaturaError) {
+      // Se a tabela não existe, apenas continua
+      if (!assinaturaError.message.includes('relation "assinaturas" does not exist')) {
+        console.warn('Erro ao atualizar assinatura:', assinaturaError.message);
+      }
+    }
+
+    showToast('✅ Portaria atualizada com sucesso!', 3000);
+    document.getElementById('modalEditarPortaria')?.remove();
+    carregarPainelMaster();
+
+  } catch (e) {
+    console.error('❌ Erro ao editar portaria:', e);
+    showToast('Erro: ' + e.message, 4000);
+  } finally {
     hideLoading();
   }
 }
