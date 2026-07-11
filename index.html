@@ -4081,7 +4081,7 @@ function renderizarListaPortariasMaster() {
 }
 
 // ============================================================
-// GERENCIAR ASSINATURA
+// GERENCIAR ASSINATURA (CORRIGIDO - SEM ON CONFLICT)
 // ============================================================
 async function abrirGerenciarAssinatura(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -4154,7 +4154,7 @@ async function abrirGerenciarAssinatura(portariaId) {
 }
 
 // ============================================================
-// SALVAR ASSINATURA
+// SALVAR ASSINATURA (CORRIGIDO - SEM ON CONFLICT)
 // ============================================================
 async function salvarAssinatura(portariaId) {
   const plano = document.getElementById('selectPlano').value;
@@ -4168,18 +4168,44 @@ async function salvarAssinatura(portariaId) {
   const planoData = planosDisponiveis.find(p => p.chave === plano);
   
   try {
-    const { error } = await supa
+    // Verifica se já existe uma assinatura
+    const { data: existing, error: checkError } = await supa
       .from('assinaturas')
-      .upsert({
-        portaria_id: portariaId,
-        plano: plano,
-        status: 'ativa',
-        data_vencimento: new Date(vencimento).toISOString(),
-        valor_mensal: planoData?.valor_mensal || 49.90,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'portaria_id' });
+      .select('id')
+      .eq('portaria_id', portariaId)
+      .maybeSingle();
 
-    if (error) throw error;
+    if (checkError && !checkError.message.includes('relation "assinaturas" does not exist')) {
+      throw checkError;
+    }
+
+    let result;
+    if (existing) {
+      // Atualiza a assinatura existente
+      result = await supa
+        .from('assinaturas')
+        .update({
+          plano: plano,
+          status: 'ativa',
+          data_vencimento: new Date(vencimento).toISOString(),
+          valor_mensal: planoData?.valor_mensal || 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('portaria_id', portariaId);
+    } else {
+      // Cria nova assinatura
+      result = await supa
+        .from('assinaturas')
+        .insert({
+          portaria_id: portariaId,
+          plano: plano,
+          status: 'ativa',
+          data_vencimento: new Date(vencimento).toISOString(),
+          valor_mensal: planoData?.valor_mensal || 0
+        });
+    }
+
+    if (result.error) throw result.error;
 
     showToast('✅ Assinatura salva com sucesso!', 3000);
     document.getElementById('modalAssinatura').remove();
@@ -4435,7 +4461,7 @@ function abrirEditarPortaria(portariaId) {
 }
 
 // ============================================================
-// SALVAR EDIÇÃO PORTARIA
+// SALVAR EDIÇÃO PORTARIA (CORRIGIDO - SEM ON CONFLICT)
 // ============================================================
 async function salvarEdicaoPortaria(portariaId) {
   const nome = document.getElementById('editPortariaNome').value.trim();
@@ -4464,21 +4490,49 @@ async function salvarEdicaoPortaria(portariaId) {
     const planoData = planosDisponiveis.find(p => p.chave === plano);
     const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { error: assinaturaError } = await supa
+    // Verifica se já existe assinatura
+    const { data: existing, error: checkError } = await supa
       .from('assinaturas')
-      .upsert({
-        portaria_id: portariaId,
-        plano: plano,
-        status: status,
-        data_vencimento: dataVencimento,
-        valor_mensal: planoData?.valor_mensal || 0,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'portaria_id' });
+      .select('id')
+      .eq('portaria_id', portariaId)
+      .maybeSingle();
 
-    if (assinaturaError) {
-      // Se a tabela não existe, apenas continua
-      if (!assinaturaError.message.includes('relation "assinaturas" does not exist')) {
-        console.warn('Erro ao atualizar assinatura:', assinaturaError.message);
+    if (checkError && !checkError.message.includes('relation "assinaturas" does not exist')) {
+      throw checkError;
+    }
+
+    if (existing) {
+      const { error: assinaturaError } = await supa
+        .from('assinaturas')
+        .update({
+          plano: plano,
+          status: status,
+          data_vencimento: dataVencimento,
+          valor_mensal: planoData?.valor_mensal || 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('portaria_id', portariaId);
+
+      if (assinaturaError) {
+        if (!assinaturaError.message.includes('relation "assinaturas" does not exist')) {
+          console.warn('Erro ao atualizar assinatura:', assinaturaError.message);
+        }
+      }
+    } else {
+      const { error: assinaturaError } = await supa
+        .from('assinaturas')
+        .insert({
+          portaria_id: portariaId,
+          plano: plano,
+          status: status,
+          data_vencimento: dataVencimento,
+          valor_mensal: planoData?.valor_mensal || 0
+        });
+
+      if (assinaturaError) {
+        if (!assinaturaError.message.includes('relation "assinaturas" does not exist')) {
+          console.warn('Erro ao criar assinatura:', assinaturaError.message);
+        }
       }
     }
 
