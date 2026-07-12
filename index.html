@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>PortariaPro - Painel Master</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 /* ===== CSS COMPLETO ===== */
@@ -20,6 +19,7 @@ body { font-family: 'Inter', Arial, sans-serif; background: #060D10; color: #E8F
 .btn-primary { background: linear-gradient(135deg, #0B3B4A, #072A35); color: #fff; }
 .btn-ghost { background: #162F39; color: #8BB4C4; border: 1px solid rgba(26, 91, 110, 0.4); }
 .btn-danger { background: #FF6B5B; color: #fff; }
+.btn-danger:hover { background: #e05545; }
 .btn-success { background: #3DD6B6; color: #fff; }
 .card { background: #0E1F26; border: 1px solid rgba(26, 91, 110, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
 .master-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
@@ -46,7 +46,6 @@ body { font-family: 'Inter', Arial, sans-serif; background: #060D10; color: #E8F
 .portaria-card .actions .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; color: #8BB4C4; transition: all 0.2s; }
 .portaria-card .actions .action-btn:hover { background: #162F39; color: #E8F4F7; }
 .portaria-card .actions .action-btn.danger:hover { background: rgba(255, 107, 91, 0.2); color: #FF6B5B; }
-.portaria-card .actions .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; animation: fadeIn 0.2s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
@@ -58,7 +57,6 @@ body { font-family: 'Inter', Arial, sans-serif; background: #060D10; color: #E8F
 .modal-content .field label { display: block; font-size: 11px; color: #8BB4C4; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .modal-content .field input, .modal-content .field select, .modal-content .field textarea { width: 100%; padding: 10px 12px; background: #162F39; border: 1px solid rgba(26, 91, 110, 0.4); border-radius: 8px; color: #E8F4F7; font-size: 14px; outline: none; }
 .modal-content .field input:focus, .modal-content .field select:focus { border-color: #40D4E0; }
-.modal-content .field .hint { font-size: 10px; color: #8BB4C4; margin-top: 4px; }
 .modal-content .btn { width: 100%; margin-top: 6px; }
 .modal-content .btn:first-child { margin-top: 0; }
 .modal-content .btn + .btn { margin-top: 6px; }
@@ -77,8 +75,6 @@ body { font-family: 'Inter', Arial, sans-serif; background: #060D10; color: #E8F
 .login-screen .login-box .btn { width: 100%; padding: 12px; font-size: 16px; }
 
 .empty { text-align: center; padding: 40px 20px; color: #8BB4C4; }
-.empty svg { font-size: 40px; margin-bottom: 12px; }
-
 .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 999; flex-direction: column; gap: 16px; }
 .loading-overlay.active { display: flex; }
 .spinner { width: 40px; height: 40px; border: 3px solid rgba(26, 91, 110, 0.3); border-top-color: #40D4E0; border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -119,7 +115,10 @@ body { font-family: 'Inter', Arial, sans-serif; background: #060D10; color: #E8F
     <div class="header">
       <h2>🚛 PortariaPro</h2>
       <div class="user" id="portariaNome">👑 Mestre</div>
-      <button class="btn btn-ghost" onclick="logout()" style="padding:6px 16px;font-size:12px;">Sair</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-danger" onclick="limparTudo()" style="padding:6px 16px;font-size:12px;">🧹 Limpar Tudo</button>
+        <button class="btn btn-ghost" onclick="logout()" style="padding:6px 16px;font-size:12px;">Sair</button>
+      </div>
     </div>
 
     <div class="master-header">
@@ -173,7 +172,6 @@ let supa = null;
 let todasPortarias = [];
 let todasAssinaturas = [];
 let planosDisponiveis = [];
-let currentUser = null;
 
 // ============================================================
 // UTILITÁRIOS
@@ -235,7 +233,6 @@ async function fazerLogin() {
     const { data, error } = await supa.auth.signInWithPassword({ email, password });
     if (error) throw error;
     
-    currentUser = data.user;
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: data.user.id,
       nome: 'Master',
@@ -268,10 +265,9 @@ function logout() {
 // ============================================================
 async function carregarPainelMaster() {
   try {
-    showLoading('Carregando painel master...');
+    showLoading('Carregando...');
     console.log('🔄 Carregando painel master...');
     
-    // Carrega portarias
     const { data: portarias, error: pError } = await supa
       .from('portarias')
       .select('*')
@@ -281,56 +277,32 @@ async function carregarPainelMaster() {
     todasPortarias = portarias || [];
     console.log('✅ Portarias:', todasPortarias.length);
 
-    // Carrega assinaturas
     const { data: assinaturas, error: aError } = await supa
       .from('assinaturas')
       .select('*');
     
-    if (aError) {
-      if (aError.message.includes('relation')) {
-        console.warn('⚠️ Tabela assinaturas não existe');
-        todasAssinaturas = [];
-      } else {
-        throw aError;
-      }
-    } else {
-      todasAssinaturas = assinaturas || [];
-      console.log('✅ Assinaturas:', todasAssinaturas.length);
-    }
+    if (aError && !aError.message.includes('relation')) throw aError;
+    todasAssinaturas = assinaturas || [];
+    console.log('✅ Assinaturas:', todasAssinaturas.length);
 
-    // Carrega planos
     const { data: planos, error: planError } = await supa
       .from('planos')
       .select('*')
       .eq('ativo', true);
     
-    if (planError) {
-      if (planError.message.includes('relation')) {
-        console.warn('⚠️ Tabela planos não existe');
-        planosDisponiveis = [
-          { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
-          { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
-          { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
-          { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
-        ];
-      } else {
-        throw planError;
-      }
-    } else {
-      planosDisponiveis = (planos && planos.length > 0) ? planos : [
-        { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
-        { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
-        { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
-        { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
-      ];
-      console.log('✅ Planos:', planosDisponiveis.length);
-    }
+    if (planError && !planError.message.includes('relation')) throw planError;
+    planosDisponiveis = (planos && planos.length > 0) ? planos : [
+      { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
+      { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
+      { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
+      { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
+    ];
+    console.log('✅ Planos:', planosDisponiveis.length);
 
     atualizarEstatisticas();
     renderizarListaPortariasMaster();
     
     hideLoading();
-    showToast('✅ Painel carregado!', 1500);
     
   } catch (e) {
     console.error('❌ Erro:', e);
@@ -383,13 +355,7 @@ function renderizarListaPortariasMaster() {
   }
 
   if (!filtradas.length) {
-    div.innerHTML = `
-      <div class="empty">
-        <div style="font-size:40px;margin-bottom:12px;">🏢</div>
-        <p>${busca ? 'Nenhuma portaria encontrada com este filtro' : 'Nenhuma portaria cadastrada ainda'}</p>
-        <button class="btn btn-primary" onclick="openAdicionarPortariaModal()" style="margin-top:12px;width:auto;padding:8px 24px;">➕ Criar primeira portaria</button>
-      </div>
-    `;
+    div.innerHTML = `<div class="empty"><div style="font-size:40px;margin-bottom:12px;">🏢</div><p>${busca ? 'Nenhuma portaria encontrada' : 'Nenhuma portaria cadastrada'}</p></div>`;
     return;
   }
 
@@ -411,12 +377,6 @@ function renderizarListaPortariasMaster() {
       'cancelada': 'badge-red'
     }[assinatura?.status] || '';
 
-    const vencimento = assinatura?.data_vencimento 
-      ? new Date(assinatura.data_vencimento).toLocaleDateString('pt-BR')
-      : '—';
-
-    const valor = assinatura?.valor_mensal ? `R$ ${assinatura.valor_mensal.toFixed(2)}` : '—';
-
     return `
       <div class="portaria-card" data-portaria-id="${p.id}">
         <div class="info">
@@ -425,74 +385,32 @@ function renderizarListaPortariasMaster() {
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <span style="font-size:11px;color:#8BB4C4;">${plano?.nome || 'Sem plano'}</span>
-          <span style="font-size:11px;color:#8BB4C4;">${valor}</span>
-          <span style="font-size:11px;color:#8BB4C4;">📅 ${vencimento}</span>
           <span class="badge ${statusClass}">${statusLabel}</span>
         </div>
         <div class="actions">
           <button class="action-btn" data-action="detalhes" title="Ver detalhes">👁️</button>
-          <button class="action-btn" data-action="assinatura" title="Gerenciar assinatura">💳</button>
-          <button class="action-btn" data-action="editar" title="Editar portaria">✏️</button>
-          <button class="action-btn" data-action="bloquear" title="${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓 Desbloquear' : '🔒 Bloquear'}">
-            ${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓' : '🔒'}
-          </button>
-          <button class="action-btn danger" data-action="excluir" title="Excluir portaria">🗑️</button>
+          <button class="action-btn" data-action="excluir" title="Excluir" style="color:#FF6B5B;">🗑️</button>
         </div>
       </div>
     `;
   }).join('');
 
-  // Event delegation
   div.onclick = function(e) {
     const btn = e.target.closest('.action-btn');
     if (!btn) return;
-    
     const card = btn.closest('.portaria-card');
     if (!card) return;
-    
     const portariaId = card.dataset.portariaId;
     const action = btn.dataset.action;
-    
     e.stopPropagation();
     
-    console.log(`🎯 Ação: ${action}, Portaria: ${portariaId}`);
-    
-    switch(action) {
-      case 'detalhes': verDetalhesPortaria(portariaId); break;
-      case 'assinatura': abrirGerenciarAssinatura(portariaId); break;
-      case 'editar': abrirEditarPortaria(portariaId); break;
-      case 'bloquear': toggleBloqueioPortaria(portariaId); break;
-      case 'excluir': excluirPortaria(portariaId); break;
-      default: showToast('Ação desconhecida');
-    }
+    if (action === 'detalhes') verDetalhesPortaria(portariaId);
+    if (action === 'excluir') excluirPortaria(portariaId);
   };
 }
 
 // ============================================================
-// FUNÇÕES AUXILIARES DE MODAL
-// ============================================================
-function criarModal(html) {
-  const existing = document.querySelector('.modal-overlay');
-  if (existing) existing.remove();
-  
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  const modal = div.firstElementChild;
-  document.body.appendChild(modal);
-  
-  modal.addEventListener('click', function(e) {
-    if (e.target === this) this.remove();
-  });
-  
-  return modal;
-}
-
-function fecharModal() {
-  document.querySelector('.modal-overlay')?.remove();
-}
-
-// ============================================================
-// 1. VER DETALHES
+// VER DETALHES
 // ============================================================
 function verDetalhesPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -509,7 +427,7 @@ function verDetalhesPortaria(portariaId) {
   }[assinatura?.status] || '❓ Desconhecido';
 
   const html = `
-    <div class="modal-overlay">
+    <div class="modal-overlay" onclick="this.remove()">
       <div class="modal-content">
         <div class="handle"></div>
         <h3>🏢 ${portaria.nome}</h3>
@@ -520,310 +438,32 @@ function verDetalhesPortaria(portariaId) {
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Vencimento</div><div style="font-weight:600;">${assinatura?.data_vencimento ? new Date(assinatura.data_vencimento).toLocaleDateString('pt-BR') : '—'}</div></div>
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Valor</div><div style="font-weight:600;">R$ ${(assinatura?.valor_mensal || 0).toFixed(2)}</div></div>
         </div>
-        <div style="background:#162F39;padding:12px;border-radius:8px;margin-bottom:16px;">
-          <div style="font-size:10px;color:#8BB4C4;">Tipo</div>
-          <div style="font-weight:600;">${portaria.tipo === 'mestre' ? '👑 Mestre' : portaria.tipo === 'admin' ? '👑 Administrador' : '👤 Operador'}</div>
-        </div>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Fechar</button>
       </div>
     </div>
   `;
 
-  criarModal(html);
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstElementChild);
 }
 
 // ============================================================
-// 2. GERENCIAR ASSINATURA
-// ============================================================
-function abrirGerenciarAssinatura(portariaId) {
-  const portaria = todasPortarias.find(p => p.id === portariaId);
-  if (!portaria) { showToast('Portaria não encontrada'); return; }
-  
-  const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
-
-  const html = `
-    <div class="modal-overlay">
-      <div class="modal-content">
-        <div class="handle"></div>
-        <h3>💳 Gerenciar Assinatura</h3>
-        <p class="sub">${portaria.nome}</p>
-        
-        <div class="field">
-          <label>STATUS ATUAL</label>
-          <div style="padding:10px 12px;background:#162F39;border-radius:8px;font-weight:600;">
-            ${assinatura ? (assinatura.status === 'ativa' ? '✅ Ativa' : assinatura.status === 'vencida' ? '🔴 Vencida' : assinatura.status === 'trial' ? '⚠️ Trial' : '❌ Cancelada') : 'Sem assinatura'}
-          </div>
-        </div>
-
-        <div class="field">
-          <label>PLANO</label>
-          <select id="selectPlano">
-            ${planosDisponiveis.map(p => `
-              <option value="${p.chave}" ${assinatura?.plano === p.chave ? 'selected' : ''}>
-                ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês
-              </option>
-            `).join('')}
-          </select>
-        </div>
-
-        <div class="field">
-          <label>DATA DE VENCIMENTO</label>
-          <input type="date" id="inputVencimento" value="${assinatura?.data_vencimento?.split('T')[0] || ''}">
-        </div>
-
-        <button class="btn btn-primary" onclick="salvarAssinatura('${portariaId}')">💾 Salvar</button>
-        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
-      </div>
-    </div>
-  `;
-
-  criarModal(html);
-}
-
-async function salvarAssinatura(portariaId) {
-  const plano = document.getElementById('selectPlano').value;
-  const vencimento = document.getElementById('inputVencimento').value;
-  
-  if (!vencimento) {
-    showToast('⚠️ Selecione uma data de vencimento');
-    return;
-  }
-
-  const planoData = planosDisponiveis.find(p => p.chave === plano);
-  
-  try {
-    showLoading('Salvando assinatura...');
-    
-    const { data: existing } = await supa
-      .from('assinaturas')
-      .select('id')
-      .eq('portaria_id', portariaId)
-      .maybeSingle();
-
-    const dataVencimento = new Date(vencimento).toISOString();
-    
-    let result;
-    if (existing) {
-      result = await supa
-        .from('assinaturas')
-        .update({
-          plano: plano,
-          status: 'ativa',
-          data_vencimento: dataVencimento,
-          valor_mensal: planoData?.valor_mensal || 0,
-          updated_at: new Date().toISOString()
-        })
-        .eq('portaria_id', portariaId);
-    } else {
-      result = await supa
-        .from('assinaturas')
-        .insert({
-          portaria_id: portariaId,
-          plano: plano,
-          status: 'ativa',
-          data_vencimento: dataVencimento,
-          valor_mensal: planoData?.valor_mensal || 0
-        });
-    }
-
-    if (result.error) throw result.error;
-
-    showToast('✅ Assinatura salva com sucesso!');
-    fecharModal();
-    await carregarPainelMaster();
-
-  } catch (e) {
-    hideLoading();
-    showToast('Erro: ' + e.message);
-  }
-}
-
-// ============================================================
-// 3. BLOQUEAR/DESBLOQUEAR
-// ============================================================
-async function toggleBloqueioPortaria(portariaId) {
-  const portaria = todasPortarias.find(p => p.id === portariaId);
-  if (!portaria) { showToast('Portaria não encontrada'); return; }
-  
-  const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
-  const isBloqueado = assinatura?.status === 'vencida' || assinatura?.status === 'cancelada';
-
-  if (!confirm(`Deseja ${isBloqueado ? 'DESBLOQUEAR' : 'BLOQUEAR'} a portaria "${portaria.nome}"?`)) return;
-
-  try {
-    showLoading(isBloqueado ? 'Desbloqueando...' : 'Bloqueando...');
-    
-    const novoStatus = isBloqueado ? 'ativa' : 'vencida';
-    
-    const { error } = await supa
-      .from('assinaturas')
-      .update({ status: novoStatus, updated_at: new Date().toISOString() })
-      .eq('portaria_id', portariaId);
-
-    if (error) throw error;
-
-    showToast(isBloqueado ? '✅ Portaria desbloqueada' : '🔒 Portaria bloqueada');
-    hideLoading();
-    await carregarPainelMaster();
-
-  } catch (e) {
-    hideLoading();
-    showToast('Erro: ' + e.message);
-  }
-}
-
-// ============================================================
-// 4. EXCLUIR PORTARIA
+// EXCLUIR PORTARIA INDIVIDUAL
 // ============================================================
 async function excluirPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) { showToast('Portaria não encontrada'); return; }
   
-  if (!confirm(`Tem certeza que deseja EXCLUIR a portaria "${portaria.nome}"? Esta ação é irreversível!`)) return;
+  if (!confirm(`Excluir a portaria "${portaria.nome}"?`)) return;
 
   try {
-    showLoading('Excluindo portaria...');
-    
-    // Remove assinatura
+    showLoading('Excluindo...');
     await supa.from('assinaturas').delete().eq('portaria_id', portariaId);
-    
-    // Remove portaria
-    const { error } = await supa.from('portarias').delete().eq('id', portariaId);
-    if (error) throw error;
-
-    showToast('🗑️ Portaria excluída com sucesso!');
+    await supa.from('portarias').delete().eq('id', portariaId);
+    showToast('🗑️ Portaria excluída!');
     hideLoading();
     await carregarPainelMaster();
-
-  } catch (e) {
-    hideLoading();
-    showToast('Erro ao excluir: ' + e.message);
-  }
-}
-
-// ============================================================
-// 5. EDITAR PORTARIA
-// ============================================================
-function abrirEditarPortaria(portariaId) {
-  const portaria = todasPortarias.find(p => p.id === portariaId);
-  if (!portaria) { showToast('Portaria não encontrada'); return; }
-
-  const assinatura = todasAssinaturas.find(a => a.portaria_id === portariaId);
-
-  const html = `
-    <div class="modal-overlay">
-      <div class="modal-content">
-        <div class="handle"></div>
-        <h3>✏️ Editar Portaria</h3>
-        <p class="sub">Altere as informações da portaria</p>
-        
-        <div class="field">
-          <label>NOME *</label>
-          <input type="text" id="editPortariaNome" value="${portaria.nome}">
-        </div>
-
-        <div class="field">
-          <label>EMAIL</label>
-          <input type="email" id="editPortariaEmail" value="${portaria.email || ''}">
-        </div>
-
-        <div class="field">
-          <label>PLANO</label>
-          <select id="editPortariaPlano">
-            ${planosDisponiveis.map(p => `
-              <option value="${p.chave}" ${assinatura?.plano === p.chave ? 'selected' : ''}>
-                ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês
-              </option>
-            `).join('')}
-            <option value="trial" ${assinatura?.plano === 'trial' ? 'selected' : ''}>Trial - R$ 0,00/mês</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>VENCIMENTO</label>
-          <input type="date" id="editPortariaVencimento" value="${assinatura?.data_vencimento?.split('T')[0] || ''}">
-        </div>
-
-        <div class="field">
-          <label>STATUS</label>
-          <select id="editPortariaStatus">
-            <option value="ativa" ${assinatura?.status === 'ativa' ? 'selected' : ''}>✅ Ativa</option>
-            <option value="vencida" ${assinatura?.status === 'vencida' ? 'selected' : ''}>🔴 Vencida</option>
-            <option value="trial" ${assinatura?.status === 'trial' ? 'selected' : ''}>⚠️ Trial</option>
-            <option value="cancelada" ${assinatura?.status === 'cancelada' ? 'selected' : ''}>❌ Cancelada</option>
-          </select>
-        </div>
-
-        <button class="btn btn-primary" onclick="salvarEdicaoPortaria('${portariaId}')">💾 Salvar</button>
-        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
-      </div>
-    </div>
-  `;
-
-  criarModal(html);
-}
-
-async function salvarEdicaoPortaria(portariaId) {
-  const nome = document.getElementById('editPortariaNome').value.trim();
-  const email = document.getElementById('editPortariaEmail').value.trim();
-  const plano = document.getElementById('editPortariaPlano').value;
-  const vencimento = document.getElementById('editPortariaVencimento').value;
-  const status = document.getElementById('editPortariaStatus').value;
-
-  if (!nome) {
-    showToast('⚠️ O nome da portaria é obrigatório');
-    return;
-  }
-
-  try {
-    showLoading('Salvando alterações...');
-
-    // Atualiza portaria
-    const { error: portariaError } = await supa
-      .from('portarias')
-      .update({ nome: nome, email: email })
-      .eq('id', portariaId);
-
-    if (portariaError) throw portariaError;
-
-    // Atualiza assinatura
-    const planoData = planosDisponiveis.find(p => p.chave === plano);
-    const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30*24*60*60*1000).toISOString();
-
-    const { data: existing } = await supa
-      .from('assinaturas')
-      .select('id')
-      .eq('portaria_id', portariaId)
-      .maybeSingle();
-
-    if (existing) {
-      await supa
-        .from('assinaturas')
-        .update({
-          plano: plano,
-          status: status,
-          data_vencimento: dataVencimento,
-          valor_mensal: planoData?.valor_mensal || 0,
-          updated_at: new Date().toISOString()
-        })
-        .eq('portaria_id', portariaId);
-    } else {
-      await supa
-        .from('assinaturas')
-        .insert({
-          portaria_id: portariaId,
-          plano: plano,
-          status: status,
-          data_vencimento: dataVencimento,
-          valor_mensal: planoData?.valor_mensal || 0
-        });
-    }
-
-    showToast('✅ Portaria atualizada com sucesso!');
-    fecharModal();
-    hideLoading();
-    await carregarPainelMaster();
-
   } catch (e) {
     hideLoading();
     showToast('Erro: ' + e.message);
@@ -831,11 +471,62 @@ async function salvarEdicaoPortaria(portariaId) {
 }
 
 // ============================================================
-// 6. NOVA PORTARIA (SEM ENVIO DE EMAIL)
+// 🔥 LIMPAR TUDO - COMEÇAR DO ZERO
+// ============================================================
+async function limparTudo() {
+  const total = todasPortarias.filter(p => p.tipo !== 'mestre').length;
+  
+  if (total === 0) {
+    showToast('✅ Já está limpo! Nenhuma portaria para excluir.');
+    return;
+  }
+
+  if (!confirm(`⚠️ ATENÇÃO! Isso vai excluir TODAS as ${total} portarias (exceto o mestre).\n\nTem certeza?`)) return;
+  if (!confirm(`ÚLTIMA CHANCE! Confirmar exclusão de TODOS os dados?`)) return;
+
+  try {
+    showLoading('🔥 Limpando tudo...');
+    
+    // Pega os IDs das portarias que não são mestre
+    const ids = todasPortarias.filter(p => p.tipo !== 'mestre').map(p => p.id);
+    
+    if (ids.length === 0) {
+      showToast('✅ Nada para limpar');
+      hideLoading();
+      return;
+    }
+
+    console.log('🗑️ Excluindo portarias:', ids);
+
+    // 1. Exclui assinaturas
+    for (const id of ids) {
+      await supa.from('assinaturas').delete().eq('portaria_id', id);
+    }
+    console.log('✅ Assinaturas excluídas');
+
+    // 2. Exclui portarias
+    for (const id of ids) {
+      await supa.from('portarias').delete().eq('id', id);
+    }
+    console.log('✅ Portarias excluídas');
+
+    showToast(`🔥 ${ids.length} portarias excluídas! Começando do zero.`);
+    hideLoading();
+    await carregarPainelMaster();
+
+  } catch (e) {
+    console.error('❌ Erro ao limpar:', e);
+    hideLoading();
+    showToast('Erro ao limpar: ' + e.message);
+  }
+}
+
+// ============================================================
+// NOVA PORTARIA (SIMPLIFICADA)
 // ============================================================
 function openAdicionarPortariaModal() {
   const html = `
-    <div class="modal-overlay">
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
       <div class="modal-content">
         <div class="handle"></div>
         <h3>🏢 Nova Portaria</h3>
@@ -849,7 +540,6 @@ function openAdicionarPortariaModal() {
         <div class="field">
           <label>EMAIL DO ADMINISTRADOR *</label>
           <input type="email" id="novaPortariaEmail" placeholder="admin@portaria.com">
-          <div class="hint">O administrador receberá um convite por email</div>
         </div>
 
         <div class="field">
@@ -858,28 +548,26 @@ function openAdicionarPortariaModal() {
             ${planosDisponiveis.map(p => `
               <option value="${p.chave}">${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês</option>
             `).join('')}
-            <option value="trial">Trial - R$ 0,00/mês (7 dias)</option>
+            <option value="trial">Trial - R$ 0,00/mês</option>
           </select>
         </div>
 
         <div class="field">
           <label>DATA DE VENCIMENTO</label>
           <input type="date" id="novaPortariaVencimento">
-          <div class="hint">Deixe em branco para 30 dias a partir de hoje</div>
         </div>
 
-        <button class="btn btn-primary" onclick="criarPortaria()">🏢 Criar Portaria</button>
+        <button class="btn btn-primary" onclick="criarPortaria()">🏢 Criar</button>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
       </div>
     </div>
   `;
 
-  criarModal(html);
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstElementChild);
 }
 
-// ============================================================
-// CRIAR PORTARIA (SEM CRIAÇÃO DE USUÁRIO)
-// ============================================================
 async function criarPortaria() {
   const nome = document.getElementById('novaPortariaNome').value.trim();
   const email = document.getElementById('novaPortariaEmail').value.trim();
@@ -887,39 +575,21 @@ async function criarPortaria() {
   const vencimento = document.getElementById('novaPortariaVencimento').value;
 
   if (!nome || !email) {
-    showToast('⚠️ Preencha Nome e Email do administrador');
-    return;
-  }
-
-  if (!email.includes('@')) {
-    showToast('⚠️ Email inválido');
+    showToast('⚠️ Preencha Nome e Email');
     return;
   }
 
   const portaria = getPortaria();
   if (!portaria || portaria.tipo !== 'mestre') {
-    showToast('⚠️ Apenas o mestre pode criar portarias');
+    showToast('⚠️ Apenas o mestre pode criar');
     return;
   }
 
   try {
-    showLoading('Criando portaria...');
+    showLoading('Criando...');
 
-    // 1. Verifica se o email já existe
-    const { data: existing } = await supa
-      .from('portarias')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (existing) {
-      throw new Error('Este email já está cadastrado como portaria');
-    }
-
-    // 2. Cria um ID temporário para a portaria
     const userId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
-    // 3. Cria a portaria
     const { data: portariaData, error: portariaError } = await supa
       .from('portarias')
       .insert({
@@ -935,168 +605,84 @@ async function criarPortaria() {
 
     if (portariaError) throw portariaError;
 
-    // 4. Cria a assinatura
     const planoData = planosDisponiveis.find(p => p.chave === plano);
     const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { error: assError } = await supa
-      .from('assinaturas')
-      .insert({
-        portaria_id: portariaData.id,
-        plano: plano,
-        status: 'ativa',
-        data_vencimento: dataVencimento,
-        valor_mensal: planoData?.valor_mensal || 0
-      });
+    await supa.from('assinaturas').insert({
+      portaria_id: portariaData.id,
+      plano: plano,
+      status: 'ativa',
+      data_vencimento: dataVencimento,
+      valor_mensal: planoData?.valor_mensal || 0
+    });
 
-    if (assError && !assError.message.includes('relation')) {
-      console.warn('Erro ao criar assinatura:', assError.message);
-    }
-
-    // 5. Envia convite por email (opcional - sem esperar resposta)
-    try {
-      const codigoConvite = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-      await supa.from('convites').insert({
-        email: email,
-        nome: nome,
-        role: 'admin',
-        portaria_id: portariaData.id,
-        portaria_nome: nome,
-        codigo: codigoConvite,
-        criado_por: portaria.id,
-        status: 'pendente',
-        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      });
-      
-      const link = `${window.location.origin}${window.location.pathname}?convite=${codigoConvite}`;
-      console.log('🔗 Link de convite:', link);
-      showToast(`✅ Portaria criada! Convite gerado para ${email}`, 4000);
-    } catch (e) {
-      console.warn('Erro ao criar convite:', e.message);
-      showToast(`✅ Portaria criada! (Convite não enviado: ${e.message})`, 4000);
-    }
-
-    fecharModal();
+    showToast('✅ Portaria criada!');
+    document.querySelector('.modal-overlay')?.remove();
     hideLoading();
     await carregarPainelMaster();
 
   } catch (e) {
-    console.error('❌ Erro ao criar portaria:', e);
     hideLoading();
     showToast('Erro: ' + e.message);
   }
 }
 
 // ============================================================
-// 7. NOVO PLANO
+// NOVO PLANO
 // ============================================================
 function openPlanoModal() {
   const html = `
-    <div class="modal-overlay">
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
       <div class="modal-content">
         <div class="handle"></div>
         <h3>➕ Novo Plano</h3>
         <p class="sub">Crie um novo plano de assinatura</p>
         
         <div class="field">
-          <label>NOME DO PLANO *</label>
+          <label>NOME *</label>
           <input type="text" id="planoNome" placeholder="Ex: Básico">
         </div>
 
         <div class="field">
-          <label>CHAVE (identificador único) *</label>
+          <label>CHAVE *</label>
           <input type="text" id="planoChave" placeholder="Ex: basico">
-          <div class="hint">Use letras minúsculas, sem espaços</div>
         </div>
 
         <div class="field">
-          <label>DESCRIÇÃO</label>
-          <input type="text" id="planoDescricao" placeholder="Ex: Para pequenas portarias">
-        </div>
-
-        <div class="field">
-          <label>VALOR MENSAL (R$) *</label>
+          <label>VALOR MENSAL (R$)</label>
           <input type="number" id="planoValor" placeholder="49.90" step="0.01">
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="field" style="margin-bottom:0;">
-            <label>MÁX. PORTARIAS</label>
-            <input type="number" id="planoMaxPortarias" value="1">
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label>MÁX. USUÁRIOS</label>
-            <input type="number" id="planoMaxUsuarios" value="3">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:12px;margin:12px 0;">
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#8BB4C4;">
-            <input type="checkbox" id="planoSuporte"> Suporte Prioritário
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#8BB4C4;">
-            <input type="checkbox" id="planoRelatorios"> Relatórios Avançados
-          </label>
-        </div>
-
-        <button class="btn btn-primary" onclick="salvarPlano()">💾 Salvar Plano</button>
+        <button class="btn btn-primary" onclick="salvarPlano()">💾 Salvar</button>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
       </div>
     </div>
   `;
 
-  criarModal(html);
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstElementChild);
 }
 
 async function salvarPlano() {
   const nome = document.getElementById('planoNome').value.trim();
   const chave = document.getElementById('planoChave').value.trim().toLowerCase();
-  const descricao = document.getElementById('planoDescricao').value.trim();
   const valor = parseFloat(document.getElementById('planoValor').value) || 0;
-  const maxPortarias = parseInt(document.getElementById('planoMaxPortarias').value) || 1;
-  const maxUsuarios = parseInt(document.getElementById('planoMaxUsuarios').value) || 3;
-  const suporte = document.getElementById('planoSuporte').checked;
-  const relatorios = document.getElementById('planoRelatorios').checked;
 
   if (!nome || !chave) {
-    showToast('⚠️ Preencha Nome e Chave do plano');
-    return;
-  }
-
-  if (!/^[a-z0-9_]+$/.test(chave)) {
-    showToast('⚠️ Chave deve conter apenas letras minúsculas, números e _');
+    showToast('⚠️ Preencha Nome e Chave');
     return;
   }
 
   try {
-    showLoading('Salvando plano...');
-    
-    const { error } = await supa
-      .from('planos')
-      .insert({
-        nome: nome,
-        chave: chave,
-        descricao: descricao,
-        valor_mensal: valor,
-        max_portarias: maxPortarias,
-        max_usuarios: maxUsuarios,
-        possui_suporte: suporte,
-        possui_relatorios: relatorios,
-        ativo: true
-      });
-
-    if (error) {
-      if (error.message.includes('duplicate')) {
-        throw new Error('Já existe um plano com esta chave');
-      }
-      throw error;
-    }
-
-    showToast('✅ Plano criado com sucesso!');
-    fecharModal();
+    showLoading('Salvando...');
+    await supa.from('planos').insert({
+      nome, chave, valor_mensal: valor, max_portarias: 1, max_usuarios: 3, ativo: true
+    });
+    showToast('✅ Plano criado!');
+    document.querySelector('.modal-overlay')?.remove();
     hideLoading();
     await carregarPainelMaster();
-
   } catch (e) {
     hideLoading();
     showToast('Erro: ' + e.message);
@@ -1109,7 +695,6 @@ async function salvarPlano() {
 (async function start() {
   if (!initSupabase()) return;
   
-  // Verifica se já está logado
   const saved = localStorage.getItem('portaria_atual');
   if (saved) {
     try {
