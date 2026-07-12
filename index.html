@@ -3,108 +3,159 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PortariaPro - Painel Master Corrigido</title>
+<title>PortariaPro - Painel Master</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* CSS BÁSICO PARA TESTE */
+/* ===== CSS COMPLETO ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: Arial, sans-serif; background: #060D10; color: #E8F4F7; padding: 20px; }
-.app { max-width: 800px; margin: 0 auto; }
-.card { background: #0E1F26; border: 1px solid rgba(26, 91, 110, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-.btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.btn-primary { background: #0B3B4A; color: #fff; }
+body { font-family: 'Inter', Arial, sans-serif; background: #060D10; color: #E8F4F7; padding: 20px; }
+.app { max-width: 900px; margin: 0 auto; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid rgba(26, 91, 110, 0.2); margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.header h2 { color: #40D4E0; }
+.header .user { color: #8BB4C4; font-size: 14px; }
+.btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+.btn:hover { transform: translateY(-1px); opacity: 0.9; }
+.btn-primary { background: linear-gradient(135deg, #0B3B4A, #072A35); color: #fff; }
 .btn-ghost { background: #162F39; color: #8BB4C4; border: 1px solid rgba(26, 91, 110, 0.4); }
 .btn-danger { background: #FF6B5B; color: #fff; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-content { background: #0E1F26; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
-.modal-content .handle { width: 40px; height: 4px; background: rgba(26, 91, 110, 0.4); border-radius: 2px; margin: 0 auto 12px; }
-.modal-content h3 { margin-bottom: 8px; }
-.modal-content .field { margin-bottom: 12px; }
-.modal-content .field label { display: block; font-size: 11px; color: #8BB4C4; margin-bottom: 4px; text-transform: uppercase; }
-.modal-content .field input, .modal-content .field select { width: 100%; padding: 10px; background: #162F39; border: 1px solid rgba(26, 91, 110, 0.4); border-radius: 8px; color: #E8F4F7; }
-.modal-content .btn { width: 100%; margin-top: 8px; }
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #162F39; padding: 10px 20px; border-radius: 20px; z-index: 2000; display: none; }
-.toast.show { display: block; }
-.portaria-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 8px; border-bottom: 1px solid rgba(26, 91, 110, 0.2); flex-wrap: wrap; gap: 8px; }
-.portaria-card .info { flex: 1; min-width: 120px; }
-.portaria-card .actions { display: flex; gap: 4px; }
-.portaria-card .actions .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; color: #8BB4C4; }
-.portaria-card .actions .action-btn:hover { background: #162F39; }
-.portaria-card .actions .action-btn.danger:hover { background: rgba(255, 107, 91, 0.2); color: #FF6B5B; }
-.badge { padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
-.badge-green { background: rgba(61, 214, 182, 0.12); color: #3DD6B6; }
-.badge-red { background: rgba(255, 107, 91, 0.12); color: #FF6B5B; }
-.badge-amber { background: rgba(240, 184, 74, 0.12); color: #F0B84A; }
+.btn-success { background: #3DD6B6; color: #fff; }
+.card { background: #0E1F26; border: 1px solid rgba(26, 91, 110, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.master-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .master-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
 .master-stat { background: #0E1F26; border: 1px solid rgba(26, 91, 110, 0.2); border-radius: 8px; padding: 14px 10px; text-align: center; }
 .master-stat .number { font-size: 24px; font-weight: 700; }
-.master-stat .label { font-size: 10px; color: #8BB4C4; text-transform: uppercase; }
 .master-stat .number.positive { color: #3DD6B6; }
 .master-stat .number.negative { color: #FF6B5B; }
 .master-stat .number.warning { color: #F0B84A; }
-.master-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.master-stat .label { font-size: 10px; color: #8BB4C4; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 .master-filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.master-filtros input, .master-filtros select { padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(26, 91, 110, 0.4); background: #162F39; color: #E8F4F7; }
+.master-filtros input, .master-filtros select { padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(26, 91, 110, 0.4); background: #162F39; color: #E8F4F7; font-size: 12px; }
+.master-filtros input::placeholder { color: #8BB4C4; }
+.portaria-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 8px; border-bottom: 1px solid rgba(26, 91, 110, 0.15); flex-wrap: wrap; gap: 8px; }
+.portaria-card:last-child { border-bottom: none; }
+.portaria-card .info { flex: 1; min-width: 150px; }
+.portaria-card .info .nome { font-weight: 600; font-size: 14px; }
+.portaria-card .info .email { font-size: 12px; color: #8BB4C4; }
+.portaria-card .badge { padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.badge-green { background: rgba(61, 214, 182, 0.12); color: #3DD6B6; }
+.badge-red { background: rgba(255, 107, 91, 0.12); color: #FF6B5B; }
+.badge-amber { background: rgba(240, 184, 74, 0.12); color: #F0B84A; }
+.portaria-card .actions { display: flex; gap: 2px; flex-wrap: wrap; }
+.portaria-card .actions .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; color: #8BB4C4; transition: all 0.2s; }
+.portaria-card .actions .action-btn:hover { background: #162F39; color: #E8F4F7; }
+.portaria-card .actions .action-btn.danger:hover { background: rgba(255, 107, 91, 0.2); color: #FF6B5B; }
+.portaria-card .actions .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.modal-content { background: #0E1F26; border: 1px solid rgba(26, 91, 110, 0.3); border-radius: 12px; padding: 24px; max-width: 480px; width: 100%; max-height: 80vh; overflow-y: auto; }
+.modal-content .handle { width: 40px; height: 4px; background: rgba(26, 91, 110, 0.4); border-radius: 2px; margin: 0 auto 12px; }
+.modal-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.modal-content .sub { font-size: 13px; color: #8BB4C4; margin-bottom: 16px; }
+.modal-content .field { margin-bottom: 14px; }
+.modal-content .field label { display: block; font-size: 11px; color: #8BB4C4; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.modal-content .field input, .modal-content .field select, .modal-content .field textarea { width: 100%; padding: 10px 12px; background: #162F39; border: 1px solid rgba(26, 91, 110, 0.4); border-radius: 8px; color: #E8F4F7; font-size: 14px; outline: none; }
+.modal-content .field input:focus, .modal-content .field select:focus { border-color: #40D4E0; }
+.modal-content .field .hint { font-size: 10px; color: #8BB4C4; margin-top: 4px; }
+.modal-content .btn { width: 100%; margin-top: 6px; }
+.modal-content .btn:first-child { margin-top: 0; }
+.modal-content .btn + .btn { margin-top: 6px; }
+
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #162F39; border: 1px solid rgba(26, 91, 110, 0.4); padding: 10px 24px; border-radius: 20px; z-index: 2000; font-size: 14px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.toast.show { display: block; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+.login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
+.login-screen h1 { font-size: 36px; margin-bottom: 4px; background: linear-gradient(135deg, #E8F4F7, #40D4E0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.login-screen .sub { font-size: 14px; color: #8BB4C4; margin-bottom: 24px; }
+.login-screen .login-box { background: #0E1F26; border: 1px solid rgba(26, 91, 110, 0.2); border-radius: 12px; padding: 32px; max-width: 360px; width: 100%; }
+.login-screen .login-box .field { margin-bottom: 12px; }
+.login-screen .login-box .field input { width: 100%; padding: 12px; background: #162F39; border: 1px solid rgba(26, 91, 110, 0.4); border-radius: 8px; color: #E8F4F7; font-size: 16px; }
+.login-screen .login-box .field input:focus { border-color: #40D4E0; outline: none; }
+.login-screen .login-box .btn { width: 100%; padding: 12px; font-size: 16px; }
+
+.empty { text-align: center; padding: 40px 20px; color: #8BB4C4; }
+.empty svg { font-size: 40px; margin-bottom: 12px; }
+
+.loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 999; flex-direction: column; gap: 16px; }
+.loading-overlay.active { display: flex; }
+.spinner { width: 40px; height: 40px; border: 3px solid rgba(26, 91, 110, 0.3); border-top-color: #40D4E0; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: #8BB4C4; font-size: 14px; }
+
+@media (max-width: 600px) {
+  .master-stats { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .master-stat .number { font-size: 18px; }
+  .portaria-card { flex-direction: column; align-items: stretch; }
+  .portaria-card .actions { justify-content: flex-start; }
+  .modal-content { padding: 16px; }
+}
 </style>
 </head>
 <body>
 
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Carregando...</div>
+</div>
+
 <div class="app">
-  <div id="loginScreen" style="display:none;">
-    <h1>PortariaPro</h1>
-    <p>Faça login para continuar</p>
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPassword" placeholder="Senha">
-    <button onclick="fazerLogin()">Entrar</button>
+  <!-- TELA DE LOGIN -->
+  <div class="login-screen" id="loginScreen">
+    <h1>🚛 PortariaPro</h1>
+    <p class="sub">Controle de acesso e gestão de portarias</p>
+    <div class="login-box">
+      <div class="field"><input type="email" id="loginEmail" placeholder="Email" value="master@portariapro.com"></div>
+      <div class="field"><input type="password" id="loginPassword" placeholder="Senha" value="Master@2024#Admin"></div>
+      <button class="btn btn-primary" onclick="fazerLogin()">Entrar</button>
+      <div id="loginError" style="color:#FF6B5B;font-size:13px;margin-top:8px;min-height:20px;"></div>
+    </div>
   </div>
 
+  <!-- APP PRINCIPAL -->
   <div id="mainApp" style="display:none;">
     <div class="header">
       <h2>🚛 PortariaPro</h2>
-      <div id="portariaNome">Carregando...</div>
-      <button onclick="logout()">Sair</button>
+      <div class="user" id="portariaNome">👑 Mestre</div>
+      <button class="btn btn-ghost" onclick="logout()" style="padding:6px 16px;font-size:12px;">Sair</button>
     </div>
 
-    <div class="pages">
-      <!-- PAINEL MASTER -->
-      <div id="page-master">
-        <div class="master-header">
-          <div>
-            <h3>👑 Painel Master</h3>
-            <p style="color:var(--text2);">Gerencie todas as portarias</p>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="openAdicionarPortariaModal()">🏢 Nova Portaria</button>
-            <button class="btn btn-primary" onclick="openPlanoModal()">➕ Novo Plano</button>
-          </div>
-        </div>
+    <div class="master-header">
+      <div>
+        <h3 style="font-size:20px;">👑 Painel Master</h3>
+        <p style="color:#8BB4C4;font-size:13px;">Gerencie todas as portarias, licenças e assinaturas</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="openAdicionarPortariaModal()">🏢 Nova Portaria</button>
+        <button class="btn btn-primary" onclick="openPlanoModal()">➕ Novo Plano</button>
+        <button class="btn btn-ghost" onclick="carregarPainelMaster()" style="padding:8px 16px;font-size:12px;">🔄 Atualizar</button>
+      </div>
+    </div>
 
-        <div class="master-stats" id="masterStats">
-          <div class="master-stat"><div class="number" id="totalPortarias">0</div><div class="label">Total Portarias</div></div>
-          <div class="master-stat"><div class="number positive" id="ativasCount">0</div><div class="label">Assinaturas Ativas</div></div>
-          <div class="master-stat"><div class="number negative" id="vencidasCount">0</div><div class="label">Vencidas</div></div>
-          <div class="master-stat"><div class="number warning" id="faturamentoTotal">R$ 0</div><div class="label">Faturamento</div></div>
-        </div>
+    <div class="master-stats" id="masterStats">
+      <div class="master-stat"><div class="number" id="totalPortarias">0</div><div class="label">Total Portarias</div></div>
+      <div class="master-stat"><div class="number positive" id="ativasCount">0</div><div class="label">Assinaturas Ativas</div></div>
+      <div class="master-stat"><div class="number negative" id="vencidasCount">0</div><div class="label">Vencidas/Canceladas</div></div>
+      <div class="master-stat"><div class="number warning" id="faturamentoTotal">R$ 0</div><div class="label">Faturamento Mensal</div></div>
+    </div>
 
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-            <h4>📋 Portarias Cadastradas</h4>
-            <div class="master-filtros">
-              <input type="text" id="buscaPortaria" placeholder="🔍 Buscar..." oninput="renderizarListaPortariasMaster()">
-              <select id="filtroStatusAssinatura" onchange="renderizarListaPortariasMaster()">
-                <option value="">Todos</option>
-                <option value="ativa">✅ Ativas</option>
-                <option value="vencida">🔴 Vencidas</option>
-                <option value="trial">⚠️ Trial</option>
-                <option value="cancelada">❌ Canceladas</option>
-              </select>
-            </div>
-          </div>
-          <div id="listaPortariasMaster"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <h4 style="font-size:14px;color:#8BB4C4;">📋 Portarias Cadastradas</h4>
+        <div class="master-filtros" style="margin:0;">
+          <input type="text" id="buscaPortaria" placeholder="🔍 Buscar..." oninput="renderizarListaPortariasMaster()">
+          <select id="filtroStatusAssinatura" onchange="renderizarListaPortariasMaster()">
+            <option value="">Todos os status</option>
+            <option value="ativa">✅ Ativas</option>
+            <option value="vencida">🔴 Vencidas</option>
+            <option value="trial">⚠️ Trial</option>
+            <option value="cancelada">❌ Canceladas</option>
+          </select>
         </div>
       </div>
+      <div id="listaPortariasMaster"></div>
     </div>
   </div>
 </div>
@@ -127,20 +178,26 @@ let currentUser = null;
 // ============================================================
 // UTILITÁRIOS
 // ============================================================
-function showToast(msg) {
+function showToast(msg, duration = 3000) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._timeout);
-  t._timeout = setTimeout(() => t.classList.remove('show'), 3000);
+  t._timeout = setTimeout(() => t.classList.remove('show'), duration);
 }
 
 function showLoading(text) {
-  console.log('⏳', text || 'Carregando...');
+  document.getElementById('loadingText').textContent = text || 'Carregando...';
+  document.getElementById('loadingOverlay').classList.add('active');
 }
 
 function hideLoading() {
-  console.log('✅ Carregado');
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+function getPortaria() {
+  try { return JSON.parse(localStorage.getItem('portaria_atual') || 'null'); } 
+  catch(e) { return null; }
 }
 
 // ============================================================
@@ -153,6 +210,7 @@ function initSupabase() {
     return true;
   } catch (e) {
     console.error('❌ Erro:', e);
+    showToast('Erro ao conectar ao Supabase');
     return false;
   }
 }
@@ -161,10 +219,19 @@ function initSupabase() {
 // LOGIN
 // ============================================================
 async function fazerLogin() {
-  const email = document.getElementById('loginEmail').value;
+  const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  
+  const errorDiv = document.getElementById('loginError');
+  errorDiv.textContent = '';
+
+  if (!email || !password) {
+    errorDiv.textContent = 'Preencha email e senha';
+    return;
+  }
+
   try {
+    showLoading('Entrando...');
+    
     const { data, error } = await supa.auth.signInWithPassword({ email, password });
     if (error) throw error;
     
@@ -172,23 +239,28 @@ async function fazerLogin() {
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: data.user.id,
       nome: 'Master',
-      tipo: 'mestre'
+      tipo: 'mestre',
+      email: email
     }));
     
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
-    document.getElementById('portariaNome').textContent = '👑 Mestre';
+    document.getElementById('portariaNome').textContent = `👑 Mestre (${email})`;
     
+    hideLoading();
     await carregarPainelMaster();
   } catch (e) {
-    showToast('Erro: ' + e.message);
+    hideLoading();
+    errorDiv.textContent = 'Erro: ' + e.message;
+    showToast('Erro ao entrar: ' + e.message);
   }
 }
 
 function logout() {
   localStorage.removeItem('portaria_atual');
   document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginError').textContent = '';
 }
 
 // ============================================================
@@ -196,8 +268,8 @@ function logout() {
 // ============================================================
 async function carregarPainelMaster() {
   try {
+    showLoading('Carregando painel master...');
     console.log('🔄 Carregando painel master...');
-    showToast('Carregando...');
     
     // Carrega portarias
     const { data: portarias, error: pError } = await supa
@@ -214,11 +286,17 @@ async function carregarPainelMaster() {
       .from('assinaturas')
       .select('*');
     
-    if (aError && !aError.message.includes('relation')) {
-      throw aError;
+    if (aError) {
+      if (aError.message.includes('relation')) {
+        console.warn('⚠️ Tabela assinaturas não existe');
+        todasAssinaturas = [];
+      } else {
+        throw aError;
+      }
+    } else {
+      todasAssinaturas = assinaturas || [];
+      console.log('✅ Assinaturas:', todasAssinaturas.length);
     }
-    todasAssinaturas = assinaturas || [];
-    console.log('✅ Assinaturas:', todasAssinaturas.length);
 
     // Carrega planos
     const { data: planos, error: planError } = await supa
@@ -226,25 +304,38 @@ async function carregarPainelMaster() {
       .select('*')
       .eq('ativo', true);
     
-    if (planError && !planError.message.includes('relation')) {
-      throw planError;
+    if (planError) {
+      if (planError.message.includes('relation')) {
+        console.warn('⚠️ Tabela planos não existe');
+        planosDisponiveis = [
+          { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
+          { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
+          { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
+          { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
+        ];
+      } else {
+        throw planError;
+      }
+    } else {
+      planosDisponiveis = (planos && planos.length > 0) ? planos : [
+        { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
+        { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
+        { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
+        { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
+      ];
+      console.log('✅ Planos:', planosDisponiveis.length);
     }
-    planosDisponiveis = (planos && planos.length > 0) ? planos : [
-      { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
-      { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
-      { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
-      { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
-    ];
-    console.log('✅ Planos:', planosDisponiveis.length);
 
     atualizarEstatisticas();
     renderizarListaPortariasMaster();
     
-    showToast('✅ Painel carregado!');
+    hideLoading();
+    showToast('✅ Painel carregado!', 1500);
     
   } catch (e) {
     console.error('❌ Erro:', e);
-    showToast('Erro: ' + e.message);
+    hideLoading();
+    showToast('Erro ao carregar: ' + e.message);
   }
 }
 
@@ -292,7 +383,13 @@ function renderizarListaPortariasMaster() {
   }
 
   if (!filtradas.length) {
-    div.innerHTML = '<p style="text-align:center;color:#8BB4C4;padding:20px;">Nenhuma portaria encontrada</p>';
+    div.innerHTML = `
+      <div class="empty">
+        <div style="font-size:40px;margin-bottom:12px;">🏢</div>
+        <p>${busca ? 'Nenhuma portaria encontrada com este filtro' : 'Nenhuma portaria cadastrada ainda'}</p>
+        <button class="btn btn-primary" onclick="openAdicionarPortariaModal()" style="margin-top:12px;width:auto;padding:8px 24px;">➕ Criar primeira portaria</button>
+      </div>
+    `;
     return;
   }
 
@@ -318,23 +415,28 @@ function renderizarListaPortariasMaster() {
       ? new Date(assinatura.data_vencimento).toLocaleDateString('pt-BR')
       : '—';
 
+    const valor = assinatura?.valor_mensal ? `R$ ${assinatura.valor_mensal.toFixed(2)}` : '—';
+
     return `
       <div class="portaria-card" data-portaria-id="${p.id}">
         <div class="info">
-          <div style="font-weight:600;">🏢 ${p.nome}</div>
-          <div style="font-size:12px;color:#8BB4C4;">${p.email || 'Sem email'}</div>
+          <div class="nome">🏢 ${p.nome}</div>
+          <div class="email">${p.email || 'Sem email'}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <span style="font-size:11px;color:#8BB4C4;">${plano?.nome || 'Sem plano'}</span>
+          <span style="font-size:11px;color:#8BB4C4;">${valor}</span>
           <span style="font-size:11px;color:#8BB4C4;">📅 ${vencimento}</span>
           <span class="badge ${statusClass}">${statusLabel}</span>
         </div>
         <div class="actions">
           <button class="action-btn" data-action="detalhes" title="Ver detalhes">👁️</button>
           <button class="action-btn" data-action="assinatura" title="Gerenciar assinatura">💳</button>
-          <button class="action-btn" data-action="editar" title="Editar">✏️</button>
-          <button class="action-btn" data-action="bloquear" title="Bloquear/Desbloquear">🔒</button>
-          <button class="action-btn danger" data-action="excluir" title="Excluir">🗑️</button>
+          <button class="action-btn" data-action="editar" title="Editar portaria">✏️</button>
+          <button class="action-btn" data-action="bloquear" title="${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓 Desbloquear' : '🔒 Bloquear'}">
+            ${assinatura?.status === 'vencida' || assinatura?.status === 'cancelada' ? '🔓' : '🔒'}
+          </button>
+          <button class="action-btn danger" data-action="excluir" title="Excluir portaria">🗑️</button>
         </div>
       </div>
     `;
@@ -367,11 +469,9 @@ function renderizarListaPortariasMaster() {
 }
 
 // ============================================================
-// FUNÇÕES DOS MODAIS
+// FUNÇÕES AUXILIARES DE MODAL
 // ============================================================
-
 function criarModal(html) {
-  // Remove modal existente
   const existing = document.querySelector('.modal-overlay');
   if (existing) existing.remove();
   
@@ -387,7 +487,13 @@ function criarModal(html) {
   return modal;
 }
 
-// VER DETALHES
+function fecharModal() {
+  document.querySelector('.modal-overlay')?.remove();
+}
+
+// ============================================================
+// 1. VER DETALHES
+// ============================================================
 function verDetalhesPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) { showToast('Portaria não encontrada'); return; }
@@ -407,12 +513,16 @@ function verDetalhesPortaria(portariaId) {
       <div class="modal-content">
         <div class="handle"></div>
         <h3>🏢 ${portaria.nome}</h3>
-        <p style="color:#8BB4C4;">${portaria.email || 'Sem email'}</p>
+        <p class="sub">${portaria.email || 'Sem email'}</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Status</div><div style="font-weight:600;">${statusLabel}</div></div>
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Plano</div><div style="font-weight:600;">${plano?.nome || '—'}</div></div>
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Vencimento</div><div style="font-weight:600;">${assinatura?.data_vencimento ? new Date(assinatura.data_vencimento).toLocaleDateString('pt-BR') : '—'}</div></div>
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Valor</div><div style="font-weight:600;">R$ ${(assinatura?.valor_mensal || 0).toFixed(2)}</div></div>
+        </div>
+        <div style="background:#162F39;padding:12px;border-radius:8px;margin-bottom:16px;">
+          <div style="font-size:10px;color:#8BB4C4;">Tipo</div>
+          <div style="font-weight:600;">${portaria.tipo === 'mestre' ? '👑 Mestre' : portaria.tipo === 'admin' ? '👑 Administrador' : '👤 Operador'}</div>
         </div>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Fechar</button>
       </div>
@@ -422,7 +532,9 @@ function verDetalhesPortaria(portariaId) {
   criarModal(html);
 }
 
-// GERENCIAR ASSINATURA
+// ============================================================
+// 2. GERENCIAR ASSINATURA
+// ============================================================
 function abrirGerenciarAssinatura(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) { showToast('Portaria não encontrada'); return; }
@@ -434,8 +546,15 @@ function abrirGerenciarAssinatura(portariaId) {
       <div class="modal-content">
         <div class="handle"></div>
         <h3>💳 Gerenciar Assinatura</h3>
-        <p style="color:#8BB4C4;">${portaria.nome}</p>
+        <p class="sub">${portaria.nome}</p>
         
+        <div class="field">
+          <label>STATUS ATUAL</label>
+          <div style="padding:10px 12px;background:#162F39;border-radius:8px;font-weight:600;">
+            ${assinatura ? (assinatura.status === 'ativa' ? '✅ Ativa' : assinatura.status === 'vencida' ? '🔴 Vencida' : assinatura.status === 'trial' ? '⚠️ Trial' : '❌ Cancelada') : 'Sem assinatura'}
+          </div>
+        </div>
+
         <div class="field">
           <label>PLANO</label>
           <select id="selectPlano">
@@ -444,7 +563,6 @@ function abrirGerenciarAssinatura(portariaId) {
                 ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês
               </option>
             `).join('')}
-            <option value="trial" ${assinatura?.plano === 'trial' ? 'selected' : ''}>Trial - R$ 0,00/mês</option>
           </select>
         </div>
 
@@ -462,7 +580,6 @@ function abrirGerenciarAssinatura(portariaId) {
   criarModal(html);
 }
 
-// SALVAR ASSINATURA
 async function salvarAssinatura(portariaId) {
   const plano = document.getElementById('selectPlano').value;
   const vencimento = document.getElementById('inputVencimento').value;
@@ -475,7 +592,7 @@ async function salvarAssinatura(portariaId) {
   const planoData = planosDisponiveis.find(p => p.chave === plano);
   
   try {
-    showLoading('Salvando...');
+    showLoading('Salvando assinatura...');
     
     const { data: existing } = await supa
       .from('assinaturas')
@@ -485,8 +602,9 @@ async function salvarAssinatura(portariaId) {
 
     const dataVencimento = new Date(vencimento).toISOString();
     
+    let result;
     if (existing) {
-      await supa
+      result = await supa
         .from('assinaturas')
         .update({
           plano: plano,
@@ -497,7 +615,7 @@ async function salvarAssinatura(portariaId) {
         })
         .eq('portaria_id', portariaId);
     } else {
-      await supa
+      result = await supa
         .from('assinaturas')
         .insert({
           portaria_id: portariaId,
@@ -508,16 +626,21 @@ async function salvarAssinatura(portariaId) {
         });
     }
 
-    showToast('✅ Assinatura salva!');
-    document.querySelector('.modal-overlay')?.remove();
+    if (result.error) throw result.error;
+
+    showToast('✅ Assinatura salva com sucesso!');
+    fecharModal();
     await carregarPainelMaster();
 
   } catch (e) {
+    hideLoading();
     showToast('Erro: ' + e.message);
   }
 }
 
-// BLOQUEAR/DESBLOQUEAR
+// ============================================================
+// 3. BLOQUEAR/DESBLOQUEAR
+// ============================================================
 async function toggleBloqueioPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) { showToast('Portaria não encontrada'); return; }
@@ -528,41 +651,59 @@ async function toggleBloqueioPortaria(portariaId) {
   if (!confirm(`Deseja ${isBloqueado ? 'DESBLOQUEAR' : 'BLOQUEAR'} a portaria "${portaria.nome}"?`)) return;
 
   try {
+    showLoading(isBloqueado ? 'Desbloqueando...' : 'Bloqueando...');
+    
     const novoStatus = isBloqueado ? 'ativa' : 'vencida';
     
-    await supa
+    const { error } = await supa
       .from('assinaturas')
       .update({ status: novoStatus, updated_at: new Date().toISOString() })
       .eq('portaria_id', portariaId);
 
+    if (error) throw error;
+
     showToast(isBloqueado ? '✅ Portaria desbloqueada' : '🔒 Portaria bloqueada');
+    hideLoading();
     await carregarPainelMaster();
 
   } catch (e) {
+    hideLoading();
     showToast('Erro: ' + e.message);
   }
 }
 
-// EXCLUIR PORTARIA
+// ============================================================
+// 4. EXCLUIR PORTARIA
+// ============================================================
 async function excluirPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) { showToast('Portaria não encontrada'); return; }
   
-  if (!confirm(`Tem certeza que deseja EXCLUIR "${portaria.nome}"?`)) return;
+  if (!confirm(`Tem certeza que deseja EXCLUIR a portaria "${portaria.nome}"? Esta ação é irreversível!`)) return;
 
   try {
+    showLoading('Excluindo portaria...');
+    
+    // Remove assinatura
     await supa.from('assinaturas').delete().eq('portaria_id', portariaId);
-    await supa.from('portarias').delete().eq('id', portariaId);
+    
+    // Remove portaria
+    const { error } = await supa.from('portarias').delete().eq('id', portariaId);
+    if (error) throw error;
 
-    showToast('🗑️ Portaria excluída!');
+    showToast('🗑️ Portaria excluída com sucesso!');
+    hideLoading();
     await carregarPainelMaster();
 
   } catch (e) {
-    showToast('Erro: ' + e.message);
+    hideLoading();
+    showToast('Erro ao excluir: ' + e.message);
   }
 }
 
-// EDITAR PORTARIA
+// ============================================================
+// 5. EDITAR PORTARIA
+// ============================================================
 function abrirEditarPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) { showToast('Portaria não encontrada'); return; }
@@ -574,9 +715,10 @@ function abrirEditarPortaria(portariaId) {
       <div class="modal-content">
         <div class="handle"></div>
         <h3>✏️ Editar Portaria</h3>
+        <p class="sub">Altere as informações da portaria</p>
         
         <div class="field">
-          <label>NOME</label>
+          <label>NOME *</label>
           <input type="text" id="editPortariaNome" value="${portaria.nome}">
         </div>
 
@@ -593,7 +735,7 @@ function abrirEditarPortaria(portariaId) {
                 ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês
               </option>
             `).join('')}
-            <option value="trial" ${assinatura?.plano === 'trial' ? 'selected' : ''}>Trial</option>
+            <option value="trial" ${assinatura?.plano === 'trial' ? 'selected' : ''}>Trial - R$ 0,00/mês</option>
           </select>
         </div>
 
@@ -621,7 +763,6 @@ function abrirEditarPortaria(portariaId) {
   criarModal(html);
 }
 
-// SALVAR EDIÇÃO
 async function salvarEdicaoPortaria(portariaId) {
   const nome = document.getElementById('editPortariaNome').value.trim();
   const email = document.getElementById('editPortariaEmail').value.trim();
@@ -630,18 +771,22 @@ async function salvarEdicaoPortaria(portariaId) {
   const status = document.getElementById('editPortariaStatus').value;
 
   if (!nome) {
-    showToast('⚠️ Nome é obrigatório');
+    showToast('⚠️ O nome da portaria é obrigatório');
     return;
   }
 
   try {
-    showLoading('Salvando...');
+    showLoading('Salvando alterações...');
 
-    await supa
+    // Atualiza portaria
+    const { error: portariaError } = await supa
       .from('portarias')
-      .update({ nome, email })
+      .update({ nome: nome, email: email })
       .eq('id', portariaId);
 
+    if (portariaError) throw portariaError;
+
+    // Atualiza assinatura
     const planoData = planosDisponiveis.find(p => p.chave === plano);
     const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30*24*60*60*1000).toISOString();
 
@@ -655,7 +800,8 @@ async function salvarEdicaoPortaria(portariaId) {
       await supa
         .from('assinaturas')
         .update({
-          plano, status,
+          plano: plano,
+          status: status,
           data_vencimento: dataVencimento,
           valor_mensal: planoData?.valor_mensal || 0,
           updated_at: new Date().toISOString()
@@ -666,23 +812,26 @@ async function salvarEdicaoPortaria(portariaId) {
         .from('assinaturas')
         .insert({
           portaria_id: portariaId,
-          plano, status,
+          plano: plano,
+          status: status,
           data_vencimento: dataVencimento,
           valor_mensal: planoData?.valor_mensal || 0
         });
     }
 
-    showToast('✅ Portaria atualizada!');
-    document.querySelector('.modal-overlay')?.remove();
+    showToast('✅ Portaria atualizada com sucesso!');
+    fecharModal();
+    hideLoading();
     await carregarPainelMaster();
 
   } catch (e) {
+    hideLoading();
     showToast('Erro: ' + e.message);
   }
 }
 
 // ============================================================
-// NOVA PORTARIA
+// 6. NOVA PORTARIA (SEM ENVIO DE EMAIL)
 // ============================================================
 function openAdicionarPortariaModal() {
   const html = `
@@ -690,20 +839,17 @@ function openAdicionarPortariaModal() {
       <div class="modal-content">
         <div class="handle"></div>
         <h3>🏢 Nova Portaria</h3>
+        <p class="sub">Crie uma nova portaria no sistema</p>
         
         <div class="field">
-          <label>NOME *</label>
+          <label>NOME DA PORTARIA *</label>
           <input type="text" id="novaPortariaNome" placeholder="Ex: Portaria Centro">
         </div>
 
         <div class="field">
           <label>EMAIL DO ADMINISTRADOR *</label>
           <input type="email" id="novaPortariaEmail" placeholder="admin@portaria.com">
-        </div>
-
-        <div class="field">
-          <label>SENHA (opcional)</label>
-          <input type="text" id="novaPortariaSenha" placeholder="Deixe em branco para enviar convite">
+          <div class="hint">O administrador receberá um convite por email</div>
         </div>
 
         <div class="field">
@@ -712,16 +858,17 @@ function openAdicionarPortariaModal() {
             ${planosDisponiveis.map(p => `
               <option value="${p.chave}">${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês</option>
             `).join('')}
-            <option value="trial">Trial - R$ 0,00/mês</option>
+            <option value="trial">Trial - R$ 0,00/mês (7 dias)</option>
           </select>
         </div>
 
         <div class="field">
-          <label>VENCIMENTO</label>
+          <label>DATA DE VENCIMENTO</label>
           <input type="date" id="novaPortariaVencimento">
+          <div class="hint">Deixe em branco para 30 dias a partir de hoje</div>
         </div>
 
-        <button class="btn btn-primary" onclick="criarPortaria()">🏢 Criar</button>
+        <button class="btn btn-primary" onclick="criarPortaria()">🏢 Criar Portaria</button>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
       </div>
     </div>
@@ -730,84 +877,118 @@ function openAdicionarPortariaModal() {
   criarModal(html);
 }
 
-// CRIAR PORTARIA
+// ============================================================
+// CRIAR PORTARIA (SEM CRIAÇÃO DE USUÁRIO)
+// ============================================================
 async function criarPortaria() {
   const nome = document.getElementById('novaPortariaNome').value.trim();
   const email = document.getElementById('novaPortariaEmail').value.trim();
-  const senha = document.getElementById('novaPortariaSenha').value.trim();
   const plano = document.getElementById('novaPortariaPlano').value;
   const vencimento = document.getElementById('novaPortariaVencimento').value;
 
   if (!nome || !email) {
-    showToast('⚠️ Preencha Nome e Email');
+    showToast('⚠️ Preencha Nome e Email do administrador');
+    return;
+  }
+
+  if (!email.includes('@')) {
+    showToast('⚠️ Email inválido');
+    return;
+  }
+
+  const portaria = getPortaria();
+  if (!portaria || portaria.tipo !== 'mestre') {
+    showToast('⚠️ Apenas o mestre pode criar portarias');
     return;
   }
 
   try {
-    showLoading('Criando...');
+    showLoading('Criando portaria...');
 
-    let userId = null;
+    // 1. Verifica se o email já existe
+    const { data: existing } = await supa
+      .from('portarias')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
 
-    if (senha && senha.length >= 6) {
-      const { data, error } = await supa.auth.signUp({
-        email, password: senha,
-        options: { data: { nome, tipo: 'admin' } }
-      });
-      if (error) throw error;
-      userId = data?.user?.id;
-    } else {
-      showToast('📧 Enviando convite...');
-      const codigo = 'ADMIN_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-      await supa.from('convites').insert({
-        email, nome, role: 'admin',
-        portaria_id: 'PENDING_' + Date.now(),
-        portaria_nome: nome,
-        codigo,
-        status: 'pendente',
-        expira_em: new Date(Date.now() + 7*24*60*60*1000).toISOString()
-      });
-      showToast('✅ Convite enviado para ' + email);
-      document.querySelector('.modal-overlay')?.remove();
-      await carregarPainelMaster();
-      return;
+    if (existing) {
+      throw new Error('Este email já está cadastrado como portaria');
     }
 
-    if (!userId) throw new Error('Erro ao criar usuário');
+    // 2. Cria um ID temporário para a portaria
+    const userId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
+    // 3. Cria a portaria
     const { data: portariaData, error: portariaError } = await supa
       .from('portarias')
       .insert({
-        id: userId, nome, email,
+        id: userId,
+        nome: nome,
+        email: email,
         tipo: 'admin',
-        codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase()
+        codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        portaria_id: portaria.id
       })
       .select()
       .single();
 
     if (portariaError) throw portariaError;
 
+    // 4. Cria a assinatura
     const planoData = planosDisponiveis.find(p => p.chave === plano);
-    const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30*24*60*60*1000).toISOString();
+    const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    await supa.from('assinaturas').insert({
-      portaria_id: portariaData.id,
-      plano,
-      status: 'ativa',
-      data_vencimento: dataVencimento,
-      valor_mensal: planoData?.valor_mensal || 0
-    });
+    const { error: assError } = await supa
+      .from('assinaturas')
+      .insert({
+        portaria_id: portariaData.id,
+        plano: plano,
+        status: 'ativa',
+        data_vencimento: dataVencimento,
+        valor_mensal: planoData?.valor_mensal || 0
+      });
 
-    showToast('✅ Portaria criada!');
-    document.querySelector('.modal-overlay')?.remove();
+    if (assError && !assError.message.includes('relation')) {
+      console.warn('Erro ao criar assinatura:', assError.message);
+    }
+
+    // 5. Envia convite por email (opcional - sem esperar resposta)
+    try {
+      const codigoConvite = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      await supa.from('convites').insert({
+        email: email,
+        nome: nome,
+        role: 'admin',
+        portaria_id: portariaData.id,
+        portaria_nome: nome,
+        codigo: codigoConvite,
+        criado_por: portaria.id,
+        status: 'pendente',
+        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      
+      const link = `${window.location.origin}${window.location.pathname}?convite=${codigoConvite}`;
+      console.log('🔗 Link de convite:', link);
+      showToast(`✅ Portaria criada! Convite gerado para ${email}`, 4000);
+    } catch (e) {
+      console.warn('Erro ao criar convite:', e.message);
+      showToast(`✅ Portaria criada! (Convite não enviado: ${e.message})`, 4000);
+    }
+
+    fecharModal();
+    hideLoading();
     await carregarPainelMaster();
 
   } catch (e) {
+    console.error('❌ Erro ao criar portaria:', e);
+    hideLoading();
     showToast('Erro: ' + e.message);
   }
 }
 
 // ============================================================
-// NOVO PLANO
+// 7. NOVO PLANO
 // ============================================================
 function openPlanoModal() {
   const html = `
@@ -815,28 +996,50 @@ function openPlanoModal() {
       <div class="modal-content">
         <div class="handle"></div>
         <h3>➕ Novo Plano</h3>
+        <p class="sub">Crie um novo plano de assinatura</p>
         
         <div class="field">
-          <label>NOME</label>
+          <label>NOME DO PLANO *</label>
           <input type="text" id="planoNome" placeholder="Ex: Básico">
         </div>
 
         <div class="field">
-          <label>CHAVE</label>
+          <label>CHAVE (identificador único) *</label>
           <input type="text" id="planoChave" placeholder="Ex: basico">
+          <div class="hint">Use letras minúsculas, sem espaços</div>
         </div>
 
         <div class="field">
           <label>DESCRIÇÃO</label>
-          <input type="text" id="planoDescricao" placeholder="Descrição do plano">
+          <input type="text" id="planoDescricao" placeholder="Ex: Para pequenas portarias">
         </div>
 
         <div class="field">
-          <label>VALOR MENSAL (R$)</label>
+          <label>VALOR MENSAL (R$) *</label>
           <input type="number" id="planoValor" placeholder="49.90" step="0.01">
         </div>
 
-        <button class="btn btn-primary" onclick="salvarPlano()">💾 Salvar</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>MÁX. PORTARIAS</label>
+            <input type="number" id="planoMaxPortarias" value="1">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>MÁX. USUÁRIOS</label>
+            <input type="number" id="planoMaxUsuarios" value="3">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin:12px 0;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#8BB4C4;">
+            <input type="checkbox" id="planoSuporte"> Suporte Prioritário
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#8BB4C4;">
+            <input type="checkbox" id="planoRelatorios"> Relatórios Avançados
+          </label>
+        </div>
+
+        <button class="btn btn-primary" onclick="salvarPlano()">💾 Salvar Plano</button>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
       </div>
     </div>
@@ -845,32 +1048,57 @@ function openPlanoModal() {
   criarModal(html);
 }
 
-// SALVAR PLANO
 async function salvarPlano() {
   const nome = document.getElementById('planoNome').value.trim();
   const chave = document.getElementById('planoChave').value.trim().toLowerCase();
   const descricao = document.getElementById('planoDescricao').value.trim();
   const valor = parseFloat(document.getElementById('planoValor').value) || 0;
+  const maxPortarias = parseInt(document.getElementById('planoMaxPortarias').value) || 1;
+  const maxUsuarios = parseInt(document.getElementById('planoMaxUsuarios').value) || 3;
+  const suporte = document.getElementById('planoSuporte').checked;
+  const relatorios = document.getElementById('planoRelatorios').checked;
 
   if (!nome || !chave) {
-    showToast('⚠️ Preencha Nome e Chave');
+    showToast('⚠️ Preencha Nome e Chave do plano');
+    return;
+  }
+
+  if (!/^[a-z0-9_]+$/.test(chave)) {
+    showToast('⚠️ Chave deve conter apenas letras minúsculas, números e _');
     return;
   }
 
   try {
-    await supa.from('planos').insert({
-      nome, chave, descricao,
-      valor_mensal: valor,
-      max_portarias: 1,
-      max_usuarios: 3,
-      ativo: true
-    });
+    showLoading('Salvando plano...');
+    
+    const { error } = await supa
+      .from('planos')
+      .insert({
+        nome: nome,
+        chave: chave,
+        descricao: descricao,
+        valor_mensal: valor,
+        max_portarias: maxPortarias,
+        max_usuarios: maxUsuarios,
+        possui_suporte: suporte,
+        possui_relatorios: relatorios,
+        ativo: true
+      });
 
-    showToast('✅ Plano criado!');
-    document.querySelector('.modal-overlay')?.remove();
+    if (error) {
+      if (error.message.includes('duplicate')) {
+        throw new Error('Já existe um plano com esta chave');
+      }
+      throw error;
+    }
+
+    showToast('✅ Plano criado com sucesso!');
+    fecharModal();
+    hideLoading();
     await carregarPainelMaster();
 
   } catch (e) {
+    hideLoading();
     showToast('Erro: ' + e.message);
   }
 }
@@ -889,14 +1117,14 @@ async function salvarPlano() {
       if (data.tipo === 'mestre') {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('portariaNome').textContent = '👑 Mestre';
+        document.getElementById('portariaNome').textContent = `👑 Mestre (${data.email || 'master@portariapro.com'})`;
         await carregarPainelMaster();
         return;
       }
     } catch(e) {}
   }
   
-  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('loginScreen').style.display = 'flex';
 })();
 </script>
 </body>
