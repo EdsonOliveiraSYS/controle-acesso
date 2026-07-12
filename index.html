@@ -389,7 +389,7 @@ function renderizarListaPortariasMaster() {
         </div>
         <div class="actions">
           <button class="action-btn" data-action="detalhes" title="Ver detalhes">👁️</button>
-          <button class="action-btn" data-action="excluir" title="Excluir" style="color:#FF6B5B;">🗑️</button>
+          <button class="action-btn danger" data-action="excluir" title="Excluir" style="color:#FF6B5B;">🗑️</button>
         </div>
       </div>
     `;
@@ -449,68 +449,170 @@ function verDetalhesPortaria(portariaId) {
 }
 
 // ============================================================
-// EXCLUIR PORTARIA INDIVIDUAL
+// 🔥 EXCLUIR PORTARIA (CORRIGIDO - exclui tudo relacionado)
 // ============================================================
 async function excluirPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) { showToast('Portaria não encontrada'); return; }
   
-  if (!confirm(`Excluir a portaria "${portaria.nome}"?`)) return;
+  // Não permite excluir o mestre
+  if (portaria.tipo === 'mestre') {
+    showToast('⚠️ Não é possível excluir o usuário mestre');
+    return;
+  }
+  
+  // Conta quantos registros serão afetados
+  let totalRegistros = 0;
+  try {
+    const { count: validacoesCount } = await supa
+      .from('validacoes')
+      .select('*', { count: 'exact', head: true })
+      .eq('portaria_id', portariaId);
+    totalRegistros += validacoesCount || 0;
+    
+    const { count: motoristasCount } = await supa
+      .from('motoristas')
+      .select('*', { count: 'exact', head: true })
+      .eq('portaria_id', portariaId);
+    totalRegistros += motoristasCount || 0;
+  } catch(e) {}
+  
+  const msg = `Excluir a portaria "${portaria.nome}"?\n\nIsso vai remover:\n- ${totalRegistros} registros relacionados\n- Assinatura da portaria\n\nTem certeza?`;
+  
+  if (!confirm(msg)) return;
 
   try {
-    showLoading('Excluindo...');
-    await supa.from('assinaturas').delete().eq('portaria_id', portariaId);
-    await supa.from('portarias').delete().eq('id', portariaId);
-    showToast('🗑️ Portaria excluída!');
+    showLoading('Excluindo portaria e dados relacionados...');
+    
+    // 1. Exclui validações (histórico)
+    try {
+      const { error } = await supa
+        .from('validacoes')
+        .delete()
+        .eq('portaria_id', portariaId);
+      if (error) console.warn('Erro ao excluir validações:', error.message);
+      else console.log('✅ Validações excluídas');
+    } catch(e) { console.warn('Erro ao excluir validações:', e.message); }
+    
+    // 2. Exclui motoristas
+    try {
+      const { error } = await supa
+        .from('motoristas')
+        .delete()
+        .eq('portaria_id', portariaId);
+      if (error) console.warn('Erro ao excluir motoristas:', error.message);
+      else console.log('✅ Motoristas excluídos');
+    } catch(e) { console.warn('Erro ao excluir motoristas:', e.message); }
+    
+    // 3. Exclui convites
+    try {
+      const { error } = await supa
+        .from('convites')
+        .delete()
+        .eq('portaria_id', portariaId);
+      if (error) console.warn('Erro ao excluir convites:', error.message);
+      else console.log('✅ Convites excluídos');
+    } catch(e) { console.warn('Erro ao excluir convites:', e.message); }
+    
+    // 4. Exclui assinatura
+    try {
+      const { error } = await supa
+        .from('assinaturas')
+        .delete()
+        .eq('portaria_id', portariaId);
+      if (error) console.warn('Erro ao excluir assinatura:', error.message);
+      else console.log('✅ Assinatura excluída');
+    } catch(e) { console.warn('Erro ao excluir assinatura:', e.message); }
+    
+    // 5. Exclui a portaria
+    const { error } = await supa
+      .from('portarias')
+      .delete()
+      .eq('id', portariaId);
+    
+    if (error) throw error;
+    
+    showToast(`🗑️ Portaria "${portaria.nome}" excluída com sucesso!`);
     hideLoading();
     await carregarPainelMaster();
+    
   } catch (e) {
+    console.error('❌ Erro ao excluir:', e);
     hideLoading();
-    showToast('Erro: ' + e.message);
+    showToast('Erro ao excluir: ' + e.message);
   }
 }
 
 // ============================================================
-// 🔥 LIMPAR TUDO - COMEÇAR DO ZERO
+// 🔥 LIMPAR TUDO (CORRIGIDO)
 // ============================================================
 async function limparTudo() {
-  const total = todasPortarias.filter(p => p.tipo !== 'mestre').length;
+  const portariasParaExcluir = todasPortarias.filter(p => p.tipo !== 'mestre');
   
-  if (total === 0) {
+  if (portariasParaExcluir.length === 0) {
     showToast('✅ Já está limpo! Nenhuma portaria para excluir.');
     return;
   }
 
-  if (!confirm(`⚠️ ATENÇÃO! Isso vai excluir TODAS as ${total} portarias (exceto o mestre).\n\nTem certeza?`)) return;
-  if (!confirm(`ÚLTIMA CHANCE! Confirmar exclusão de TODOS os dados?`)) return;
+  // Conta todos os registros relacionados
+  let totalRegistros = 0;
+  let detalhes = '';
+  
+  for (const p of portariasParaExcluir) {
+    try {
+      const { count: vCount } = await supa
+        .from('validacoes')
+        .select('*', { count: 'exact', head: true })
+        .eq('portaria_id', p.id);
+      totalRegistros += vCount || 0;
+      
+      const { count: mCount } = await supa
+        .from('motoristas')
+        .select('*', { count: 'exact', head: true })
+        .eq('portaria_id', p.id);
+      totalRegistros += mCount || 0;
+    } catch(e) {}
+  }
+
+  const msg = `⚠️ ATENÇÃO! Isso vai excluir:\n\n` +
+    `📋 ${portariasParaExcluir.length} portarias\n` +
+    `📊 ${totalRegistros} registros relacionados\n\n` +
+    `Portarias a serem excluídas:\n` +
+    portariasParaExcluir.map(p => `- ${p.nome}`).join('\n') +
+    `\n\nTem certeza?`;
+  
+  if (!confirm(msg)) return;
+  if (!confirm(`🛑 ÚLTIMA CHANCE! Confirmar exclusão de TODOS os dados?`)) return;
 
   try {
-    showLoading('🔥 Limpando tudo...');
+    showLoading(`🔥 Limpando tudo (${portariasParaExcluir.length} portarias)...`);
     
-    // Pega os IDs das portarias que não são mestre
-    const ids = todasPortarias.filter(p => p.tipo !== 'mestre').map(p => p.id);
+    const ids = portariasParaExcluir.map(p => p.id);
+    let excluidas = 0;
     
-    if (ids.length === 0) {
-      showToast('✅ Nada para limpar');
-      hideLoading();
-      return;
-    }
-
-    console.log('🗑️ Excluindo portarias:', ids);
-
-    // 1. Exclui assinaturas
     for (const id of ids) {
-      await supa.from('assinaturas').delete().eq('portaria_id', id);
+      // Exclui validações
+      try { await supa.from('validacoes').delete().eq('portaria_id', id); } catch(e) {}
+      
+      // Exclui motoristas
+      try { await supa.from('motoristas').delete().eq('portaria_id', id); } catch(e) {}
+      
+      // Exclui convites
+      try { await supa.from('convites').delete().eq('portaria_id', id); } catch(e) {}
+      
+      // Exclui assinaturas
+      try { await supa.from('assinaturas').delete().eq('portaria_id', id); } catch(e) {}
+      
+      // Exclui portaria
+      try {
+        await supa.from('portarias').delete().eq('id', id);
+        excluidas++;
+      } catch(e) {
+        console.warn('Erro ao excluir portaria:', e.message);
+      }
     }
-    console.log('✅ Assinaturas excluídas');
 
-    // 2. Exclui portarias
-    for (const id of ids) {
-      await supa.from('portarias').delete().eq('id', id);
-    }
-    console.log('✅ Portarias excluídas');
-
-    showToast(`🔥 ${ids.length} portarias excluídas! Começando do zero.`);
+    showToast(`🔥 ${excluidas} portarias excluídas! Começando do zero.`);
     hideLoading();
     await carregarPainelMaster();
 
@@ -522,7 +624,7 @@ async function limparTudo() {
 }
 
 // ============================================================
-// NOVA PORTARIA (SIMPLIFICADA)
+// NOVA PORTARIA
 // ============================================================
 function openAdicionarPortariaModal() {
   const html = `
