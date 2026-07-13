@@ -198,6 +198,13 @@ function getPortaria() {
   catch(e) { return null; }
 }
 
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // ============================================================
 // SUPABASE
 // ============================================================
@@ -290,14 +297,27 @@ async function carregarPainelMaster() {
       .select('*')
       .eq('ativo', true);
     
-    if (planError && !planError.message.includes('relation')) throw planError;
-    planosDisponiveis = (planos && planos.length > 0) ? planos : [
-      { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
-      { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
-      { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
-      { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
-    ];
-    console.log('✅ Planos:', planosDisponiveis.length);
+    if (planError) {
+      if (planError.message.includes('relation')) {
+        console.warn('⚠️ Tabela planos não existe');
+        planosDisponiveis = [
+          { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
+          { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
+          { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
+          { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
+        ];
+      } else {
+        throw planError;
+      }
+    } else {
+      planosDisponiveis = (planos && planos.length > 0) ? planos : [
+        { chave: 'trial', nome: 'Trial', valor_mensal: 0 },
+        { chave: 'basico', nome: 'Básico', valor_mensal: 49.90 },
+        { chave: 'profissional', nome: 'Profissional', valor_mensal: 99.90 },
+        { chave: 'enterprise', nome: 'Enterprise', valor_mensal: 199.90 }
+      ];
+      console.log('✅ Planos:', planosDisponiveis.length);
+    }
 
     atualizarEstatisticas();
     renderizarListaPortariasMaster();
@@ -634,7 +654,7 @@ async function toggleBloqueioPortaria(portariaId) {
 }
 
 // ============================================================
-// 4. EXCLUIR PORTARIA (CORRIGIDO)
+// 4. EXCLUIR PORTARIA
 // ============================================================
 async function excluirPortaria(portariaId) {
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -650,7 +670,7 @@ async function excluirPortaria(portariaId) {
   try {
     showLoading('Excluindo portaria e dados relacionados...');
     
-    // Tenta excluir de todas as tabelas (ignora erros de coluna)
+    // Tenta excluir de todas as tabelas
     const tabelas = ['validacoes', 'motoristas', 'convites', 'assinaturas'];
     for (const tabela of tabelas) {
       try {
@@ -799,7 +819,7 @@ async function salvarEdicaoPortaria(portariaId) {
 }
 
 // ============================================================
-// 6. NOVA PORTARIA
+// 6. NOVA PORTARIA (CORRIGIDA - COM UUID VÁLIDO)
 // ============================================================
 function openAdicionarPortariaModal() {
   const html = `
@@ -881,8 +901,8 @@ async function criarPortaria() {
       throw new Error('Este email já está cadastrado como portaria');
     }
 
-    // Cria ID temporário
-    const userId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    // Gera UUID válido
+    const userId = generateUUID();
 
     // Cria a portaria
     const { data: portariaData, error: portariaError } = await supa
@@ -947,7 +967,7 @@ async function criarPortaria() {
 }
 
 // ============================================================
-// 7. NOVO PLANO
+// 7. NOVO PLANO (CORRIGIDO)
 // ============================================================
 function openPlanoModal() {
   const html = `
@@ -1030,15 +1050,33 @@ async function salvarPlano() {
   try {
     showLoading('Salvando plano...');
     
-    await supa.from('planos').insert({
-      nome, chave, descricao,
-      valor_mensal: valor,
-      max_portarias: maxPortarias,
-      max_usuarios: maxUsuarios,
-      possui_suporte: suporte,
-      possui_relatorios: relatorios,
-      ativo: true
-    });
+    const { data, error } = await supa
+      .from('planos')
+      .insert({
+        nome, chave, descricao,
+        valor_mensal: valor,
+        max_portarias: maxPortarias,
+        max_usuarios: maxUsuarios,
+        possui_suporte: suporte,
+        possui_relatorios: relatorios,
+        ativo: true
+      })
+      .select();
+
+    if (error) {
+      if (error.message.includes('duplicate')) {
+        throw new Error('Já existe um plano com esta chave');
+      }
+      if (error.message.includes('row-level security')) {
+        throw new Error('Permissão negada. Execute o SQL para liberar RLS.');
+      }
+      throw error;
+    }
+
+    // Atualiza a lista de planos local
+    if (data && data.length > 0) {
+      planosDisponiveis.push(data[0]);
+    }
 
     showToast('✅ Plano criado com sucesso!');
     fecharModal();
@@ -1047,11 +1085,7 @@ async function salvarPlano() {
 
   } catch (e) {
     hideLoading();
-    if (e.message.includes('duplicate')) {
-      showToast('⚠️ Já existe um plano com esta chave');
-    } else {
-      showToast('Erro: ' + e.message);
-    }
+    showToast('Erro: ' + e.message);
   }
 }
 
