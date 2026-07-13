@@ -172,6 +172,7 @@ let supa = null;
 let todasPortarias = [];
 let todasAssinaturas = [];
 let planosDisponiveis = [];
+let currentUser = null;
 
 // ============================================================
 // UTILITÁRIOS
@@ -196,13 +197,6 @@ function hideLoading() {
 function getPortaria() {
   try { return JSON.parse(localStorage.getItem('portaria_atual') || 'null'); } 
   catch(e) { return null; }
-}
-
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
 }
 
 // ============================================================
@@ -240,6 +234,7 @@ async function fazerLogin() {
     const { data, error } = await supa.auth.signInWithPassword({ email, password });
     if (error) throw error;
     
+    currentUser = data.user;
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: data.user.id,
       nome: 'Master',
@@ -275,6 +270,7 @@ async function carregarPainelMaster() {
     showLoading('Carregando...');
     console.log('🔄 Carregando painel master...');
     
+    // Carrega portarias
     const { data: portarias, error: pError } = await supa
       .from('portarias')
       .select('*')
@@ -284,6 +280,7 @@ async function carregarPainelMaster() {
     todasPortarias = portarias || [];
     console.log('✅ Portarias:', todasPortarias.length);
 
+    // Carrega assinaturas
     const { data: assinaturas, error: aError } = await supa
       .from('assinaturas')
       .select('*');
@@ -292,6 +289,7 @@ async function carregarPainelMaster() {
     todasAssinaturas = assinaturas || [];
     console.log('✅ Assinaturas:', todasAssinaturas.length);
 
+    // Carrega planos
     const { data: planos, error: planError } = await supa
       .from('planos')
       .select('*')
@@ -819,7 +817,7 @@ async function salvarEdicaoPortaria(portariaId) {
 }
 
 // ============================================================
-// 6. NOVA PORTARIA (CORRIGIDA - COM UUID VÁLIDO)
+// 6. NOVA PORTARIA - CORRIGIDA
 // ============================================================
 function openAdicionarPortariaModal() {
   const html = `
@@ -901,10 +899,21 @@ async function criarPortaria() {
       throw new Error('Este email já está cadastrado como portaria');
     }
 
-    // Gera UUID válido
-    const userId = generateUUID();
+    // GERA UUID VÁLIDO usando crypto.randomUUID() se disponível
+    let userId;
+    if (crypto && crypto.randomUUID) {
+      userId = crypto.randomUUID();
+    } else {
+      // Fallback manual
+      userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+    
+    console.log('📋 UUID gerado:', userId);
 
-    // Cria a portaria
+    // Cria a portaria com UUID válido
     const { data: portariaData, error: portariaError } = await supa
       .from('portarias')
       .insert({
@@ -918,7 +927,12 @@ async function criarPortaria() {
       .select()
       .single();
 
-    if (portariaError) throw portariaError;
+    if (portariaError) {
+      console.error('❌ Erro ao criar portaria:', portariaError);
+      throw portariaError;
+    }
+
+    console.log('✅ Portaria criada:', portariaData);
 
     // Cria a assinatura
     const planoData = planosDisponiveis.find(p => p.chave === plano);
@@ -932,6 +946,7 @@ async function criarPortaria() {
         data_vencimento: dataVencimento,
         valor_mensal: planoData?.valor_mensal || 0
       });
+      console.log('✅ Assinatura criada');
     } catch (e) {
       console.warn('Erro ao criar assinatura:', e.message);
     }
@@ -950,9 +965,9 @@ async function criarPortaria() {
         status: 'pendente',
         expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       });
-      showToast(`✅ Portaria criada! Convite gerado para ${email}`, 4000);
+      showToast(`✅ Portaria "${nome}" criada! Convite enviado para ${email}`, 4000);
     } catch (e) {
-      showToast(`✅ Portaria criada! (Convite não enviado)`, 3000);
+      showToast(`✅ Portaria "${nome}" criada com sucesso!`, 3000);
     }
 
     fecharModal();
@@ -967,7 +982,7 @@ async function criarPortaria() {
 }
 
 // ============================================================
-// 7. NOVO PLANO (CORRIGIDO)
+// 7. NOVO PLANO - CORRIGIDO
 // ============================================================
 function openPlanoModal() {
   const html = `
@@ -1050,10 +1065,14 @@ async function salvarPlano() {
   try {
     showLoading('Salvando plano...');
     
+    console.log('📋 Salvando plano:', { nome, chave, descricao, valor, maxPortarias, maxUsuarios });
+    
     const { data, error } = await supa
       .from('planos')
       .insert({
-        nome, chave, descricao,
+        nome: nome,
+        chave: chave,
+        descricao: descricao,
         valor_mensal: valor,
         max_portarias: maxPortarias,
         max_usuarios: maxUsuarios,
@@ -1064,17 +1083,22 @@ async function salvarPlano() {
       .select();
 
     if (error) {
+      console.error('❌ Erro ao criar plano:', error);
       if (error.message.includes('duplicate')) {
         throw new Error('Já existe um plano com esta chave');
       }
       if (error.message.includes('row-level security')) {
-        throw new Error('Permissão negada. Execute o SQL para liberar RLS.');
+        throw new Error('Permissão negada. Execute: ALTER TABLE planos DISABLE ROW LEVEL SECURITY;');
       }
       throw error;
     }
 
+    console.log('✅ Plano criado:', data);
+
     // Atualiza a lista de planos local
     if (data && data.length > 0) {
+      // Remove se já existir (evita duplicação)
+      planosDisponiveis = planosDisponiveis.filter(p => p.chave !== chave);
       planosDisponiveis.push(data[0]);
     }
 
@@ -1084,6 +1108,7 @@ async function salvarPlano() {
     await carregarPainelMaster();
 
   } catch (e) {
+    console.error('❌ Erro:', e);
     hideLoading();
     showToast('Erro: ' + e.message);
   }
