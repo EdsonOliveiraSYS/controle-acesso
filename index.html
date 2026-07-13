@@ -2243,45 +2243,80 @@ async function fazerLoginAuth() {
 }
 
 // ============================================================
-// RESET SENHA
+// RESET SENHA - CORRIGIDO
 // ============================================================
 async function enviarResetSenha() {
   const email = document.getElementById('resetEmail').value.trim();
+  const errorDiv = document.getElementById('err-reset-email');
+  const loadingDiv = document.getElementById('resetLoading');
+  const btn = document.getElementById('btnReset');
   
-  document.getElementById('err-reset-email').classList.remove('show');
+  // Limpar erros
+  errorDiv.classList.remove('show');
   document.getElementById('resetEmail').classList.remove('error');
 
+  // Validar email
   if (!email || !email.includes('@')) {
-    document.getElementById('err-reset-email').classList.add('show');
+    errorDiv.textContent = 'Digite um email válido';
+    errorDiv.classList.add('show');
     document.getElementById('resetEmail').classList.add('error');
-    showToast('Digite um email válido', 3000);
+    showToast('⚠️ Digite um email válido', 3000);
     return;
   }
 
-  const btn = document.getElementById('btnReset');
-  const originalText = btn.textContent;
+  // Desabilitar botão
   btn.disabled = true;
   btn.textContent = '⏳ Enviando...';
-  document.getElementById('resetLoading').textContent = 'Enviando link...';
+  loadingDiv.textContent = 'Enviando link de recuperação...';
 
   try {
+    // Configurar URL de redirecionamento
     const redirectUrl = window.location.origin + window.location.pathname;
-    const { error } = await supa.auth.resetPasswordForEmail(email, {
+    
+    console.log('📧 Enviando reset para:', email);
+    console.log('🔄 Redirect URL:', redirectUrl);
+    
+    // Enviar email de reset
+    const { data, error } = await supa.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl
     });
-    if (error) throw new Error(error.message);
-
-    showToast('✅ Link de recuperação enviado para seu email!', 4000);
-    document.getElementById('resetLoading').textContent = '✅ Email enviado!';
-    setTimeout(fecharResetModal, 3000);
-
+    
+    if (error) {
+      console.error('❌ Erro no reset:', error);
+      
+      // Tratar erros específicos
+      if (error.message.includes('User not found')) {
+        throw new Error('Email não encontrado no sistema');
+      } else if (error.message.includes('rate limit')) {
+        throw new Error('Muitas tentativas. Aguarde 5 minutos.');
+      } else {
+        throw new Error(error.message);
+      }
+    }
+    
+    console.log('✅ Email enviado:', data);
+    
+    showToast('✅ Link de recuperação enviado para seu email!', 5000);
+    loadingDiv.textContent = '✅ Email enviado! Verifique sua caixa de entrada.';
+    
+    // Fechar modal após 3 segundos
+    setTimeout(() => {
+      document.getElementById('resetModal').classList.remove('open');
+      loadingDiv.textContent = '';
+    }, 3000);
+    
   } catch (e) {
-    console.error('❌ Erro ao enviar reset:', e);
-    showToast('Erro: ' + e.message);
-    document.getElementById('resetLoading').textContent = '❌ ' + e.message;
+    console.error('❌ Erro:', e);
+    showToast('❌ Erro: ' + e.message, 4000);
+    loadingDiv.textContent = '❌ ' + e.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = originalText;
+    btn.textContent = 'Enviar link';
+    setTimeout(() => {
+      if (!loadingDiv.textContent.includes('✅')) {
+        loadingDiv.textContent = '';
+      }
+    }, 5000);
   }
 }
 
