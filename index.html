@@ -468,6 +468,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .admin-only { display:none !important; }
 .role-admin .admin-only { display:block !important; }
 .role-admin .nav-btn.admin-only { display:flex !important; }
+.staff-only { display:none !important; }
+.role-admin .staff-only, .role-operador .staff-only { display:block !important; }
+.role-admin .nav-btn.staff-only, .role-operador .nav-btn.staff-only { display:flex !important; }
 
 #btnEnviarWhats { display:none; width:100%; padding:13px; background:#25D366; color:#fff; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; transition:all var(--transition-fast); }
 #btnEnviarWhats:hover { transform:scale(1.02); box-shadow:0 4px 16px rgba(37,211,102,0.3); }
@@ -959,6 +962,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
               <option value="bloqueado">✗ Bloqueado</option>
             </select>
           </div>
+          <div class="field"><label>DATA DE EXPIRAÇÃO DO QR CODE (opcional)</label><input type="date" id="f-qr-expira"></div>
           <button class="btn btn-primary" id="btnCadastrar" onclick="cadastrar()">Cadastrar e gerar QR Code</button>
         </div>
       </div>
@@ -966,11 +970,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <!-- LISTA MOTORISTAS -->
       <div class="page" id="page-lista">
         <div class="stats" id="statsRow"></div>
-        <div class="report-btns">
-          <button class="report-btn" onclick="exportarMotoristasCSV()">📊 CSV</button>
-          <button class="report-btn" onclick="exportarMotoristasPDF()">📄 PDF</button>
-          <button class="report-btn" onclick="exportarMotoristasCompleto()">📋 Completo</button>
-        </div>
         <div class="search-wrap">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" id="busca" placeholder="Buscar por nome ou placa..." oninput="renderLista()" class="field" style="margin:0">
@@ -1131,11 +1130,11 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></svg>
         Validar
       </button>
-      <button class="nav-btn admin-only" onclick="showPage('cadastro')" id="nav-cadastro" aria-label="Cadastrar motorista" role="tab" aria-selected="false">
+      <button class="nav-btn staff-only" onclick="showPage('cadastro')" id="nav-cadastro" aria-label="Cadastrar motorista" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
         Cadastrar
       </button>
-      <button class="nav-btn admin-only" onclick="showPage('lista')" id="nav-lista" aria-label="Lista de motoristas" role="tab" aria-selected="false">
+      <button class="nav-btn staff-only" onclick="showPage('lista')" id="nav-lista" aria-label="Lista de motoristas" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Motoristas
       </button>
@@ -1251,7 +1250,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <button class="qr-mini-btn" style="flex:1;" onclick="showQRFor(currentDriverId)">Ver QR Code</button>
       <button class="qr-mini-btn" style="flex:1;background:rgba(64,212,224,0.06);" onclick="openEditModal(currentDriverId)">✏️ Editar</button>
     </div>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="deleteDriver()">🗑 Remover motorista</button>
+    <button class="btn btn-ghost" id="btnDeleteDriver" style="margin-top:8px" onclick="deleteDriver()">🗑 Remover motorista</button>
   </div>
 </div>
 
@@ -1274,6 +1273,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
           <option value="bloqueado">✗ Bloqueado</option>
         </select>
       </div>
+      <div class="field"><label>DATA DE EXPIRAÇÃO DO QR CODE (opcional)</label><input type="date" id="e-qr-expira"></div>
       <div class="field"><label>NOVA FOTO</label>
         <div class="photo-picker">
           <div class="photo-preview" id="e-fotoPreview"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
@@ -2532,6 +2532,16 @@ async function iniciarApp() {
       
       document.getElementById('btnInvite').style.display = 'flex';
       document.getElementById('btnUsers').style.display = 'flex';
+    } else if (p.tipo === 'operador') {
+      // Operador: pode cadastrar, editar, validar e ver histórico — mas não excluir,
+      // convidar, gerenciar portaria ou ver usuários.
+      document.getElementById('app').classList.add('role-operador');
+      await carregarTodosMotoristas();
+      renderLista();
+      setupInfiniteScroll();
+
+      document.getElementById('btnInvite').style.display = 'none';
+      document.getElementById('btnUsers').style.display = 'none';
     } else {
       document.getElementById('btnInvite').style.display = 'none';
       document.getElementById('btnUsers').style.display = 'none';
@@ -2828,6 +2838,14 @@ async function processQR(id) {
       await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
       return;
     }
+    if (m.qr_expira_em) {
+      const hoje = new Date().toISOString().slice(0,10);
+      if (m.qr_expira_em < hoje) {
+        div.innerHTML = `<div class="result-box fail">${foto}<svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><h3 style="color:var(--red)">QR Code expirado</h3><p class="result-name">${m.nome}</p><p class="result-sub">Válido até ${new Date(m.qr_expira_em+'T00:00:00').toLocaleDateString('pt-BR')}</p></div>`;
+        await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
+        return;
+      }
+    }
     pendingValidation = { motorista: m, portaria, ok: m.status === 'autorizado' };
     const corStatus = m.status === 'autorizado' ? 'var(--green)' : 'var(--amber)';
     div.innerHTML = `
@@ -3005,24 +3023,6 @@ async function exportarLogPDF() {
     showToast('Erro ao exportar: ' + e.message, 4000);
     hideLoading();
   }
-}
-
-function exportarMotoristasCSV() {
-  if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
-  showToast('📊 Exportando CSV dos motoristas...', 2000);
-  // Implementação similar à do histórico
-}
-
-function exportarMotoristasPDF() {
-  if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
-  showToast('📄 Exportando PDF dos motoristas...', 2000);
-  // Implementação similar à do histórico
-}
-
-function exportarMotoristasCompleto() {
-  if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
-  showToast('📋 Exportando relatório completo...', 2000);
-  // Implementação similar à do histórico
 }
 
 // ============================================================
@@ -3280,7 +3280,8 @@ async function cadastrar() {
       placa: document.getElementById('f-placa').value.trim().toUpperCase(),
       empresa: document.getElementById('f-empresa').value.trim(),
       whatsapp: document.getElementById('f-whats').value.replace(/\D/g,''),
-      status: document.getElementById('f-status').value
+      status: document.getElementById('f-status').value,
+      qr_expira_em: document.getElementById('f-qr-expira').value || null
     };
     const { data, error } = await supa.from('motoristas').insert(novo).select().single();
     if (error) throw new Error(error.message);
@@ -3291,7 +3292,7 @@ async function cadastrar() {
       if (url) await supa.from('motoristas').update({ foto_url: url }).eq('id', data.id);
     }
     
-    ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats'].forEach(f => document.getElementById(f).value = '');
+    ['f-nome','f-cpf','f-cnh','f-placa','f-empresa','f-whats','f-qr-expira'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('f-status').value = 'autorizado';
     fotoFile = null;
     document.getElementById('f-foto').value = '';
@@ -3371,7 +3372,10 @@ function openDetail(id) {
     <div class="detail-row"><span>WhatsApp</span><span>${m.whatsapp ? Utils.formatPhone(m.whatsapp) : '—'}</span></div>
     <div class="detail-row"><span>Status</span><span class="${m.status === 'autorizado' ? 'badge badge-green' : m.status === 'bloqueado' ? 'badge badge-red' : 'badge badge-amber'}">${m.status}</span></div>
     <div class="detail-row"><span>Cadastrado em</span><span>${new Date(m.criado_em).toLocaleDateString('pt-BR')}</span></div>
+    ${m.qr_expira_em ? `<div class="detail-row"><span>QR expira em</span><span>${new Date(m.qr_expira_em+'T00:00:00').toLocaleDateString('pt-BR')}</span></div>` : ''}
   `;
+  const btnDel = document.getElementById('btnDeleteDriver');
+  if (btnDel) btnDel.style.display = verificarPermissao('podeExcluir') ? 'block' : 'none';
   document.getElementById('detailModal').classList.add('open');
 }
 
@@ -3389,6 +3393,7 @@ async function setStatus(status) {
 }
 
 async function deleteDriver() {
+  if (!verificarPermissao('podeExcluir')) { showToast('⚠️ Você não tem permissão para excluir', 3000); return; }
   if (!confirm('Tem certeza?')) return;
   if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
   const btn = document.querySelector('#detailModal .btn-ghost:last-child');
@@ -3416,6 +3421,7 @@ function openEditModal(id) {
   document.getElementById('e-empresa').value = m.empresa || '';
   document.getElementById('e-whats').value = Utils.formatPhone(m.whatsapp || '');
   document.getElementById('e-status').value = m.status || 'autorizado';
+  document.getElementById('e-qr-expira').value = m.qr_expira_em || '';
   const preview = document.getElementById('e-fotoPreview');
   if (m.foto_url) preview.innerHTML = `<img src="${m.foto_url}">`;
   else preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
@@ -3480,7 +3486,8 @@ async function salvarEdicao() {
       placa: document.getElementById('e-placa').value.trim().toUpperCase(),
       empresa: document.getElementById('e-empresa').value.trim(),
       whatsapp: document.getElementById('e-whats').value.replace(/\D/g,''),
-      status: document.getElementById('e-status').value
+      status: document.getElementById('e-status').value,
+      qr_expira_em: document.getElementById('e-qr-expira').value || null
     };
     const { error } = await supa.from('motoristas').update(dados).eq('id', editDriverId);
     if (error) throw new Error(error.message);
@@ -5073,56 +5080,80 @@ async function salvarPlano() {
 // ============================================================
 async function enviarImagemWhatsapp() {
   // 🟢 FUNÇÃO CORRIGIDA PARA WHATSAPP
+  // Importante: o link wa.me / whatsapp://send do WhatsApp só aceita TEXTO — não existe
+  // parâmetro de URL que anexe uma imagem a uma conversa específica. A única forma de
+  // enviar a imagem do QR Code é através da Web Share API (abre o menu nativo de
+  // compartilhamento do celular, de onde o usuário escolhe o WhatsApp e o contato do
+  // motorista). Quando o navegador não suporta isso, baixamos a imagem automaticamente
+  // e abrimos a conversa do motorista já pronta para anexar o arquivo manualmente.
   if (!qrWhatsAtual) {
     showToast('⚠️ Número de WhatsApp não disponível', 3000);
     return;
   }
-  
+
+  const qrCanvas = document.querySelector('#qrCode canvas');
+  if (!qrCanvas) {
+    showToast('⚠️ QR Code não encontrado', 3000);
+    return;
+  }
+
+  const nomeMotorista = document.getElementById('qrNome')?.textContent || 'motorista';
+  const numeroCompleto = qrWhatsAtual.length <= 11 ? `55${qrWhatsAtual}` : qrWhatsAtual;
+  const textoMensagem =
+    `🚛 *PortariaPro - QR Code de Acesso*\n\n` +
+    `Olá, ${nomeMotorista}! Segue seu QR Code de acesso à portaria.\n\n` +
+    `🔑 *Apenas para uso pessoal e intransferível.*\n\n` +
+    `📱 *PortariaPro* - Controle de acesso inteligente`;
+
   try {
-    showLoading('Abrindo WhatsApp...');
-    
-    // Pega o QR Code em formato de imagem
-    const qrCanvas = document.querySelector('#qrCode canvas');
-    if (!qrCanvas) {
-      showToast('⚠️ QR Code não encontrado', 3000);
+    showLoading('Preparando QR Code...');
+
+    const blob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('Não foi possível gerar a imagem do QR Code');
+
+    const fileName = `qrcode-${nomeMotorista.replace(/\s+/g,'-').toLowerCase()}.png`;
+    const file = new File([blob], fileName, { type: 'image/png' });
+
+    // Caminho ideal: Web Share API com arquivo (funciona em navegadores mobile modernos)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
       hideLoading();
+      await navigator.share({
+        files: [file],
+        title: 'QR Code de Acesso - PortariaPro',
+        text: textoMensagem
+      });
+      showToast('✅ Escolha o WhatsApp e o contato do motorista para enviar', 4000);
       return;
     }
-    
-    // Converte para base64
-    const qrDataUrl = qrCanvas.toDataURL('image/png');
-    
-    // Cria uma mensagem com o QR Code
-    const mensagem = encodeURIComponent(
-      `🚛 *PortariaPro - QR Code de Acesso*\n\n` +
-      `Use este QR Code para validar seu acesso na portaria.\n\n` +
-      `🔑 *Apenas para uso pessoal e intransferível.*\n\n` +
-      `📱 *PortariaPro* - Controle de acesso inteligente`
-    );
-    
-    const numeroCompleto = `55${qrWhatsAtual}`;
-    
-    // Tenta abrir o WhatsApp
+
+    // Fallback: baixa a imagem automaticamente e abre a conversa do motorista já pronta,
+    // pois não é possível pré-anexar arquivos via link do WhatsApp.
+    const downloadUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+
+    const mensagem = encodeURIComponent(textoMensagem + `\n\n📎 Anexe a imagem do QR Code que acabou de ser baixada.`);
     const waAppLink = `whatsapp://send?phone=${numeroCompleto}&text=${mensagem}`;
     const waWebLink = `https://wa.me/${numeroCompleto}?text=${mensagem}`;
-    
+
     const appWindow = window.open(waAppLink, '_blank');
-    
     setTimeout(() => {
-      if (!appWindow || appWindow.closed) {
-        window.open(waWebLink, '_blank');
-        showToast('🌐 Abrindo WhatsApp Web...', 3000);
-      } else {
-        showToast('✅ WhatsApp aberto! Envie a mensagem.', 3000);
-      }
+      if (!appWindow || appWindow.closed) window.open(waWebLink, '_blank');
     }, 1000);
-    
+
     hideLoading();
-    
+    showToast('💾 QR Code baixado! Anexe-o na conversa que foi aberta.', 5000);
+
   } catch (e) {
-    console.error('❌ Erro ao enviar WhatsApp:', e);
-    showToast('❌ Erro ao abrir WhatsApp: ' + e.message, 4000);
     hideLoading();
+    if (e.name === 'AbortError') return; // usuário cancelou o compartilhamento
+    console.error('❌ Erro ao enviar WhatsApp:', e);
+    showToast('❌ Erro ao enviar: ' + e.message, 4000);
   }
 }
 
