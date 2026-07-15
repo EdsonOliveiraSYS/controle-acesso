@@ -118,18 +118,6 @@
   --report-btn-font-size: 11px;
   --report-btn-padding: 10px 8px;
   --stat-label-size: 10px;
-  --edit-title-size: 18px;
-  --edit-field-padding: 12px 14px;
-  --edit-field-font-size: 15px;
-  --edit-btn-padding: 14px;
-  --edit-btn-font-size: 15px;
-  --edit-photo-preview-size: 64px;
-  --edit-photo-btn-padding: 11px;
-  --edit-photo-btn-font-size: 13px;
-  --edit-status-btn-padding: 11px;
-  --edit-status-btn-font-size: 12px;
-  --edit-qr-mini-btn-padding: 11px;
-  --edit-qr-mini-btn-font-size: 13px;
   --chart-height: 200px;
 }
 
@@ -256,9 +244,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   border-radius:var(--radius-full);
   font-weight:600;
 }
-.user-role.master { background:rgba(64,212,224,0.2); color:var(--cyan); }
-.user-role.admin { background:var(--green-bg); color:var(--green); }
+.user-role.administrador { background:rgba(64,212,224,0.2); color:var(--cyan); }
+.user-role.portaria { background:var(--green-bg); color:var(--green); }
 .user-role.operador { background:var(--amber-bg); color:var(--amber); }
+.user-role.validacoes { background:rgba(64,212,224,0.1); color:var(--text2); }
 .user-actions { display:flex; gap:6px; }
 .user-actions button {
   background:none;
@@ -466,8 +455,18 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .dir-btn.saida:hover { border-color:var(--text3); color:var(--text); }
 
 .admin-only { display:none !important; }
-.role-admin .admin-only { display:block !important; }
-.role-admin .nav-btn.admin-only { display:flex !important; }
+.portaria-only { display:none !important; }
+.operador-only { display:none !important; }
+.validacoes-only { display:none !important; }
+
+.role-administrador .admin-only { display:block !important; }
+.role-administrador .nav-btn.admin-only { display:flex !important; }
+.role-portaria .portaria-only { display:block !important; }
+.role-portaria .nav-btn.portaria-only { display:flex !important; }
+.role-operador .operador-only { display:block !important; }
+.role-operador .nav-btn.operador-only { display:flex !important; }
+.role-validacoes .validacoes-only { display:block !important; }
+.role-validacoes .nav-btn.validacoes-only { display:flex !important; }
 
 #btnEnviarWhats { display:none; width:100%; padding:13px; background:#25D366; color:#fff; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; transition:all var(--transition-fast); }
 #btnEnviarWhats:hover { transform:scale(1.02); box-shadow:0 4px 16px rgba(37,211,102,0.3); }
@@ -602,7 +601,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   font-size: 11px;
 }
 
-/* ===== ESTILOS DO PAINEL MASTER ===== */
+/* ===== ESTILOS DO PAINEL MASTER (APENAS ADMINISTRADOR) ===== */
 .master-header {
   display: flex;
   justify-content: space-between;
@@ -854,10 +853,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     <div class="auth-error" id="loginError"></div>
     <div class="auth-form">
       <div class="field">
-        <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" value="master@portariapro.com">
+        <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" value="admin@portariapro.com">
       </div>
       <div class="field">
-        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" value="Master@2024">
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" value="Admin@2024">
       </div>
       <button class="btn btn-primary" onclick="fazerLoginAuth()" id="btnLogin">Entrar</button>
       <div class="auth-loading" id="loginLoading"></div>
@@ -906,15 +905,16 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       </div>
       <div class="header-right">
         <button class="btn-update" id="btnTheme" title="Alternar tema">🌙</button>
-        <button class="btn-update" id="btnInvite" title="Convidar usuário">📧</button>
-        <button class="btn-update" id="btnUsers" title="Gerenciar usuários">👥</button>
+        <!-- Botão Convidar - apenas Administrador e Portaria -->
+        <button class="btn-update admin-only portaria-only" id="btnInvite" title="Convidar usuário">📧</button>
+        <button class="btn-update admin-only" id="btnUsers" title="Gerenciar usuários">👥</button>
         <button class="btn-update" onclick="forceUpdate()" title="Forçar atualização">🔄</button>
         <div class="header-badge" onclick="logoutAuth()" title="Sair">Sair</div>
       </div>
     </div>
 
     <div class="pages">
-      <!-- SCAN -->
+      <!-- SCAN - Todos podem acessar -->
       <div class="page active" id="page-scan">
         <p class="section-title">Validação por QR Code</p>
         <div class="scan-zone" id="scanZone" onclick="startScan()">
@@ -934,8 +934,8 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scanResult"></div>
       </div>
 
-      <!-- CADASTRO MOTORISTAS -->
-      <div class="page" id="page-cadastro">
+      <!-- CADASTRO MOTORISTAS - Apenas Administrador, Portaria e Operador -->
+      <div class="page admin-only portaria-only operador-only" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
           <div class="field"><label>NOME COMPLETO *</label><input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off"></div>
@@ -972,8 +972,8 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         </div>
       </div>
 
-      <!-- LISTA MOTORISTAS -->
-      <div class="page" id="page-lista">
+      <!-- LISTA MOTORISTAS - Administrador, Portaria e Operador -->
+      <div class="page admin-only portaria-only operador-only" id="page-lista">
         <div class="stats" id="statsRow"></div>
         <div class="search-wrap">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -983,7 +983,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div id="scrollTrigger" style="height:20px;"></div>
       </div>
 
-      <!-- HISTÓRICO -->
+      <!-- HISTÓRICO - Todos podem acessar -->
       <div class="page" id="page-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <p class="section-title" style="margin:0">📋 Histórico de validações</p>
@@ -994,7 +994,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
           </div>
         </div>
 
-        <div class="filtros-container" id="filtrosContainer">
+        <div class="filtros-container admin-only" id="filtrosContainer">
           <div class="field"><label>📅 DATA INICIAL</label><input type="date" id="filtroDataInicio"></div>
           <div class="field"><label>📅 DATA FINAL</label><input type="date" id="filtroDataFim"></div>
           <div class="field"><label>🔄 TIPO</label>
@@ -1020,8 +1020,8 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div class="card" id="logList"></div>
       </div>
 
-      <!-- DASHBOARD -->
-      <div class="page" id="page-dashboard">
+      <!-- DASHBOARD - Administrador, Portaria e Operador -->
+      <div class="page admin-only portaria-only operador-only" id="page-dashboard">
         <p class="section-title">📊 Dashboard</p>
         <div class="dashboard-stats" id="dashboardStats">
           <div class="dashboard-stat"><div class="number entrada" id="dashEntradas">0</div><div class="label">⬇️ Entradas hoje</div></div>
@@ -1052,11 +1052,11 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         </div>
       </div>
 
-      <!-- PAINEL MASTER (SOMENTE MESTRE) -->
-      <div class="page" id="page-master">
+      <!-- PAINEL MASTER - APENAS ADMINISTRADOR -->
+      <div class="page admin-only" id="page-master">
         <div class="master-header">
           <div>
-            <p class="section-title" style="margin:0;">👑 Painel Master</p>
+            <p class="section-title" style="margin:0;">👑 Painel Administrador</p>
             <p style="font-size:13px;color:var(--text2);">Gerencie todas as portarias, licenças e assinaturas</p>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1135,11 +1135,11 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></svg>
         Validar
       </button>
-      <button class="nav-btn admin-only" onclick="showPage('cadastro')" id="nav-cadastro" aria-label="Cadastrar motorista" role="tab" aria-selected="false">
+      <button class="nav-btn admin-only portaria-only operador-only" onclick="showPage('cadastro')" id="nav-cadastro" aria-label="Cadastrar motorista" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
         Cadastrar
       </button>
-      <button class="nav-btn admin-only" onclick="showPage('lista')" id="nav-lista" aria-label="Lista de motoristas" role="tab" aria-selected="false">
+      <button class="nav-btn admin-only portaria-only operador-only" onclick="showPage('lista')" id="nav-lista" aria-label="Lista de motoristas" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Motoristas
       </button>
@@ -1147,11 +1147,11 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
         Histórico
       </button>
-      <button class="nav-btn" onclick="showPage('dashboard')" id="nav-dashboard" aria-label="Dashboard" role="tab" aria-selected="false">
+      <button class="nav-btn admin-only portaria-only operador-only" onclick="showPage('dashboard')" id="nav-dashboard" aria-label="Dashboard" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         Dashboard
       </button>
-      <button class="nav-btn admin-only" onclick="showPage('master')" id="nav-master" aria-label="Painel Master" role="tab" aria-selected="false">
+      <button class="nav-btn admin-only" onclick="showPage('master')" id="nav-master" aria-label="Painel Administrador" role="tab" aria-selected="false">
         <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         Painel
       </button>
@@ -1179,7 +1179,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   <div class="invite-sheet">
     <div class="handle"></div>
     <h3>📧 Convidar Usuário</h3>
-    <p>Convide um novo operador para sua portaria</p>
+    <p>Convide um novo membro para sua portaria</p>
     <div class="field">
       <label>EMAIL DO CONVIDADO</label>
       <input type="email" id="inviteEmail" placeholder="email@exemplo.com">
@@ -1191,8 +1191,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     <div class="field">
       <label>NÍVEL DE ACESSO</label>
       <select id="inviteRole">
-        <option value="operador">👤 Operador (cadastrar/editar)</option>
-        <option value="admin">👑 Administrador (tudo, menos excluir portaria)</option>
+        <option value="portaria">🛠️ Portaria (gestor da portaria)</option>
+        <option value="operador">🚦 Operador (cadastra/edita/valida)</option>
+        <option value="validacoes">👁️ Validações (somente valida)</option>
       </select>
     </div>
     <div class="invite-options">
@@ -1246,17 +1247,17 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <div><h3 id="detailNome"></h3><p style="font-size:13px;color:var(--text2)" id="detailEmpresa"></p></div>
     </div>
     <div id="detailRows"></div>
-    <div class="status-btns">
+    <div class="status-btns admin-only portaria-only operador-only">
       <button class="status-btn s-green" onclick="setStatus('autorizado')">Autorizar</button>
       <button class="status-btn s-amber" onclick="setStatus('pendente')">Pendente</button>
       <button class="status-btn s-red" onclick="setStatus('bloqueado')">Bloquear</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button class="qr-mini-btn" style="flex:1;" onclick="showQRFor(currentDriverId)">Ver QR Code</button>
-      <button class="qr-mini-btn" style="flex:1;background:rgba(64,212,224,0.06);" onclick="openEditModal(currentDriverId)">✏️ Editar</button>
+      <button class="qr-mini-btn admin-only portaria-only operador-only" style="flex:1;background:rgba(64,212,224,0.06);" onclick="openEditModal(currentDriverId)">✏️ Editar</button>
     </div>
-    <!-- Botão remover só para admin/mestre -->
-    <button class="btn btn-ghost admin-only" style="margin-top:8px" onclick="deleteDriver()">🗑 Remover motorista</button>
+    <!-- Botão remover - apenas Administrador e Portaria -->
+    <button class="btn btn-ghost admin-only portaria-only" style="margin-top:8px" onclick="deleteDriver()">🗑 Remover motorista</button>
   </div>
 </div>
 
@@ -1287,7 +1288,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         </div>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="salvarEdicao()">💾 Salvar alterações</button>
+    <button class="btn btn-primary admin-only portaria-only operador-only" onclick="salvarEdicao()">💾 Salvar alterações</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('editModal').classList.remove('open')">Cancelar</button>
   </div>
 </div>
@@ -1296,13 +1297,13 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT COMPLETO - CORRIGIDO
+// JAVASCRIPT COMPLETO - VERSÃO COM NOVAS CLASSIFICAÇÕES
 // ============================================================
 
 // ============================================================
 // VERSÃO E SERVICE WORKER
 // ============================================================
-const APP_VERSION = '3.1.0';
+const APP_VERSION = '3.2.0';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
@@ -1462,19 +1463,6 @@ const Utils = {
     const parts = dateStr.split('-');
     return new Date(parts[0], parts[1] - 1, parts[2]);
   },
-  formatDuration: (ms) => {
-    if (!ms || ms < 0) return '—';
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    const remainingMinutes = minutes % 60;
-    if (days > 0) return `${days}d ${remainingHours}h ${remainingMinutes}min`;
-    else if (hours > 0) return `${hours}h ${remainingMinutes}min`;
-    else if (minutes > 0) return `${minutes}min`;
-    else return `${seconds}s`;
-  },
   generateUUID: function() {
     if (crypto && crypto.randomUUID) {
       return crypto.randomUUID();
@@ -1483,6 +1471,24 @@ const Utils = {
       var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
+  },
+  getRoleLabel: function(tipo) {
+    const labels = {
+      'administrador': '👑 Administrador',
+      'portaria': '🛠️ Portaria',
+      'operador': '🚦 Operador',
+      'validacoes': '👁️ Validações'
+    };
+    return labels[tipo] || tipo;
+  },
+  getRoleIcon: function(tipo) {
+    const icons = {
+      'administrador': '👑',
+      'portaria': '🛠️',
+      'operador': '🚦',
+      'validacoes': '👁️'
+    };
+    return icons[tipo] || '👤';
   }
 };
 
@@ -1515,19 +1521,18 @@ let ultimoLinkConvite = '';
 let qrWhatsAtual = '';
 let qrDriverId = '';
 
-// Variáveis do Painel Master
+// Variáveis do Painel Master (apenas Administrador)
 let todasPortarias = [];
 let todasAssinaturas = [];
 let planosDisponiveis = [];
 
 // ============================================================
-// PLANOS PRÉ-CONFIGURADOS
+// PLANOS PRÉ-CONFIGURADOS (NOVOS VALORES)
 // ============================================================
 const PLANOS_PADRAO = [
-  { chave: 'trial', nome: 'Trial', descricao: 'Teste gratuito por 7 dias', valor_mensal: 0, max_portarias: 1, max_usuarios: 2, possui_suporte: false, possui_relatorios: false, ativo: true },
-  { chave: 'basico', nome: 'Básico', descricao: 'Para pequenas portarias', valor_mensal: 49.90, max_portarias: 1, max_usuarios: 3, possui_suporte: false, possui_relatorios: false, ativo: true },
-  { chave: 'profissional', nome: 'Profissional', descricao: 'Para portarias com múltiplos operadores', valor_mensal: 99.90, max_portarias: 3, max_usuarios: 10, possui_suporte: true, possui_relatorios: true, ativo: true },
-  { chave: 'enterprise', nome: 'Enterprise', descricao: 'Para grandes operações', valor_mensal: 199.90, max_portarias: 10, max_usuarios: 50, possui_suporte: true, possui_relatorios: true, ativo: true }
+  { chave: 'basico', nome: 'Básico', descricao: '1 portaria e até 3 operadores', valor_mensal: 149.00, max_portarias: 1, max_operadores: 3, possui_suporte: false, possui_relatorios: false, ativo: true },
+  { chave: 'profissional', nome: 'Profissional', descricao: '3 portarias, 5 operadores, relatórios e suporte', valor_mensal: 299.00, max_portarias: 3, max_operadores: 5, possui_suporte: true, possui_relatorios: true, ativo: true },
+  { chave: 'enterprise', nome: 'Enterprise', descricao: 'Conforme unidades, integrações e SLA', valor_mensal: 599.00, max_portarias: 999, max_operadores: 999, possui_suporte: true, possui_relatorios: true, ativo: true }
 ];
 
 // ============================================================
@@ -1563,30 +1568,30 @@ function initSupabase() {
 }
 
 // ============================================================
-// CRIAÇÃO DO USUÁRIO MESTRE
+// CRIAÇÃO DO USUÁRIO ADMINISTRADOR
 // ============================================================
-async function criarUsuarioMestre() {
+async function criarUsuarioAdministrador() {
   try {
-    console.log('👑 Verificando usuário mestre...');
+    console.log('👑 Verificando usuário administrador...');
     
     const { data: loginData, error: loginError } = await supa.auth.signInWithPassword({
-      email: 'master@portariapro.com',
-      password: 'Master@2024'
+      email: 'admin@portariapro.com',
+      password: 'Admin@2024'
     });
 
     if (!loginError && loginData?.user) {
-      console.log('✅ Usuário mestre já existe e está logado');
+      console.log('✅ Usuário administrador já existe e está logado');
       return true;
     }
 
-    console.log('👑 Criando usuário mestre...');
+    console.log('👑 Criando usuário administrador...');
     const { data: authData, error: authError } = await supa.auth.signUp({
-      email: 'master@portariapro.com',
-      password: 'Master@2024',
+      email: 'admin@portariapro.com',
+      password: 'Admin@2024',
       options: {
         data: {
-          nome: 'Mestre',
-          tipo: 'mestre'
+          nome: 'Administrador',
+          tipo: 'administrador'
         }
       }
     });
@@ -1595,11 +1600,11 @@ async function criarUsuarioMestre() {
       if (authError.message.includes('already registered')) {
         console.log('⚠️ Usuário já registrado');
         const { data: retryLogin, error: retryError } = await supa.auth.signInWithPassword({
-          email: 'master@portariapro.com',
-          password: 'Master@2024'
+          email: 'admin@portariapro.com',
+          password: 'Admin@2024'
         });
         if (!retryError && retryLogin?.user) {
-          console.log('✅ Login com usuário mestre bem sucedido!');
+          console.log('✅ Login com administrador bem sucedido!');
           return true;
         }
         return true;
@@ -1608,26 +1613,29 @@ async function criarUsuarioMestre() {
     }
 
     if (!authData || !authData.user) {
-      throw new Error('Falha ao criar usuário mestre');
+      throw new Error('Falha ao criar usuário administrador');
     }
 
     try {
       await supa.from('portarias').insert({
         id: authData.user.id,
-        nome: 'Sistema Master',
-        email: 'master@portariapro.com',
-        tipo: 'mestre',
-        codigo: 'MASTER_' + Math.random().toString(36).substring(2, 8).toUpperCase()
+        nome: 'Sistema Administrador',
+        email: 'admin@portariapro.com',
+        tipo: 'administrador',
+        plano: 'enterprise',
+        codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase()
       });
     } catch (e) {
-      console.log('⚠️ Erro ao criar portaria mestre:', e.message);
+      console.log('⚠️ Erro ao criar portaria administrador:', e.message);
     }
 
-    console.log('✅ Usuário mestre criado com sucesso!');
+    console.log('✅ Usuário administrador criado com sucesso!');
+    console.log('📧 Email: admin@portariapro.com');
+    console.log('🔑 Senha: Admin@2024');
     return true;
 
   } catch (e) {
-    console.error('❌ Erro ao criar usuário mestre:', e);
+    console.error('❌ Erro ao criar usuário administrador:', e);
     return false;
   }
 }
@@ -1675,7 +1683,7 @@ async function criarPlanosPadrao() {
             descricao: plano.descricao,
             valor_mensal: plano.valor_mensal,
             max_portarias: plano.max_portarias,
-            max_usuarios: plano.max_usuarios,
+            max_operadores: plano.max_operadores,
             possui_suporte: plano.possui_suporte,
             possui_relatorios: plano.possui_relatorios,
             ativo: plano.ativo
@@ -1747,26 +1755,16 @@ async function enviarConviteEmail() {
   const role = document.getElementById('inviteRole').value;
   let isValid = true;
 
-  document.getElementById('err-invite-email').classList.remove('show');
-  document.getElementById('err-invite-nome').classList.remove('show');
-  document.getElementById('inviteEmail').classList.remove('error');
-  document.getElementById('inviteNome').classList.remove('error');
-
   if (!email || !email.includes('@')) {
-    document.getElementById('err-invite-email').classList.add('show');
-    document.getElementById('inviteEmail').classList.add('error');
+    showToast('⚠️ Digite um email válido', 3000);
     isValid = false;
   }
   if (!nome || nome.length < 3) {
-    document.getElementById('err-invite-nome').classList.add('show');
-    document.getElementById('inviteNome').classList.add('error');
+    showToast('⚠️ Digite um nome válido', 3000);
     isValid = false;
   }
 
-  if (!isValid) {
-    showToast('Corrija os campos destacados', 3000);
-    return;
-  }
+  if (!isValid) return;
 
   const btn = event?.target;
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
@@ -1775,6 +1773,27 @@ async function enviarConviteEmail() {
   try {
     const portaria = getPortaria();
     if (!portaria) throw new Error('Sessão expirada');
+
+    // Verifica limite de operadores baseado no plano
+    if (role === 'operador' || role === 'portaria') {
+      const { data: planoData } = await supa
+        .from('planos')
+        .select('max_operadores')
+        .eq('chave', portaria.plano || 'basico')
+        .single();
+      
+      const maxOperadores = planoData?.max_operadores || 3;
+      
+      const { count, error: countError } = await supa
+        .from('portarias')
+        .select('*', { count: 'exact', head: true })
+        .eq('portaria_id', portaria.id)
+        .in('tipo', ['portaria', 'operador']);
+      
+      if (!countError && count >= maxOperadores) {
+        throw new Error(`Limite de ${maxOperadores} operadores atingido para o plano ${portaria.plano || 'Básico'}`);
+      }
+    }
 
     const { data: existingUser } = await supa
       .from('portarias')
@@ -1788,31 +1807,24 @@ async function enviarConviteEmail() {
 
     const codigo = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
     
-    try {
-      await supa.from('convites').insert({
-        email: email,
-        nome: nome,
-        role: role,
-        portaria_id: portaria.id,
-        portaria_nome: portaria.nome,
-        codigo: codigo,
-        criado_por: portaria.id,
-        status: 'pendente',
-        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      });
-    } catch (e) {
-      if (e.message.includes('relation "convites" does not exist')) {
-        throw new Error('Tabela de convites não existe. Execute o SQL no Supabase.');
-      }
-      throw e;
-    }
+    await supa.from('convites').insert({
+      email: email,
+      nome: nome,
+      role: role,
+      portaria_id: portaria.id,
+      portaria_nome: portaria.nome,
+      codigo: codigo,
+      criado_por: portaria.id,
+      status: 'pendente',
+      expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    });
 
     ultimoLinkConvite = `${window.location.origin}${window.location.pathname}?convite=${codigo}`;
 
     const assunto = encodeURIComponent(`Convite PortariaPro - ${portaria.nome}`);
     const corpo = encodeURIComponent(
       `Olá ${nome},\n\n` +
-      `Você foi convidado para se cadastrar na portaria "${portaria.nome}" como ${role === 'admin' ? 'Administrador' : 'Operador'}.\n\n` +
+      `Você foi convidado para se cadastrar na portaria "${portaria.nome}" como ${Utils.getRoleLabel(role)}.\n\n` +
       `🔗 Clique no link para criar sua conta: ${ultimoLinkConvite}\n\n` +
       `O link expira em 7 dias.\n\n` +
       `Att,\nPortariaPro`
@@ -1949,7 +1961,7 @@ async function processarConvite() {
     document.getElementById('registerNome').value = invite.nome;
     document.getElementById('registerEmail').value = invite.email;
     
-    showToast(`📧 Cadastre-se para entrar na portaria "${invite.portaria_nome}"`, 4000);
+    showToast(`📧 Cadastre-se para entrar na portaria "${invite.portaria_nome}" como ${Utils.getRoleLabel(invite.role)}`, 4000);
     
     conviteAtual = {
       codigo: codigo,
@@ -1993,7 +2005,6 @@ function mostrarResetSenha() {
   document.getElementById('resetModal').classList.add('open');
   document.getElementById('resetEmail').value = '';
   document.getElementById('resetEmail').focus();
-  document.getElementById('err-reset-email').classList.remove('show');
   document.getElementById('resetLoading').textContent = '';
 }
 
@@ -2024,31 +2035,24 @@ async function fazerCadastro() {
   const confirmPassword = document.getElementById('registerConfirmPassword').value;
   let isValid = true;
 
-  document.querySelectorAll('#registerScreen .error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('#registerScreen .field input').forEach(el => el.classList.remove('error'));
-
   if (!nome || nome.length < 3) {
-    document.getElementById('err-register-nome').classList.add('show');
-    document.getElementById('registerNome').classList.add('error');
+    showToast('⚠️ Digite um nome válido', 3000);
     isValid = false;
   }
   if (!email || !email.includes('@')) {
-    document.getElementById('err-register-email').classList.add('show');
-    document.getElementById('registerEmail').classList.add('error');
+    showToast('⚠️ Digite um email válido', 3000);
     isValid = false;
   }
   if (!password || password.length < 6) {
-    document.getElementById('err-register-password').classList.add('show');
-    document.getElementById('registerPassword').classList.add('error');
+    showToast('⚠️ A senha deve ter no mínimo 6 caracteres', 3000);
     isValid = false;
   }
   if (password !== confirmPassword) {
-    document.getElementById('err-register-confirm').classList.add('show');
-    document.getElementById('registerConfirmPassword').classList.add('error');
+    showToast('⚠️ As senhas não coincidem', 3000);
     isValid = false;
   }
 
-  if (!isValid) { showToast('Corrija os campos destacados', 3000); return; }
+  if (!isValid) return;
 
   const btn = document.getElementById('btnRegister');
   const originalText = btn.textContent;
@@ -2078,7 +2082,8 @@ async function fazerCadastro() {
         nome: convite.nome,
         email: convite.email,
         tipo: convite.role,
-        portaria_id: convite.portaria_id
+        portaria_id: convite.portaria_id,
+        plano: 'basico'
       });
 
       await supa.from('convites').update({ 
@@ -2103,7 +2108,7 @@ async function fazerCadastro() {
       options: {
         data: { 
           nome: nome, 
-          tipo: 'admin' 
+          tipo: 'portaria' 
         },
         emailRedirectTo: redirectUrl
       }
@@ -2123,24 +2128,16 @@ async function fazerCadastro() {
         id: authData.user.id,
         nome: nome,
         email: email,
-        tipo: 'admin',
-        codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase()
+        tipo: 'portaria',
+        plano: 'basico',
+        codigo: 'PORT_' + Math.random().toString(36).substring(2, 8).toUpperCase()
       });
 
     if (portariaError) {
-      if (portariaError.message.includes('codigo') || portariaError.message.includes('duplicate')) {
-        await supa.from('portarias').insert({
-          id: authData.user.id,
-          nome: nome,
-          email: email,
-          tipo: 'admin'
-        });
-      } else {
-        throw new Error('Erro ao criar perfil: ' + portariaError.message);
-      }
+      throw new Error('Erro ao criar perfil: ' + portariaError.message);
     }
 
-    showToast('✅ Conta criada! Verifique seu email para confirmar.', 5000);
+    showToast('✅ Conta criada! Faça login para continuar.', 5000);
     mostrarLogin();
     document.getElementById('loginEmail').value = email;
 
@@ -2161,23 +2158,15 @@ async function fazerCadastro() {
 async function fazerLoginAuth() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  let isValid = true;
-
-  document.querySelectorAll('#loginScreen .error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('#loginScreen .field input').forEach(el => el.classList.remove('error'));
 
   if (!email || !email.includes('@')) {
-    document.getElementById('err-login-email').classList.add('show');
-    document.getElementById('loginEmail').classList.add('error');
-    isValid = false;
+    showToast('⚠️ Digite um email válido', 3000);
+    return;
   }
   if (!password || password.length < 6) {
-    document.getElementById('err-login-password').classList.add('show');
-    document.getElementById('loginPassword').classList.add('error');
-    isValid = false;
+    showToast('⚠️ Digite sua senha', 3000);
+    return;
   }
-
-  if (!isValid) { showToast('Corrija os campos destacados', 3000); return; }
 
   const btn = document.getElementById('btnLogin');
   const originalText = btn.textContent;
@@ -2193,8 +2182,8 @@ async function fazerLoginAuth() {
     
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        console.log('⚠️ Credenciais inválidas. Tentando criar usuário mestre...');
-        await criarUsuarioMestre();
+        console.log('⚠️ Credenciais inválidas. Tentando criar usuário administrador...');
+        await criarUsuarioAdministrador();
         const { data: retryData, error: retryError } = await supa.auth.signInWithPassword({ 
           email, 
           password 
@@ -2224,13 +2213,15 @@ async function fazerLoginAuth() {
     if (portariaError) throw new Error('Erro ao buscar portaria');
 
     if (!portaria) {
+      const userData = currentUser.user_metadata || {};
       const { error: insertError } = await supa
         .from('portarias')
         .insert({
           id: currentUser.id,
-          nome: currentUser.user_metadata?.nome || 'Portaria',
+          nome: userData.nome || 'Portaria',
           email: email,
-          tipo: currentUser.user_metadata?.tipo || 'admin'
+          tipo: userData.tipo || 'portaria',
+          plano: 'basico'
         });
       
       if (!insertError) {
@@ -2247,8 +2238,9 @@ async function fazerLoginAuth() {
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: currentUser.id,
       nome: portaria?.nome || currentUser.user_metadata?.nome || 'Portaria',
-      tipo: portaria?.tipo || currentUser.user_metadata?.tipo || 'admin',
-      email: email
+      tipo: portaria?.tipo || currentUser.user_metadata?.tipo || 'portaria',
+      email: email,
+      plano: portaria?.plano || 'basico'
     }));
 
     showToast('✅ Login realizado com sucesso!', 2000);
@@ -2270,17 +2262,10 @@ async function fazerLoginAuth() {
 // ============================================================
 async function enviarResetSenha() {
   const email = document.getElementById('resetEmail').value.trim();
-  const errorDiv = document.getElementById('err-reset-email');
   const loadingDiv = document.getElementById('resetLoading');
   const btn = document.getElementById('btnReset');
-  
-  errorDiv.classList.remove('show');
-  document.getElementById('resetEmail').classList.remove('error');
 
   if (!email || !email.includes('@')) {
-    errorDiv.textContent = 'Digite um email válido';
-    errorDiv.classList.add('show');
-    document.getElementById('resetEmail').classList.add('error');
     showToast('⚠️ Digite um email válido', 3000);
     return;
   }
@@ -2292,14 +2277,11 @@ async function enviarResetSenha() {
   try {
     const redirectUrl = window.location.origin + window.location.pathname;
     
-    console.log('📧 Enviando reset para:', email);
-    
     const { data, error } = await supa.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl
     });
     
     if (error) {
-      console.error('❌ Erro no reset:', error);
       if (error.message.includes('User not found')) {
         throw new Error('Email não encontrado no sistema');
       } else if (error.message.includes('rate limit')) {
@@ -2308,8 +2290,6 @@ async function enviarResetSenha() {
         throw new Error(error.message);
       }
     }
-    
-    console.log('✅ Email enviado:', data);
     
     showToast('✅ Link de recuperação enviado para seu email!', 5000);
     loadingDiv.textContent = '✅ Email enviado! Verifique sua caixa de entrada.';
@@ -2398,10 +2378,11 @@ async function verificarSessao() {
       localStorage.setItem('portaria_atual', JSON.stringify({
         id: session.user.id,
         nome: userData.nome || 'Portaria',
-        tipo: userData.tipo || 'admin',
-        email: session.user.email
+        tipo: userData.tipo || 'portaria',
+        email: session.user.email,
+        plano: 'basico'
       }));
-      currentPortaria = { id: session.user.id, nome: userData.nome || 'Portaria', tipo: userData.tipo || 'admin' };
+      currentPortaria = { id: session.user.id, nome: userData.nome || 'Portaria', tipo: userData.tipo || 'portaria', plano: 'basico' };
       await iniciarApp();
       return true;
     }
@@ -2412,8 +2393,9 @@ async function verificarSessao() {
       localStorage.setItem('portaria_atual', JSON.stringify({
         id: portaria.id,
         nome: portaria.nome,
-        tipo: portaria.tipo || 'admin',
-        email: portaria.email || session.user.email
+        tipo: portaria.tipo || 'portaria',
+        email: portaria.email || session.user.email,
+        plano: portaria.plano || 'basico'
       }));
       await iniciarApp();
       return true;
@@ -2424,10 +2406,11 @@ async function verificarSessao() {
     localStorage.setItem('portaria_atual', JSON.stringify({
       id: session.user.id,
       nome: userData.nome || 'Portaria',
-      tipo: userData.tipo || 'admin',
-      email: session.user.email
+      tipo: userData.tipo || 'portaria',
+      email: session.user.email,
+      plano: 'basico'
     }));
-    currentPortaria = { id: session.user.id, nome: userData.nome || 'Portaria', tipo: userData.tipo || 'admin' };
+    currentPortaria = { id: session.user.id, nome: userData.nome || 'Portaria', tipo: userData.tipo || 'portaria', plano: 'basico' };
     await iniciarApp();
     return true;
 
@@ -2438,49 +2421,80 @@ async function verificarSessao() {
 }
 
 // ============================================================
-// PERMISSÕES
+// PERMISSÕES - NOVO SISTEMA
 // ============================================================
-function verificarPermissao(acao) {
+function getRole() {
   const user = getPortaria();
-  if (!user) return false;
+  return user?.tipo || 'portaria';
+}
 
-  const tipo = user.tipo;
+function isAdministrador() {
+  return getRole() === 'administrador';
+}
 
-  if (tipo === 'mestre') return true;
+function isPortaria() {
+  return getRole() === 'portaria';
+}
 
-  const permissoes = {
-    'admin': {
-      podeCadastrar: true,
-      podeEditar: true,
-      podeExcluir: true,
-      podeConvidar: true,
-      podeVerUsuarios: true,
-      podeVerDashboard: true,
-      podeVerHistorico: true,
-      podeGerenciarPortaria: true,
-      podeVerTodasPortarias: false,
-      podeVerPainelMaster: false
-    },
-    'operador': {
-      podeCadastrar: true,
-      podeEditar: true,
-      podeExcluir: false,
-      podeConvidar: false,
-      podeVerUsuarios: false,
-      podeVerDashboard: true,
-      podeVerHistorico: true,
-      podeGerenciarPortaria: false,
-      podeVerTodasPortarias: false,
-      podeVerPainelMaster: false
-    }
+function isOperador() {
+  return getRole() === 'operador';
+}
+
+function isValidacoes() {
+  return getRole() === 'validacoes';
+}
+
+function podeAcessar(pagina) {
+  const role = getRole();
+  const acessos = {
+    'scan': ['administrador', 'portaria', 'operador', 'validacoes'],
+    'cadastro': ['administrador', 'portaria', 'operador'],
+    'lista': ['administrador', 'portaria', 'operador'],
+    'log': ['administrador', 'portaria', 'operador', 'validacoes'],
+    'dashboard': ['administrador', 'portaria', 'operador'],
+    'master': ['administrador']
   };
+  return acessos[pagina]?.includes(role) || false;
+}
 
-  const perms = permissoes[tipo] || permissoes.operador;
-  return perms[acao] || false;
+function podeCadastrarMotorista() {
+  return ['administrador', 'portaria', 'operador'].includes(getRole());
+}
+
+function podeEditarMotorista() {
+  return ['administrador', 'portaria', 'operador'].includes(getRole());
+}
+
+function podeExcluirMotorista() {
+  return ['administrador', 'portaria'].includes(getRole());
+}
+
+function podeConvidar() {
+  return ['administrador', 'portaria'].includes(getRole());
+}
+
+function podeVerUsuarios() {
+  return ['administrador', 'portaria'].includes(getRole());
+}
+
+function podeVerDashboard() {
+  return ['administrador', 'portaria', 'operador'].includes(getRole());
+}
+
+function podeVerHistorico() {
+  return ['administrador', 'portaria', 'operador', 'validacoes'].includes(getRole());
+}
+
+function podeVerPainelMaster() {
+  return ['administrador'].includes(getRole());
+}
+
+function podeValidar() {
+  return ['administrador', 'portaria', 'operador', 'validacoes'].includes(getRole());
 }
 
 // ============================================================
-// INICIAR APP
+// INICIAR APP - COM NOVAS CLASSIFICAÇÕES
 // ============================================================
 async function iniciarApp() {
   showLoading('Carregando aplicação...');
@@ -2498,42 +2512,36 @@ async function iniciarApp() {
     document.getElementById('registerScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
     
-    const tipoLabel = {
-      'mestre': '👑 Mestre',
-      'admin': '👑 Administrador',
-      'operador': '👤 Operador'
-    }[p.tipo] || '';
-    document.getElementById('portariaNome').textContent = p.nome + (tipoLabel ? ` · ${tipoLabel}` : '');
+    // Aplica a classe de role no body
+    document.body.className = 'role-' + p.tipo;
     
-    if (p.tipo === 'admin' || p.tipo === 'mestre') {
-      document.getElementById('app').classList.add('role-admin');
-      await carregarTodosMotoristas();
-      await carregarPortarias();
-      renderLista();
-      setupInfiniteScroll();
-      
-      document.getElementById('btnInvite').style.display = 'flex';
-      document.getElementById('btnUsers').style.display = 'flex';
-    } else {
-      document.getElementById('btnInvite').style.display = 'none';
-      document.getElementById('btnUsers').style.display = 'none';
-    }
+    const roleLabel = Utils.getRoleLabel(p.tipo);
+    const roleIcon = Utils.getRoleIcon(p.tipo);
+    document.getElementById('portariaNome').textContent = p.nome + ` · ${roleIcon} ${roleLabel}`;
     
-    const navMaster = document.getElementById('nav-master');
-    if (navMaster) {
-      if (p.tipo === 'mestre') {
-        navMaster.classList.remove('admin-only');
-        navMaster.style.display = 'flex';
-      } else {
-        navMaster.classList.add('admin-only');
-        navMaster.style.display = 'none';
+    // Mostrar/Ocultar botões baseado no papel
+    document.getElementById('btnInvite').style.display = podeConvidar() ? 'flex' : 'none';
+    document.getElementById('btnUsers').style.display = podeVerUsuarios() ? 'flex' : 'none';
+    
+    // Mostrar/Ocultar navegação
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      const pageId = btn.id.replace('nav-', '');
+      if (pageId === 'master') {
+        btn.style.display = podeVerPainelMaster() ? 'flex' : 'none';
+      } else if (pageId === 'cadastro' || pageId === 'lista' || pageId === 'dashboard') {
+        btn.style.display = ['administrador', 'portaria', 'operador'].includes(p.tipo) ? 'flex' : 'none';
       }
-    }
+      // scan, log são sempre visíveis
+    });
     
+    await carregarTodosMotoristas();
+    await carregarPortarias();
+    renderLista();
+    setupInfiniteScroll();
     renderLog();
     carregarDashboard();
     
-    if (p.tipo === 'mestre') {
+    if (p.tipo === 'administrador') {
       setTimeout(() => {
         if (document.getElementById('page-master').classList.contains('active')) {
           carregarPainelMaster();
@@ -2550,12 +2558,20 @@ async function iniciarApp() {
 }
 
 function showPage(id) {
+  // Verifica permissão
+  if (!podeAcessar(id)) {
+    showToast('⚠️ Você não tem permissão para acessar esta página', 3000);
+    return;
+  }
+  
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
   document.getElementById('page-'+id).classList.add('active');
   const navBtn = document.getElementById('nav-'+id);
-  navBtn.classList.add('active');
-  navBtn.setAttribute('aria-selected','true');
+  if (navBtn) {
+    navBtn.classList.add('active');
+    navBtn.setAttribute('aria-selected','true');
+  }
   if (id !== 'scan') stopScan();
   if (id === 'lista') { renderLista(); setupInfiniteScroll(); }
   if (id === 'log') renderLog();
@@ -2901,7 +2917,7 @@ async function exportarLogCSV() {
     if (!portaria) throw new Error('Sessão expirada');
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false });
-    if (portaria.tipo !== 'mestre') {
+    if (!isAdministrador()) {
       query = query.eq('portaria_id', portaria.id);
     }
     
@@ -2947,7 +2963,7 @@ async function exportarLogPDF() {
     if (!portaria) throw new Error('Sessão expirada');
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(500);
-    if (portaria.tipo !== 'mestre') {
+    if (!isAdministrador()) {
       query = query.eq('portaria_id', portaria.id);
     }
     
@@ -3014,7 +3030,7 @@ async function abrirListaUsuarios() {
   try {
     let query = supa.from('portarias').select('*');
     
-    if (portaria.tipo !== 'mestre') {
+    if (!isAdministrador()) {
       query = query.eq('portaria_id', portaria.id);
     }
     
@@ -3029,28 +3045,21 @@ async function abrirListaUsuarios() {
     }
 
     list.innerHTML = allUsers.map(user => {
-      const roleLabel = {
-        'mestre': '👑 Mestre',
-        'admin': '👑 Administrador',
-        'operador': '👤 Operador'
-      }[user.tipo] || user.tipo;
-
-      const roleClass = {
-        'mestre': 'master',
-        'admin': 'admin',
-        'operador': 'operador'
-      }[user.tipo] || '';
+      const roleLabel = Utils.getRoleLabel(user.tipo);
+      const roleIcon = Utils.getRoleIcon(user.tipo);
+      const roleClass = user.tipo || '';
 
       const isCurrentUser = user.id === currentUser?.id;
-      const canDelete = user.tipo !== 'mestre' && !isCurrentUser && currentUser?.tipo !== 'operador';
+      const canDelete = user.tipo !== 'administrador' && !isCurrentUser && (isAdministrador() || isPortaria());
 
       return `
         <div class="user-item">
           <div>
             <strong>${user.nome}</strong>
-            <span class="user-role ${roleClass}">${roleLabel}</span>
+            <span class="user-role ${roleClass}">${roleIcon} ${roleLabel}</span>
             ${isCurrentUser ? ' <span style="font-size:10px;color:var(--text3);">(você)</span>' : ''}
             <div style="font-size:11px;color:var(--text3);">${user.email}</div>
+            ${user.plano ? `<div style="font-size:10px;color:var(--text3);">📋 ${user.plano}</div>` : ''}
           </div>
           <div class="user-actions">
             ${canDelete ? `<button class="danger" onclick="removerUsuario('${user.id}')" title="Remover">🗑️</button>` : ''}
@@ -3079,8 +3088,7 @@ async function removerUsuario(userId) {
     showToast('Usuário removido ✓', 3000);
     allUsers = allUsers.filter(u => u.id !== userId);
     
-    const portaria = getPortaria();
-    if (portaria?.tipo === 'mestre') {
+    if (isAdministrador()) {
       carregarPainelMaster();
     }
     
@@ -3124,7 +3132,7 @@ async function carregarPortarias() {
     
     let query = supa.from('portarias').select('id, nome').order('nome');
     
-    if (portaria.tipo !== 'mestre') {
+    if (!isAdministrador()) {
       query = query.eq('id', portaria.id);
     }
     
@@ -3179,7 +3187,7 @@ async function renderLog() {
   try {
     let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(100);
     
-    if (portaria.tipo !== 'mestre') {
+    if (!isAdministrador()) {
       query = query.eq('portaria_id', portaria.id);
     }
     
@@ -3197,7 +3205,7 @@ async function renderLog() {
       const dirLabel = l.tipo === 'entrada' ? 'Entrada' : l.tipo === 'saida' ? 'Saída' : '';
       const servicoLabel = l.servico ? ` · ${l.servico.charAt(0).toUpperCase() + l.servico.slice(1)}` : '';
       
-      const portariaLabel = (portaria.tipo === 'mestre' && l.portaria_nome) ? ` · ${l.portaria_nome}` : '';
+      const portariaLabel = (isAdministrador() && l.portaria_nome) ? ` · ${l.portaria_nome}` : '';
       
       return `<div class="log-item">
         <div class="log-dot" style="background:${l.ok ? 'var(--green)' : 'var(--red)'}"></div>
@@ -3219,6 +3227,10 @@ async function renderLog() {
 // ============================================================
 async function cadastrar() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
+  if (!podeCadastrarMotorista()) {
+    showToast('⚠️ Você não tem permissão para cadastrar motoristas', 3000);
+    return;
+  }
   
   const nome = document.getElementById('f-nome').value.trim();
   const cpf = document.getElementById('f-cpf').value.trim();
@@ -3345,7 +3357,6 @@ function openDetail(id) {
   document.getElementById('detailNome').textContent = m.nome;
   document.getElementById('detailEmpresa').textContent = m.empresa || 'Sem empresa';
   
-  // Info de validade do QR
   let infoValidade = '—';
   if (m.qr_validade !== undefined && m.qr_validade !== null) {
     if (m.qr_validade === 0) {
@@ -3372,6 +3383,10 @@ function openDetail(id) {
 
 async function setStatus(status) {
   if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
+  if (!podeEditarMotorista()) {
+    showToast('⚠️ Você não tem permissão para alterar status', 3000);
+    return;
+  }
   document.querySelectorAll('.status-btn').forEach(b => b.disabled = true);
   try {
     await supa.from('motoristas').update({ status }).eq('id', currentDriverId);
@@ -3384,6 +3399,10 @@ async function setStatus(status) {
 }
 
 async function deleteDriver() {
+  if (!podeExcluirMotorista()) {
+    showToast('⚠️ Você não tem permissão para excluir motoristas', 3000);
+    return;
+  }
   if (!confirm('Tem certeza?')) return;
   if (!Utils.isOnline()) { showToast('Sem conexão'); return; }
   const btn = document.querySelector('#detailModal .btn-ghost:last-child');
@@ -3401,6 +3420,10 @@ async function deleteDriver() {
 }
 
 function openEditModal(id) {
+  if (!podeEditarMotorista()) {
+    showToast('⚠️ Você não tem permissão para editar motoristas', 3000);
+    return;
+  }
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { showToast('Motorista não encontrado'); return; }
   editDriverId = id;
@@ -3459,6 +3482,10 @@ async function validarEdicao() {
 
 async function salvarEdicao() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
+  if (!podeEditarMotorista()) {
+    showToast('⚠️ Você não tem permissão para editar motoristas', 3000);
+    return;
+  }
   const isValid = await validarEdicao();
   if (!isValid) { showToast('Corrija os campos destacados', 3000); return; }
   
@@ -3535,7 +3562,7 @@ async function carregarDashboard() {
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(500);
     
-    if (portaria.tipo !== 'mestre') {
+    if (!isAdministrador()) {
       query = query.eq('portaria_id', portaria.id);
     }
     
@@ -3805,23 +3832,22 @@ function atualizarDashboard() {
 }
 
 // ============================================================
-// PAINEL MASTER
+// PAINEL MASTER (APENAS ADMINISTRADOR)
 // ============================================================
 
 // ============================================================
 // CARREGAR DADOS DO PAINEL MASTER
 // ============================================================
 async function carregarPainelMaster() {
-  const portaria = getPortaria();
-  if (portaria?.tipo !== 'mestre') {
-    showToast('⚠️ Apenas o mestre pode acessar este painel', 3000);
+  if (!isAdministrador()) {
+    showToast('⚠️ Apenas o Administrador pode acessar este painel', 3000);
     return;
   }
 
-  showLoading('Carregando painel master...');
+  showLoading('Carregando painel administrativo...');
   
   try {
-    console.log('🔄 Carregando painel master...');
+    console.log('🔄 Carregando painel administrativo...');
     
     const { data: portarias, error: pError } = await supa
       .from('portarias')
@@ -3878,10 +3904,10 @@ async function carregarPainelMaster() {
     renderizarListaPortariasMaster();
     
     hideLoading();
-    console.log('✅ Painel master carregado com sucesso!');
+    console.log('✅ Painel administrativo carregado com sucesso!');
     
   } catch (e) {
-    console.error('❌ Erro ao carregar painel master:', e);
+    console.error('❌ Erro ao carregar painel administrativo:', e);
     showToast('Erro ao carregar painel: ' + e.message, 4000);
     hideLoading();
   }
@@ -3891,7 +3917,7 @@ async function carregarPainelMaster() {
 // ATUALIZAR ESTATÍSTICAS MASTER
 // ============================================================
 function atualizarEstatisticasMaster() {
-  const total = todasPortarias.filter(p => p.tipo !== 'mestre').length;
+  const total = todasPortarias.filter(p => p.tipo !== 'administrador').length;
   const ativas = todasAssinaturas.filter(a => a.status === 'ativa').length;
   const vencidas = todasAssinaturas.filter(a => a.status === 'vencida' || a.status === 'trial' || a.status === 'cancelada').length;
   
@@ -3916,11 +3942,11 @@ function renderizarGraficosMaster() {
   // 1. Distribuição de Planos
   const planosCount = {};
   todasAssinaturas.forEach(a => {
-    const plano = a.plano || 'trial';
+    const plano = a.plano || 'basico';
     planosCount[plano] = (planosCount[plano] || 0) + 1;
   });
   
-  const semPlano = todasPortarias.filter(p => p.tipo !== 'mestre' && !todasAssinaturas.some(a => a.portaria_id === p.id)).length;
+  const semPlano = todasPortarias.filter(p => p.tipo !== 'administrador' && !todasAssinaturas.some(a => a.portaria_id === p.id)).length;
   if (semPlano > 0) {
     planosCount['Sem plano'] = semPlano;
   }
@@ -3974,7 +4000,7 @@ function renderizarGraficosMaster() {
     'Sem assinatura': 0
   };
   
-  todasPortarias.filter(p => p.tipo !== 'mestre').forEach(p => {
+  todasPortarias.filter(p => p.tipo !== 'administrador').forEach(p => {
     const assinatura = todasAssinaturas.find(a => a.portaria_id === p.id);
     if (!assinatura) {
       statusCount['Sem assinatura']++;
@@ -4031,7 +4057,7 @@ function renderizarGraficosMaster() {
   const faturamentoPlanos = {};
   todasAssinaturas.forEach(a => {
     if (a.status === 'ativa' && a.valor_mensal) {
-      const plano = a.plano || 'trial';
+      const plano = a.plano || 'basico';
       faturamentoPlanos[plano] = (faturamentoPlanos[plano] || 0) + a.valor_mensal;
     }
   });
@@ -4182,7 +4208,7 @@ function renderizarListaPortariasMaster() {
   const busca = document.getElementById('buscaPortaria')?.value?.toLowerCase() || '';
   const filtroStatus = document.getElementById('filtroStatusAssinatura')?.value || '';
 
-  let portariasFiltradas = todasPortarias.filter(p => p.tipo !== 'mestre');
+  let portariasFiltradas = todasPortarias.filter(p => p.tipo !== 'administrador');
 
   if (busca) {
     portariasFiltradas = portariasFiltradas.filter(p => 
@@ -4238,11 +4264,14 @@ function renderizarListaPortariasMaster() {
 
     const valor = assinatura?.valor_mensal ? `R$ ${assinatura.valor_mensal.toFixed(2)}` : '—';
 
+    const roleIcon = Utils.getRoleIcon(p.tipo);
+    const roleLabel = Utils.getRoleLabel(p.tipo);
+
     return `
       <div class="portaria-card" data-portaria-id="${p.id}">
         <div class="info">
           <div class="nome">🏢 ${p.nome}</div>
-          <div class="email">${p.email || 'Sem email'}</div>
+          <div class="email">${p.email || 'Sem email'} · ${roleIcon} ${roleLabel}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <span style="font-size:11px;color:#8BB4C4;">${plano?.nome || 'Sem plano'}</span>
@@ -4318,7 +4347,7 @@ function renderizarListaPortariasMaster() {
 }
 
 // ============================================================
-// FUNÇÕES DE MODAL
+// FUNÇÕES DE MODAL - ADMINISTRADOR
 // ============================================================
 function criarModal(html) {
   const existing = document.querySelector('.modal-overlay');
@@ -4359,12 +4388,15 @@ function verDetalhesPortaria(portariaId) {
     'cancelada': '❌ Cancelada'
   }[assinatura?.status] || '❓ Desconhecido';
 
+  const roleIcon = Utils.getRoleIcon(portaria.tipo);
+  const roleLabel = Utils.getRoleLabel(portaria.tipo);
+
   const html = `
     <div class="modal-overlay">
       <div class="modal-content">
         <div class="handle"></div>
         <h3>🏢 ${portaria.nome}</h3>
-        <p class="sub">${portaria.email || 'Sem email'}</p>
+        <p class="sub">${portaria.email || 'Sem email'} · ${roleIcon} ${roleLabel}</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Status</div><div style="font-weight:600;">${statusLabel}</div></div>
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Plano</div><div style="font-weight:600;">${plano?.nome || '—'}</div></div>
@@ -4372,8 +4404,8 @@ function verDetalhesPortaria(portariaId) {
           <div style="background:#162F39;padding:12px;border-radius:8px;"><div style="font-size:10px;color:#8BB4C4;">Valor</div><div style="font-weight:600;">R$ ${(assinatura?.valor_mensal || 0).toFixed(2)}</div></div>
         </div>
         <div style="background:#162F39;padding:12px;border-radius:8px;margin-bottom:16px;">
-          <div style="font-size:10px;color:#8BB4C4;">Tipo</div>
-          <div style="font-weight:600;">${portaria.tipo === 'mestre' ? '👑 Mestre' : portaria.tipo === 'admin' ? '👑 Administrador' : '👤 Operador'}</div>
+          <div style="font-size:10px;color:#8BB4C4;">Limite de Operadores</div>
+          <div style="font-weight:600;">${plano?.max_operadores || 3}</div>
         </div>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Fechar</button>
       </div>
@@ -4413,7 +4445,7 @@ function abrirGerenciarAssinatura(portariaId) {
           <select id="selectPlano">
             ${planosDisponiveis.map(p => `
               <option value="${p.chave}" ${assinatura?.plano === p.chave ? 'selected' : ''}>
-                ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês
+                ${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês (${p.max_operadores} operadores)
               </option>
             `).join('')}
             <option value="trial" ${assinatura?.plano === 'trial' ? 'selected' : ''}>Trial - R$ 0,00/mês</option>
@@ -4497,69 +4529,6 @@ async function salvarAssinatura(portariaId) {
   }
 }
 
-// CANCELAR ASSINATURA
-async function cancelarAssinatura(portariaId) {
-  if (!confirm('Tem certeza que deseja cancelar esta assinatura?')) return;
-
-  try {
-    showLoading('Cancelando assinatura...');
-    
-    const { error } = await supa
-      .from('assinaturas')
-      .update({
-        status: 'cancelada',
-        data_cancelamento: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('portaria_id', portariaId);
-
-    if (error) throw error;
-
-    showToast('❌ Assinatura cancelada', 3000);
-    fecharModal();
-    await carregarPainelMaster();
-
-  } catch (e) {
-    showToast('Erro: ' + e.message, 3000);
-  } finally {
-    hideLoading();
-  }
-}
-
-// RENOVAR ASSINATURA
-async function renovarAssinatura(portariaId) {
-  if (!confirm('Renovar assinatura por mais 30 dias?')) return;
-
-  try {
-    showLoading('Renovando assinatura...');
-    
-    const hoje = new Date();
-    const novoVencimento = new Date();
-    novoVencimento.setDate(hoje.getDate() + 30);
-
-    const { error } = await supa
-      .from('assinaturas')
-      .update({
-        status: 'ativa',
-        data_vencimento: novoVencimento.toISOString(),
-        ultimo_pagamento: hoje.toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('portaria_id', portariaId);
-
-    if (error) throw error;
-
-    showToast('✅ Assinatura renovada até ' + novoVencimento.toLocaleDateString('pt-BR'), 3000);
-    fecharModal();
-    await carregarPainelMaster();
-
-  } catch (e) {
-    showToast('Erro: ' + e.message, 3000);
-  } finally {
-    hideLoading();
-  }
-}
-
 // BLOQUEAR/DESBLOQUEAR
 async function toggleBloqueioPortaria(portariaId) {
   console.log('🔒 toggleBloqueioPortaria chamado para:', portariaId);
@@ -4619,8 +4588,8 @@ async function excluirPortaria(portariaId) {
     return;
   }
   
-  if (portaria.tipo === 'mestre') {
-    showToast('⚠️ Não é possível excluir o usuário mestre', 3000);
+  if (portaria.tipo === 'administrador') {
+    showToast('⚠️ Não é possível excluir o Administrador', 3000);
     return;
   }
   
@@ -4683,6 +4652,15 @@ function abrirEditarPortaria(portariaId) {
         </div>
 
         <div class="field">
+          <label>TIPO</label>
+          <select id="editPortariaTipo">
+            <option value="portaria" ${portaria.tipo === 'portaria' ? 'selected' : ''}>🛠️ Portaria</option>
+            <option value="operador" ${portaria.tipo === 'operador' ? 'selected' : ''}>🚦 Operador</option>
+            <option value="validacoes" ${portaria.tipo === 'validacoes' ? 'selected' : ''}>👁️ Validações</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label>PLANO</label>
           <select id="editPortariaPlano">
             ${planosDisponiveis.map(p => `
@@ -4721,6 +4699,7 @@ function abrirEditarPortaria(portariaId) {
 async function salvarEdicaoPortaria(portariaId) {
   const nome = document.getElementById('editPortariaNome').value.trim();
   const email = document.getElementById('editPortariaEmail').value.trim();
+  const tipo = document.getElementById('editPortariaTipo').value;
   const plano = document.getElementById('editPortariaPlano').value;
   const vencimento = document.getElementById('editPortariaVencimento').value;
   const status = document.getElementById('editPortariaStatus').value;
@@ -4733,7 +4712,7 @@ async function salvarEdicaoPortaria(portariaId) {
   try {
     showLoading('Salvando alterações...');
 
-    await supa.from('portarias').update({ nome, email }).eq('id', portariaId);
+    await supa.from('portarias').update({ nome, email, tipo }).eq('id', portariaId);
 
     const planoData = planosDisponiveis.find(p => p.chave === plano);
     const dataVencimento = vencimento ? new Date(vencimento).toISOString() : new Date(Date.now() + 30*24*60*60*1000).toISOString();
@@ -4793,16 +4772,25 @@ function openAdicionarPortariaModal() {
         </div>
 
         <div class="field">
-          <label>EMAIL DO ADMINISTRADOR *</label>
-          <input type="email" id="novaPortariaEmail" placeholder="admin@portaria.com">
-          <div class="hint">O administrador receberá um convite por email</div>
+          <label>EMAIL DO RESPONSÁVEL *</label>
+          <input type="email" id="novaPortariaEmail" placeholder="responsavel@portaria.com">
+          <div class="hint">O responsável receberá um convite por email</div>
+        </div>
+
+        <div class="field">
+          <label>TIPO DE USUÁRIO</label>
+          <select id="novaPortariaTipo">
+            <option value="portaria">🛠️ Portaria (gestor)</option>
+            <option value="operador">🚦 Operador</option>
+            <option value="validacoes">👁️ Validações</option>
+          </select>
         </div>
 
         <div class="field">
           <label>PLANO INICIAL</label>
           <select id="novaPortariaPlano">
             ${planosDisponiveis.map(p => `
-              <option value="${p.chave}">${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês</option>
+              <option value="${p.chave}">${p.nome} - R$ ${p.valor_mensal.toFixed(2)}/mês (${p.max_operadores} operadores)</option>
             `).join('')}
             <option value="trial">Trial - R$ 0,00/mês (7 dias)</option>
           </select>
@@ -4829,6 +4817,7 @@ function openAdicionarPortariaModal() {
 async function criarPortaria() {
   const nome = document.getElementById('novaPortariaNome').value.trim();
   const email = document.getElementById('novaPortariaEmail').value.trim();
+  const tipo = document.getElementById('novaPortariaTipo').value;
   const plano = document.getElementById('novaPortariaPlano').value;
   const vencimento = document.getElementById('novaPortariaVencimento').value;
 
@@ -4843,8 +4832,8 @@ async function criarPortaria() {
   }
 
   const portaria = getPortaria();
-  if (!portaria || portaria.tipo !== 'mestre') {
-    showToast('⚠️ Apenas o mestre pode criar portarias', 3000);
+  if (!isAdministrador()) {
+    showToast('⚠️ Apenas o Administrador pode criar portarias', 3000);
     return;
   }
 
@@ -4870,8 +4859,9 @@ async function criarPortaria() {
         id: userId,
         nome: nome,
         email: email,
-        tipo: 'admin',
-        codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        tipo: tipo,
+        plano: plano,
+        codigo: 'PORT_' + Math.random().toString(36).substring(2, 8).toUpperCase(),
         portaria_id: portaria.id
       })
       .select()
@@ -4905,7 +4895,7 @@ async function criarPortaria() {
       await supa.from('convites').insert({
         email: email,
         nome: nome,
-        role: 'admin',
+        role: tipo,
         portaria_id: portariaData.id,
         portaria_nome: nome,
         codigo: codigoConvite,
@@ -4953,12 +4943,12 @@ function openPlanoModal() {
 
         <div class="field">
           <label>DESCRIÇÃO</label>
-          <input type="text" id="planoDescricao" placeholder="Ex: Para pequenas portarias">
+          <input type="text" id="planoDescricao" placeholder="Ex: 1 portaria e até 3 operadores">
         </div>
 
         <div class="field">
           <label>VALOR MENSAL (R$) *</label>
-          <input type="number" id="planoValor" placeholder="49.90" step="0.01">
+          <input type="number" id="planoValor" placeholder="149.00" step="0.01">
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -4967,8 +4957,8 @@ function openPlanoModal() {
             <input type="number" id="planoMaxPortarias" value="1">
           </div>
           <div class="field" style="margin-bottom:0;">
-            <label>MÁX. USUÁRIOS</label>
-            <input type="number" id="planoMaxUsuarios" value="3">
+            <label>MÁX. OPERADORES</label>
+            <input type="number" id="planoMaxOperadores" value="3">
           </div>
         </div>
 
@@ -4999,7 +4989,7 @@ async function salvarPlano() {
   const descricao = document.getElementById('planoDescricao').value.trim();
   const valor = parseFloat(document.getElementById('planoValor').value) || 0;
   const maxPortarias = parseInt(document.getElementById('planoMaxPortarias').value) || 1;
-  const maxUsuarios = parseInt(document.getElementById('planoMaxUsuarios').value) || 3;
+  const maxOperadores = parseInt(document.getElementById('planoMaxOperadores').value) || 3;
   const suporte = document.getElementById('planoSuporte').checked;
   const relatorios = document.getElementById('planoRelatorios').checked;
 
@@ -5016,7 +5006,7 @@ async function salvarPlano() {
   try {
     showLoading('Salvando plano...');
     
-    console.log('📋 Salvando plano:', { nome, chave, descricao, valor, maxPortarias, maxUsuarios, suporte, relatorios });
+    console.log('📋 Salvando plano:', { nome, chave, descricao, valor, maxPortarias, maxOperadores, suporte, relatorios });
     
     const { data, error } = await supa
       .from('planos')
@@ -5026,7 +5016,7 @@ async function salvarPlano() {
         descricao: descricao,
         valor_mensal: valor,
         max_portarias: maxPortarias,
-        max_usuarios: maxUsuarios,
+        max_operadores: maxOperadores,
         possui_suporte: suporte,
         possui_relatorios: relatorios,
         ativo: true
@@ -5064,7 +5054,7 @@ async function salvarPlano() {
 }
 
 // ============================================================
-// FUNÇÕES DE QR CODE COMPARTILHAMENTO - CORRIGIDO
+// FUNÇÕES DE QR CODE COMPARTILHAMENTO
 // ============================================================
 async function enviarImagemWhatsapp() {
   if (!qrWhatsAtual) {
@@ -5144,7 +5134,6 @@ async function copiarQRCode() {
       return;
     }
     
-    // Tenta copiar a imagem
     const blob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
     if (navigator.clipboard && navigator.clipboard.write) {
       await navigator.clipboard.write([
@@ -5154,7 +5143,6 @@ async function copiarQRCode() {
       ]);
       showToast('📋 QR Code copiado como imagem!', 2000);
     } else {
-      // Fallback: copia o texto
       const text = qrDriverId || 'QR Code';
       await navigator.clipboard.writeText(text);
       showToast('📋 ID do QR Code copiado', 2000);
@@ -5190,7 +5178,6 @@ function enviarPorEmail() {
   const driver = allMotoristas.find(m => m.id === qrDriverId);
   const nome = driver?.nome || 'Motorista';
   
-  // Cria um link de email com o QR Code como anexo (simulado)
   const subject = encodeURIComponent(`QR Code de Acesso - ${nome}`);
   const body = encodeURIComponent(
     `Olá,\n\nSegue o QR Code de acesso para ${nome}.\n\n` +
@@ -5198,11 +5185,9 @@ function enviarPorEmail() {
     `PortariaPro - Controle de acesso inteligente`
   );
   
-  // Abre o cliente de email
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
   showToast('✉️ Abrindo cliente de email...', 2000);
   
-  // Instrução para anexar a imagem
   setTimeout(() => {
     showToast('📎 Anexe a imagem do QR Code manualmente', 3000);
   }, 2000);
@@ -5223,7 +5208,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnInvite = document.getElementById('btnInvite');
   if (btnInvite) {
     btnInvite.addEventListener('click', function() {
-      if (verificarPermissao('podeConvidar')) {
+      if (podeConvidar()) {
         document.getElementById('inviteModal').classList.add('open');
       } else {
         showToast('⚠️ Você não tem permissão para convidar', 3000);
@@ -5234,7 +5219,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnUsers = document.getElementById('btnUsers');
   if (btnUsers) {
     btnUsers.addEventListener('click', function() {
-      if (verificarPermissao('podeVerUsuarios') || verificarPermissao('podeGerenciarPortaria')) {
+      if (podeVerUsuarios()) {
         abrirListaUsuarios();
       } else {
         showToast('⚠️ Você não tem permissão para ver usuários', 3000);
@@ -5248,7 +5233,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (!initSupabase()) return;
   
-  await criarUsuarioMestre();
+  await criarUsuarioAdministrador();
   await criarPlanosPadrao();
   
   await new Promise(r => setTimeout(r, 500));
