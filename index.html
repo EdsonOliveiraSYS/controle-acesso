@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS COMPLETO ===== */
+/* ===== CSS COMPLETO (MANTIDO IGUAL) ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -1026,6 +1026,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 </head>
 <body>
 
+<!-- ============================================================ -->
+<!-- HTML - MANTIDO IGUAL -->
+<!-- ============================================================ -->
+
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Carregando...</div>
@@ -1488,7 +1492,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT COMPLETO - CORRIGIDO
+// JAVASCRIPT - CORRIGIDO (EDIÇÃO DE MOTORISTAS)
 // ============================================================
 
 // ============================================================
@@ -1680,18 +1684,6 @@ const Utils = {
       'validacoes': '👁️'
     };
     return icons[tipo] || '👤';
-  },
-  enviarEmail: function(destinatario, assunto, corpo) {
-    // Tenta usar a API de email do navegador
-    try {
-      // Opção 1: Usar mailto (abre o cliente de email)
-      const mailtoLink = `mailto:${destinatario}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-      window.open(mailtoLink, '_blank');
-      return true;
-    } catch (e) {
-      console.error('Erro ao enviar email:', e);
-      return false;
-    }
   }
 };
 
@@ -2030,7 +2022,7 @@ async function enviarConviteEmail() {
       `O link expira em 7 dias.\n\n` +
       `Att,\nPortariaPro`;
 
-    Utils.enviarEmail(email, assunto, corpo);
+    window.open(`mailto:${email}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`, '_blank');
 
     document.getElementById('inviteStatus').textContent = '✅ Convite enviado por email!';
     showToast('✅ Convite enviado!', 3000);
@@ -3559,12 +3551,22 @@ document.getElementById('f-placa').addEventListener('input', function() { this.v
 document.getElementById('f-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
 // ============================================================
-// FUNÇÕES DE DETALHE E EDIÇÃO
+// FUNÇÕES DE DETALHE E EDIÇÃO - CORRIGIDAS
+// ============================================================
+
+// ============================================================
+// OPEN DETAIL - CORRIGIDO (define currentDriverId)
 // ============================================================
 function openDetail(id) {
   const m = allMotoristas.find(x => x.id === id);
-  if (!m) { showToast('Motorista não encontrado'); return; }
+  if (!m) { 
+    showToast('Motorista não encontrado'); 
+    return; 
+  }
+  
+  // DEFINE O currentDriverId PARA O BOTÃO EDITAR
   currentDriverId = id;
+  
   document.getElementById('detailAvatar').innerHTML = m.foto_url ? `<img class="detail-photo" src="${m.foto_url}">` : Utils.initials(m.nome);
   document.getElementById('detailNome').textContent = m.nome;
   document.getElementById('detailEmpresa').textContent = m.empresa || 'Sem empresa';
@@ -3591,6 +3593,62 @@ function openDetail(id) {
     <div class="detail-row"><span>Cadastrado em</span><span>${new Date(m.criado_em).toLocaleDateString('pt-BR')}</span></div>
   `;
   document.getElementById('detailModal').classList.add('open');
+}
+
+// ============================================================
+// OPENEDITMODAL - CORRIGIDA (garante que abre)
+// ============================================================
+function openEditModal(id) {
+  console.log('✏️ openEditModal chamado para ID:', id);
+  
+  // Verifica permissão
+  if (!podeEditarMotorista()) {
+    showToast('⚠️ Você não tem permissão para editar motoristas', 3000);
+    return;
+  }
+  
+  // Busca o motorista na lista
+  const m = allMotoristas.find(x => x.id === id);
+  if (!m) { 
+    showToast('Motorista não encontrado', 3000); 
+    return; 
+  }
+  
+  console.log('✅ Motorista encontrado:', m.nome);
+  
+  // Armazena o ID do motorista que está sendo editado
+  editDriverId = id;
+  
+  // Preenche os campos do formulário
+  document.getElementById('e-nome').value = m.nome || '';
+  document.getElementById('e-cpf').value = m.cpf || '';
+  document.getElementById('e-cnh').value = m.cnh || '';
+  document.getElementById('e-placa').value = m.placa || '';
+  document.getElementById('e-empresa').value = m.empresa || '';
+  document.getElementById('e-whats').value = Utils.formatPhone(m.whatsapp || '');
+  document.getElementById('e-status').value = m.status || 'autorizado';
+  
+  // Preenche a foto
+  const preview = document.getElementById('e-fotoPreview');
+  if (m.foto_url) {
+    preview.innerHTML = `<img src="${m.foto_url}">`;
+  } else {
+    preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+  }
+  
+  // Limpa arquivo de foto
+  editFotoFile = null;
+  document.getElementById('e-foto').value = '';
+  
+  // Remove mensagens de erro anteriores
+  document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
+  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
+  
+  // Fecha o modal de detalhes e abre o de edição
+  document.getElementById('detailModal').classList.remove('open');
+  document.getElementById('editModal').classList.add('open');
+  
+  console.log('✅ Modal de edição aberto para:', m.nome);
 }
 
 async function setStatus(status) {
@@ -3629,91 +3687,6 @@ async function deleteDriver() {
     renderLista();
   } catch (e) { showToast('Erro: ' + e.message); }
   finally { btn.disabled = false; btn.textContent = originalText; }
-}
-
-// ============================================================
-// OPENEDITMODAL - CORRIGIDA
-// ============================================================
-function openEditModal(id) {
-  // Verifica permissão
-  if (!podeEditarMotorista()) {
-    showToast('⚠️ Você não tem permissão para editar motoristas', 3000);
-    return;
-  }
-  
-  // Busca o motorista na lista
-  const m = allMotoristas.find(x => x.id === id);
-  if (!m) { 
-    showToast('Motorista não encontrado', 3000); 
-    return; 
-  }
-  
-  // Armazena o ID do motorista que está sendo editado
-  editDriverId = id;
-  
-  // Preenche os campos do formulário
-  document.getElementById('e-nome').value = m.nome || '';
-  document.getElementById('e-cpf').value = m.cpf || '';
-  document.getElementById('e-cnh').value = m.cnh || '';
-  document.getElementById('e-placa').value = m.placa || '';
-  document.getElementById('e-empresa').value = m.empresa || '';
-  document.getElementById('e-whats').value = Utils.formatPhone(m.whatsapp || '');
-  document.getElementById('e-status').value = m.status || 'autorizado';
-  
-  // Preenche a foto
-  const preview = document.getElementById('e-fotoPreview');
-  if (m.foto_url) {
-    preview.innerHTML = `<img src="${m.foto_url}">`;
-  } else {
-    preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
-  }
-  
-  // Limpa arquivo de foto
-  editFotoFile = null;
-  document.getElementById('e-foto').value = '';
-  
-  // Remove mensagens de erro anteriores
-  document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
-  
-  // Fecha o modal de detalhes e abre o de edição
-  document.getElementById('detailModal').classList.remove('open');
-  document.getElementById('editModal').classList.add('open');
-}
-
-async function validarEdicao() {
-  const nome = document.getElementById('e-nome').value.trim();
-  const cpf = document.getElementById('e-cpf').value.trim();
-  const cnh = document.getElementById('e-cnh').value.trim();
-  let isValid = true;
-  document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
-  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
-  if (!nome || nome.length < 3) {
-    document.getElementById('err-e-nome').classList.add('show');
-    document.getElementById('e-nome').classList.add('error');
-    isValid = false;
-  }
-  if (!Utils.validateCPF(cpf)) {
-    document.getElementById('err-e-cpf').textContent = 'CPF inválido.';
-    document.getElementById('err-e-cpf').classList.add('show');
-    document.getElementById('e-cpf').classList.add('error');
-    isValid = false;
-  }
-  if (cnh && !Utils.validateCNH(cnh)) {
-    document.getElementById('err-e-cnh').classList.add('show');
-    document.getElementById('e-cnh').classList.add('error');
-    isValid = false;
-  }
-  if (isValid && Utils.validateCPF(cpf)) {
-    const r = await verificarCPFDuplicadoEdicao(cpf, editDriverId);
-    if (r.duplicado) {
-      document.getElementById('err-e-cpf').textContent = r.mensagem;
-      document.getElementById('err-e-cpf').classList.add('show');
-      document.getElementById('e-cpf').classList.add('error');
-      isValid = false;
-    }
-  }
-  return isValid;
 }
 
 // ============================================================
@@ -3762,6 +3735,41 @@ async function salvarEdicao() {
     btn.disabled = false; 
     btn.textContent = originalText; 
   }
+}
+
+async function validarEdicao() {
+  const nome = document.getElementById('e-nome').value.trim();
+  const cpf = document.getElementById('e-cpf').value.trim();
+  const cnh = document.getElementById('e-cnh').value.trim();
+  let isValid = true;
+  document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
+  document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
+  if (!nome || nome.length < 3) {
+    document.getElementById('err-e-nome').classList.add('show');
+    document.getElementById('e-nome').classList.add('error');
+    isValid = false;
+  }
+  if (!Utils.validateCPF(cpf)) {
+    document.getElementById('err-e-cpf').textContent = 'CPF inválido.';
+    document.getElementById('err-e-cpf').classList.add('show');
+    document.getElementById('e-cpf').classList.add('error');
+    isValid = false;
+  }
+  if (cnh && !Utils.validateCNH(cnh)) {
+    document.getElementById('err-e-cnh').classList.add('show');
+    document.getElementById('e-cnh').classList.add('error');
+    isValid = false;
+  }
+  if (isValid && Utils.validateCPF(cpf)) {
+    const r = await verificarCPFDuplicadoEdicao(cpf, editDriverId);
+    if (r.duplicado) {
+      document.getElementById('err-e-cpf').textContent = r.mensagem;
+      document.getElementById('err-e-cpf').classList.add('show');
+      document.getElementById('e-cpf').classList.add('error');
+      isValid = false;
+    }
+  }
+  return isValid;
 }
 
 document.getElementById('e-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
@@ -4817,8 +4825,12 @@ async function toggleBloqueioPortaria(portariaId) {
   }
 }
 
+// ============================================================
+// EXCLUIR PORTARIA - CORRIGIDO
+// ============================================================
 async function excluirPortaria(portariaId) {
   console.log('🗑️ excluirPortaria chamado para:', portariaId);
+  
   const portaria = todasPortarias.find(p => p.id === portariaId);
   if (!portaria) {
     showToast('Portaria não encontrada', 3000);
@@ -4835,21 +4847,56 @@ async function excluirPortaria(portariaId) {
   try {
     showLoading('Excluindo portaria e dados relacionados...');
     
-    const tabelas = ['validacoes', 'motoristas', 'convites', 'assinaturas'];
-    for (const tabela of tabelas) {
-      try {
-        await supa.from(tabela).delete().eq('portaria_id', portariaId);
-        console.log(`✅ ${tabela} excluídos`);
-      } catch (e) {
-        console.log(`⚠️ Erro ao excluir ${tabela}:`, e.message);
-      }
+    // 1. Deletar validações
+    try {
+      await supa.from('validacoes').delete().eq('portaria_id', portariaId);
+      console.log('✅ Validações excluídas');
+    } catch (e) {
+      console.warn('⚠️ Erro ao excluir validações:', e.message);
     }
-    
-    const { error } = await supa.from('portarias').delete().eq('id', portariaId);
-    if (error) throw error;
 
+    // 2. Deletar convites
+    try {
+      await supa.from('convites').delete().eq('portaria_id', portariaId);
+      console.log('✅ Convites excluídos');
+    } catch (e) {
+      console.warn('⚠️ Erro ao excluir convites:', e.message);
+    }
+
+    // 3. Deletar motoristas
+    try {
+      await supa.from('motoristas').delete().eq('portaria_id', portariaId);
+      console.log('✅ Motoristas excluídos');
+    } catch (e) {
+      console.warn('⚠️ Erro ao excluir motoristas:', e.message);
+    }
+
+    // 4. Deletar assinatura
+    try {
+      await supa.from('assinaturas').delete().eq('portaria_id', portariaId);
+      console.log('✅ Assinatura excluída');
+    } catch (e) {
+      console.warn('⚠️ Erro ao excluir assinatura:', e.message);
+    }
+
+    // 5. Deletar a portaria
+    const { error: portariaError } = await supa
+      .from('portarias')
+      .delete()
+      .eq('id', portariaId);
+    
+    if (portariaError) {
+      console.error('❌ Erro ao excluir portaria:', portariaError);
+      throw portariaError;
+    }
+
+    console.log('✅ Portaria excluída com sucesso!');
     showToast(`🗑️ Portaria "${portaria.nome}" excluída com sucesso!`, 3000);
-    await carregarPainelMaster();
+    
+    // 6. Atualizar a lista
+    todasPortarias = todasPortarias.filter(p => p.id !== portariaId);
+    renderizarListaPortariasMaster();
+    atualizarEstatisticasMaster();
 
   } catch (e) {
     console.error('❌ Erro ao excluir:', e);
@@ -5045,7 +5092,7 @@ function openAdicionarPortariaModal() {
 }
 
 // ============================================================
-// CRIAR PORTARIA - CORRIGIDO COM ENVIO DE EMAIL AUTOMÁTICO
+// CRIAR PORTARIA
 // ============================================================
 async function criarPortaria() {
   const nome = document.getElementById('novaPortariaNome').value.trim();
@@ -5123,13 +5170,10 @@ async function criarPortaria() {
       console.warn('Erro ao criar assinatura:', e.message);
     }
 
-    // ============================================================
-    // ENVIA O CONVITE POR EMAIL AUTOMATICAMENTE
-    // ============================================================
+    // Envia o convite por email
     try {
       const codigoConvite = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
       
-      // Salva o convite no banco
       await supa.from('convites').insert({
         email: email,
         nome: nome,
@@ -5142,10 +5186,7 @@ async function criarPortaria() {
         expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       });
 
-      // Monta o link do convite
       const linkConvite = `${window.location.origin}${window.location.pathname}?convite=${codigoConvite}`;
-      
-      // Monta o email
       const assunto = `Convite PortariaPro - ${nome}`;
       const corpo = 
         `Olá ${nome},\n\n` +
@@ -5155,18 +5196,15 @@ async function criarPortaria() {
         `Após criar sua conta, você poderá acessar o sistema com seu email e senha.\n\n` +
         `Att,\nPortariaPro`;
 
-      // Envia o email automaticamente (abre o cliente de email)
-      Utils.enviarEmail(email, assunto, corpo);
+      window.open(`mailto:${email}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`, '_blank');
       
       showToast(`✅ Portaria "${nome}" criada! Convite enviado para ${email}`, 5000);
       
     } catch (e) {
       console.warn('Erro ao enviar convite:', e.message);
       
-      // Gera um link alternativo para copiar manualmente
       const codigoConvite = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
       
-      // Salva o convite no banco
       await supa.from('convites').insert({
         email: email,
         nome: nome,
@@ -5324,7 +5362,7 @@ async function salvarPlano() {
 }
 
 // ============================================================
-// FUNÇÕES DE QR CODE COMPARTILHAMENTO - CORRIGIDO
+// FUNÇÕES DE QR CODE COMPARTILHAMENTO
 // ============================================================
 async function enviarImagemWhatsapp() {
   if (!qrWhatsAtual) {
