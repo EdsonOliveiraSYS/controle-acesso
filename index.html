@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS COMPLETO (MANTIDO IGUAL - NÃO ALTERADO) ===== */
+/* ===== CSS COMPLETO (MANTIDO IGUAL) ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -146,7 +146,6 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.3s ease, color 0.3s ease; }
 
-/* ===== APP ===== */
 .app { 
   display: flex; 
   flex-direction: column; 
@@ -178,7 +177,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 .status-bar { height: var(--safe-top); background: var(--bg); flex-shrink: 0; transition: background-color 0.3s ease; }
 
-/* ===== HEADER ===== */
 .header { 
   display: flex; 
   align-items: center; 
@@ -232,7 +230,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .btn-update:active { transform: scale(0.9); }
 #btnTheme { font-size: 20px; }
 
-/* ===== PAGES - CORRIGIDO ===== */
 .pages { 
   flex: 1; 
   overflow-y: auto; 
@@ -246,20 +243,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   height: 100%;
 }
 
-.pages::-webkit-scrollbar { 
-  width: 4px; 
-}
+.pages::-webkit-scrollbar { width: 4px; }
+.pages::-webkit-scrollbar-track { background: transparent; }
+.pages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: var(--radius-full); }
 
-.pages::-webkit-scrollbar-track { 
-  background: transparent; 
-}
-
-.pages::-webkit-scrollbar-thumb { 
-  background: var(--border2); 
-  border-radius: var(--radius-full); 
-}
-
-/* CORREÇÃO PRINCIPAL: Forçar display none/block com !important */
 .page { 
   display: none !important; 
   padding: var(--page-padding); 
@@ -278,7 +265,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   to { opacity: 1; transform: translateY(0); } 
 }
 
-/* ===== NAV ===== */
 .nav { 
   display: flex; 
   border-top: 1px solid var(--border); 
@@ -343,7 +329,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .nav-btn:active { transform: scale(0.95); }
 .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* ===== RESPONSIVIDADE MÍNIMA ===== */
 @media (max-width: 420px) {
   .nav-btn { font-size: 8px; min-width: 36px; max-width: 56px; }
   .nav-btn svg { width: 18px; height: 18px; }
@@ -353,10 +338,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .header-sub { font-size: 10px; }
   .page { padding: 14px 12px 16px; }
 }
-
-/* ============================================================ */
-/* O RESTANTE DO CSS PERMANECE IGUAL */
-/* ============================================================ */
 
 .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
 .loading-overlay.active { display: flex; }
@@ -633,8 +614,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .operador-only { display:none !important; }
 .validacoes-only { display:none !important; }
 
-
-/* CORREÇÃO DE PERMISSÕES - NÃO SOBREPOR PÁGINAS */
 .role-administrador .nav-btn.admin-only,
 .role-administrador .btn-update.admin-only,
 .role-administrador .card.admin-only,
@@ -680,7 +659,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .role-validacoes .page.active {
   display:block !important;
 }
-
 
 #btnEnviarWhats { display:none; width:100%; padding:13px; background:#25D366; color:#fff; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; transition:all var(--transition-fast); }
 #btnEnviarWhats:hover { transform:scale(1.02); box-shadow:0 4px 16px rgba(37,211,102,0.3); }
@@ -815,7 +793,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   font-size: 11px;
 }
 
-/* ===== MASTER PANEL ===== */
 .master-header {
   display: flex;
   justify-content: space-between;
@@ -954,7 +931,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   color: var(--red);
 }
 
-/* ===== MODAL OVERLAY ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1051,7 +1027,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 <body>
 
 <!-- ============================================================ -->
-<!-- O HTML PERMANECE IGUAL (COM UMA REMOÇÃO) -->
+<!-- HTML - MANTIDO IGUAL -->
 <!-- ============================================================ -->
 
 <div class="loading-overlay" id="loadingOverlay">
@@ -1377,7 +1353,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 </div>
 
 <!-- ============================================================ -->
-<!-- MODAIS - COM REMOÇÃO DO BOTÃO "Enviar por E-mail" -->
+<!-- MODAIS -->
 <!-- ============================================================ -->
 
 <!-- RESET MODAL -->
@@ -1438,7 +1414,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- QR MODAL -->
+<!-- QR MODAL - SEM BOTÃO "Enviar por E-mail" -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -1454,7 +1430,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <button class="btn btn-ghost" style="margin:0;font-size:13px;padding:10px" onclick="copiarQRCode()">📋 Copiar</button>
       <button class="btn btn-ghost" style="margin:0;font-size:13px;padding:10px" onclick="baixarQRCode()">💾 Baixar</button>
     </div>
-    <!-- BOTÃO "Enviar por E-mail" REMOVIDO CONFORME SOLICITADO -->
+    <!-- BOTÃO "Enviar por E-mail" REMOVIDO -->
     <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('qrModal').classList.remove('open')">Fechar</button>
   </div>
 </div>
@@ -1741,13 +1717,12 @@ let ultimoLinkConvite = '';
 let qrWhatsAtual = '';
 let qrDriverId = '';
 
-// Variáveis do Painel Master (apenas Administrador)
 let todasPortarias = [];
 let todasAssinaturas = [];
 let planosDisponiveis = [];
 
 // ============================================================
-// PLANOS PRÉ-CONFIGURADOS (NOVOS VALORES)
+// PLANOS PRÉ-CONFIGURADOS
 // ============================================================
 const PLANOS_PADRAO = [
   { chave: 'basico', nome: 'Básico', descricao: '1 portaria e até 3 operadores', valor_mensal: 149.00, max_portarias: 1, max_operadores: 3, possui_suporte: false, possui_relatorios: false, ativo: true },
@@ -1994,7 +1969,6 @@ async function enviarConviteEmail() {
     const portaria = getPortaria();
     if (!portaria) throw new Error('Sessão expirada');
 
-    // Verifica limite de operadores baseado no plano
     if (role === 'operador' || role === 'portaria') {
       const { data: planoData } = await supa
         .from('planos')
@@ -2641,7 +2615,7 @@ async function verificarSessao() {
 }
 
 // ============================================================
-// PERMISSÕES - NOVO SISTEMA
+// PERMISSÕES
 // ============================================================
 function getRole() {
   const user = getPortaria();
@@ -2732,18 +2706,15 @@ async function iniciarApp() {
     document.getElementById('registerScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
     
-    // Aplica a classe de role no body
     document.body.className = 'role-' + p.tipo;
     
     const roleLabel = Utils.getRoleLabel(p.tipo);
     const roleIcon = Utils.getRoleIcon(p.tipo);
     document.getElementById('portariaNome').textContent = p.nome + ` · ${roleIcon} ${roleLabel}`;
     
-    // Mostrar/Ocultar botões baseado no papel
     document.getElementById('btnInvite').style.display = podeConvidar() ? 'flex' : 'none';
     document.getElementById('btnUsers').style.display = podeVerUsuarios() ? 'flex' : 'none';
     
-    // Mostrar/Ocultar navegação
     document.querySelectorAll('.nav-btn').forEach(btn => {
       const pageId = btn.id.replace('nav-', '');
       if (pageId === 'master') {
@@ -2751,7 +2722,6 @@ async function iniciarApp() {
       } else if (pageId === 'cadastro' || pageId === 'lista' || pageId === 'dashboard') {
         btn.style.display = ['administrador', 'portaria', 'operador'].includes(p.tipo) ? 'flex' : 'none';
       }
-      // scan, log são sempre visíveis
     });
     
     await carregarTodosMotoristas();
@@ -2778,37 +2748,31 @@ async function iniciarApp() {
 }
 
 function showPage(id) {
-  // Verifica permissão
   if (!podeAcessar(id)) {
     showToast('⚠️ Você não tem permissão para acessar esta página', 3000);
     return;
   }
   
-  // Remove active de todas as páginas
   document.querySelectorAll('.page').forEach(p => {
     p.classList.remove('active');
   });
   
-  // Remove active de todos os botões de navegação
   document.querySelectorAll('.nav-btn').forEach(b => {
     b.classList.remove('active');
     b.setAttribute('aria-selected', 'false');
   });
   
-  // Ativa a página correspondente
   const targetPage = document.getElementById('page-' + id);
   if (targetPage) {
     targetPage.classList.add('active');
   }
   
-  // Ativa o botão de navegação correspondente
   const navBtn = document.getElementById('nav-' + id);
   if (navBtn) {
     navBtn.classList.add('active');
     navBtn.setAttribute('aria-selected', 'true');
   }
   
-  // Funções específicas ao trocar de página
   if (id !== 'scan') stopScan();
   if (id === 'lista') { 
     renderLista(); 
@@ -3065,7 +3029,6 @@ async function processQR(id) {
       return;
     }
     
-    // Verifica validade do QR Code
     if (m.qr_validade && m.qr_validade !== 0) {
       const criadoEm = new Date(m.criado_em);
       const diasValidade = m.qr_validade || 7;
@@ -3467,7 +3430,7 @@ async function renderLog() {
 }
 
 // ============================================================
-// FUNÇÕES DE CADASTRO DE MOTORISTAS - CORRIGIDO
+// FUNÇÕES DE CADASTRO DE MOTORISTAS
 // ============================================================
 async function cadastrar() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
@@ -3516,7 +3479,7 @@ async function cadastrar() {
       empresa: document.getElementById('f-empresa').value.trim(),
       whatsapp: document.getElementById('f-whats').value.replace(/\D/g,''),
       status: document.getElementById('f-status').value,
-      qr_validade: qrValidade  // <-- CAMPO CORRIGIDO
+      qr_validade: qrValidade
     };
     const { data, error } = await supa.from('motoristas').insert(novo).select().single();
     if (error) throw new Error(error.message);
@@ -3584,14 +3547,13 @@ function previewEditFoto(e) {
   reader.readAsDataURL(file);
 }
 
-// Máscaras
 document.getElementById('f-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
 document.getElementById('f-cnh').addEventListener('input', function() { this.value = this.value.replace(/\D/g,'').slice(0,11); });
 document.getElementById('f-placa').addEventListener('input', function() { this.value = this.value.toUpperCase(); });
 document.getElementById('f-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
 // ============================================================
-// FUNÇÕES DE DETALHE E EDIÇÃO - CORRIGIDO
+// FUNÇÕES DE DETALHE E EDIÇÃO
 // ============================================================
 function openDetail(id) {
   const m = allMotoristas.find(x => x.id === id);
@@ -3663,14 +3625,27 @@ async function deleteDriver() {
   finally { btn.disabled = false; btn.textContent = originalText; }
 }
 
+// ============================================================
+// OPENEDITMODAL - CORRIGIDA
+// ============================================================
 function openEditModal(id) {
+  // Verifica permissão
   if (!podeEditarMotorista()) {
     showToast('⚠️ Você não tem permissão para editar motoristas', 3000);
     return;
   }
+  
+  // Busca o motorista na lista
   const m = allMotoristas.find(x => x.id === id);
-  if (!m) { showToast('Motorista não encontrado'); return; }
+  if (!m) { 
+    showToast('Motorista não encontrado', 3000); 
+    return; 
+  }
+  
+  // Armazena o ID do motorista que está sendo editado
   editDriverId = id;
+  
+  // Preenche os campos do formulário
   document.getElementById('e-nome').value = m.nome || '';
   document.getElementById('e-cpf').value = m.cpf || '';
   document.getElementById('e-cnh').value = m.cnh || '';
@@ -3678,15 +3653,26 @@ function openEditModal(id) {
   document.getElementById('e-empresa').value = m.empresa || '';
   document.getElementById('e-whats').value = Utils.formatPhone(m.whatsapp || '');
   document.getElementById('e-status').value = m.status || 'autorizado';
+  
+  // Preenche a foto
   const preview = document.getElementById('e-fotoPreview');
-  if (m.foto_url) preview.innerHTML = `<img src="${m.foto_url}">`;
-  else preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+  if (m.foto_url) {
+    preview.innerHTML = `<img src="${m.foto_url}">`;
+  } else {
+    preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+  }
+  
+  // Limpa arquivo de foto
   editFotoFile = null;
   document.getElementById('e-foto').value = '';
+  
+  // Remove mensagens de erro anteriores
   document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
-  document.getElementById('editModal').classList.add('open');
+  
+  // Fecha o modal de detalhes e abre o de edição
   document.getElementById('detailModal').classList.remove('open');
+  document.getElementById('editModal').classList.add('open');
 }
 
 async function validarEdicao() {
@@ -3725,7 +3711,7 @@ async function validarEdicao() {
 }
 
 // ============================================================
-// SALVAR EDIÇÃO - CORRIGIDO
+// SALVAR EDIÇÃO
 // ============================================================
 async function salvarEdicao() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
@@ -3750,7 +3736,6 @@ async function salvarEdicao() {
       empresa: document.getElementById('e-empresa').value.trim(),
       whatsapp: document.getElementById('e-whats').value.replace(/\D/g,''),
       status: document.getElementById('e-status').value
-      // NOTA: Não atualizamos qr_validade na edição para manter a validade original
     };
     const { error } = await supa.from('motoristas').update(dados).eq('id', editDriverId);
     if (error) throw new Error(error.message);
@@ -4193,7 +4178,6 @@ function atualizarEstatisticasMaster() {
 // RENDERIZAR GRÁFICOS DO MASTER
 // ============================================================
 function renderizarGraficosMaster() {
-  // 1. Distribuição de Planos
   const planosCount = {};
   todasAssinaturas.forEach(a => {
     const plano = a.plano || 'basico';
@@ -4245,7 +4229,6 @@ function renderizarGraficosMaster() {
     });
   }
   
-  // 2. Status das Portarias
   const statusCount = {
     'Ativa': 0,
     'Vencida': 0,
@@ -4307,7 +4290,6 @@ function renderizarGraficosMaster() {
     });
   }
   
-  // 3. Faturamento por Plano
   const faturamentoPlanos = {};
   todasAssinaturas.forEach(a => {
     if (a.status === 'ativa' && a.valor_mensal) {
@@ -4375,7 +4357,6 @@ function renderizarGraficosMaster() {
     ctxFat.parentNode.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px 0;">Nenhum faturamento registrado</p>';
   }
   
-  // 4. Evolução de Assinaturas
   const meses = [];
   const mesCount = [];
   const hoje = new Date();
@@ -4623,7 +4604,6 @@ function fecharModal() {
   document.querySelector('.modal-overlay')?.remove();
 }
 
-// VER DETALHES
 function verDetalhesPortaria(portariaId) {
   console.log('👁️ verDetalhesPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -4669,7 +4649,6 @@ function verDetalhesPortaria(portariaId) {
   criarModal(html);
 }
 
-// GERENCIAR ASSINATURA
 function abrirGerenciarAssinatura(portariaId) {
   console.log('💳 abrirGerenciarAssinatura chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -4783,7 +4762,6 @@ async function salvarAssinatura(portariaId) {
   }
 }
 
-// BLOQUEAR/DESBLOQUEAR
 async function toggleBloqueioPortaria(portariaId) {
   console.log('🔒 toggleBloqueioPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -4833,7 +4811,6 @@ async function toggleBloqueioPortaria(portariaId) {
   }
 }
 
-// EXCLUIR PORTARIA
 async function excluirPortaria(portariaId) {
   console.log('🗑️ excluirPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -4876,7 +4853,6 @@ async function excluirPortaria(portariaId) {
   }
 }
 
-// EDITAR PORTARIA
 function abrirEditarPortaria(portariaId) {
   console.log('✏️ abrirEditarPortaria chamado para:', portariaId);
   const portaria = todasPortarias.find(p => p.id === portariaId);
@@ -5009,9 +4985,6 @@ async function salvarEdicaoPortaria(portariaId) {
   }
 }
 
-// ============================================================
-// ABRIR MODAL PARA ADICIONAR PORTARIA
-// ============================================================
 function openAdicionarPortariaModal() {
   const html = `
     <div class="modal-overlay">
@@ -5065,9 +5038,6 @@ function openAdicionarPortariaModal() {
   criarModal(html);
 }
 
-// ============================================================
-// CRIAR PORTARIA
-// ============================================================
 async function criarPortaria() {
   const nome = document.getElementById('novaPortariaNome').value.trim();
   const email = document.getElementById('novaPortariaEmail').value.trim();
@@ -5173,9 +5143,6 @@ async function criarPortaria() {
   }
 }
 
-// ============================================================
-// ABRIR MODAL DE PLANO
-// ============================================================
 function openPlanoModal() {
   const html = `
     <div class="modal-overlay">
@@ -5234,9 +5201,6 @@ function openPlanoModal() {
   criarModal(html);
 }
 
-// ============================================================
-// SALVAR PLANO
-// ============================================================
 async function salvarPlano() {
   const nome = document.getElementById('planoNome').value.trim();
   const chave = document.getElementById('planoChave').value.trim().toLowerCase();
@@ -5308,7 +5272,7 @@ async function salvarPlano() {
 }
 
 // ============================================================
-// FUNÇÕES DE QR CODE COMPARTILHAMENTO - CORRIGIDO (WHATTSAPP COM IMAGEM)
+// FUNÇÕES DE QR CODE COMPARTILHAMENTO - CORRIGIDO
 // ============================================================
 async function enviarImagemWhatsapp() {
   if (!qrWhatsAtual) {
@@ -5326,16 +5290,13 @@ async function enviarImagemWhatsapp() {
       return;
     }
     
-    // Converte o QR Code para imagem base64
     const qrDataUrl = qrCanvas.toDataURL('image/png');
     
-    // Busca os dados do motorista
     const driver = allMotoristas.find(m => m.id === qrDriverId);
     const nomeMotorista = driver?.nome || 'Motorista';
     const placaMotorista = driver?.placa || '';
     const empresaMotorista = driver?.empresa || '';
     
-    // Cria a mensagem
     const mensagem = encodeURIComponent(
       `🚛 *PortariaPro - QR Code de Acesso*\n\n` +
       `🔹 *Motorista:* ${nomeMotorista}\n` +
@@ -5349,14 +5310,10 @@ async function enviarImagemWhatsapp() {
     );
     
     const numeroCompleto = `55${qrWhatsAtual}`;
-    
-    // Abre o WhatsApp com a mensagem
     const waWebLink = `https://wa.me/${numeroCompleto}?text=${mensagem}`;
     const newWindow = window.open(waWebLink, '_blank');
     
-    // Tenta baixar a imagem para o usuário enviar manualmente
     setTimeout(() => {
-      // Baixa a imagem automaticamente
       const link = document.createElement('a');
       link.download = `qr-code-${nomeMotorista.replace(/\s/g, '_')}.png`;
       link.href = qrDataUrl;
@@ -5423,8 +5380,6 @@ function baixarQRCode() {
     showToast('Erro ao baixar QR Code', 2000);
   }
 }
-
-// Função removida: enviarPorEmail() - SOLICITADA REMOÇÃO
 
 // ============================================================
 // START
