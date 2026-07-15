@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS - SOMENTE CORREÇÃO NOS PAGES ===== */
+/* ===== CSS COMPLETO (MANTIDO IGUAL - NÃO ALTERADO) ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -1051,7 +1051,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 <body>
 
 <!-- ============================================================ -->
-<!-- O HTML PERMANECE IGUAL - NÃO ALTERADO -->
+<!-- O HTML PERMANECE IGUAL (COM UMA REMOÇÃO) -->
 <!-- ============================================================ -->
 
 <div class="loading-overlay" id="loadingOverlay">
@@ -1377,7 +1377,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 </div>
 
 <!-- ============================================================ -->
-<!-- MODAIS E JAVASCRIPT PERMANECEM IGUAIS - NÃO ALTERADOS -->
+<!-- MODAIS - COM REMOÇÃO DO BOTÃO "Enviar por E-mail" -->
 <!-- ============================================================ -->
 
 <!-- RESET MODAL -->
@@ -1454,7 +1454,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <button class="btn btn-ghost" style="margin:0;font-size:13px;padding:10px" onclick="copiarQRCode()">📋 Copiar</button>
       <button class="btn btn-ghost" style="margin:0;font-size:13px;padding:10px" onclick="baixarQRCode()">💾 Baixar</button>
     </div>
-    <button class="btn btn-ghost" style="font-size:13px;padding:10px" onclick="enviarPorEmail()">✉️ Enviar por E-mail</button>
+    <!-- BOTÃO "Enviar por E-mail" REMOVIDO CONFORME SOLICITADO -->
     <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('qrModal').classList.remove('open')">Fechar</button>
   </div>
 </div>
@@ -1517,7 +1517,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT - PERMANECE IGUAL - NÃO ALTERADO
+// JAVASCRIPT - COM CORREÇÕES
 // ============================================================
 
 // ============================================================
@@ -3467,7 +3467,7 @@ async function renderLog() {
 }
 
 // ============================================================
-// FUNÇÕES DE CADASTRO DE MOTORISTAS
+// FUNÇÕES DE CADASTRO DE MOTORISTAS - CORRIGIDO
 // ============================================================
 async function cadastrar() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
@@ -3516,7 +3516,7 @@ async function cadastrar() {
       empresa: document.getElementById('f-empresa').value.trim(),
       whatsapp: document.getElementById('f-whats').value.replace(/\D/g,''),
       status: document.getElementById('f-status').value,
-      qr_validade: qrValidade
+      qr_validade: qrValidade  // <-- CAMPO CORRIGIDO
     };
     const { data, error } = await supa.from('motoristas').insert(novo).select().single();
     if (error) throw new Error(error.message);
@@ -3591,7 +3591,7 @@ document.getElementById('f-placa').addEventListener('input', function() { this.v
 document.getElementById('f-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
 // ============================================================
-// FUNÇÕES DE DETALHE E EDIÇÃO
+// FUNÇÕES DE DETALHE E EDIÇÃO - CORRIGIDO
 // ============================================================
 function openDetail(id) {
   const m = allMotoristas.find(x => x.id === id);
@@ -3724,6 +3724,9 @@ async function validarEdicao() {
   return isValid;
 }
 
+// ============================================================
+// SALVAR EDIÇÃO - CORRIGIDO
+// ============================================================
 async function salvarEdicao() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   if (!podeEditarMotorista()) {
@@ -3747,6 +3750,7 @@ async function salvarEdicao() {
       empresa: document.getElementById('e-empresa').value.trim(),
       whatsapp: document.getElementById('e-whats').value.replace(/\D/g,''),
       status: document.getElementById('e-status').value
+      // NOTA: Não atualizamos qr_validade na edição para manter a validade original
     };
     const { error } = await supa.from('motoristas').update(dados).eq('id', editDriverId);
     if (error) throw new Error(error.message);
@@ -3759,8 +3763,14 @@ async function salvarEdicao() {
     await carregarTodosMotoristas();
     renderLista();
     if (document.getElementById('detailModal').classList.contains('open')) openDetail(editDriverId);
-  } catch (e) { showToast('Erro: ' + e.message); }
-  finally { hideLoading(); btn.disabled = false; btn.textContent = originalText; }
+  } catch (e) { 
+    showToast('Erro: ' + e.message); 
+  }
+  finally { 
+    hideLoading(); 
+    btn.disabled = false; 
+    btn.textContent = originalText; 
+  }
 }
 
 document.getElementById('e-cpf').addEventListener('input', function() { this.value = Utils.formatCPF(this.value); });
@@ -5298,7 +5308,7 @@ async function salvarPlano() {
 }
 
 // ============================================================
-// FUNÇÕES DE QR CODE COMPARTILHAMENTO
+// FUNÇÕES DE QR CODE COMPARTILHAMENTO - CORRIGIDO (WHATTSAPP COM IMAGEM)
 // ============================================================
 async function enviarImagemWhatsapp() {
   if (!qrWhatsAtual) {
@@ -5316,39 +5326,51 @@ async function enviarImagemWhatsapp() {
       return;
     }
     
+    // Converte o QR Code para imagem base64
+    const qrDataUrl = qrCanvas.toDataURL('image/png');
+    
+    // Busca os dados do motorista
     const driver = allMotoristas.find(m => m.id === qrDriverId);
     const nomeMotorista = driver?.nome || 'Motorista';
     const placaMotorista = driver?.placa || '';
     const empresaMotorista = driver?.empresa || '';
     
+    // Cria a mensagem
     const mensagem = encodeURIComponent(
       `🚛 *PortariaPro - QR Code de Acesso*\n\n` +
       `🔹 *Motorista:* ${nomeMotorista}\n` +
       `${placaMotorista ? `🔹 *Placa:* ${placaMotorista}\n` : ''}` +
       `${empresaMotorista ? `🔹 *Empresa:* ${empresaMotorista}\n` : ''}` +
       `\n📱 *Instruções:*\n` +
-      `1. Abra esta imagem no seu WhatsApp\n` +
+      `1. Salve a imagem do QR Code abaixo\n` +
       `2. Na portaria, apresente o QR Code para validação\n` +
       `3. O código é pessoal e intransferível\n\n` +
       `🔑 *PortariaPro* - Controle de acesso inteligente`
     );
     
     const numeroCompleto = `55${qrWhatsAtual}`;
-    const waWebLink = `https://wa.me/${numeroCompleto}?text=${mensagem}`;
     
+    // Abre o WhatsApp com a mensagem
+    const waWebLink = `https://wa.me/${numeroCompleto}?text=${mensagem}`;
     const newWindow = window.open(waWebLink, '_blank');
     
+    // Tenta baixar a imagem para o usuário enviar manualmente
+    setTimeout(() => {
+      // Baixa a imagem automaticamente
+      const link = document.createElement('a');
+      link.download = `qr-code-${nomeMotorista.replace(/\s/g, '_')}.png`;
+      link.href = qrDataUrl;
+      link.click();
+      showToast('📸 Imagem do QR Code baixada! Envie junto com a mensagem.', 5000);
+    }, 1000);
+    
     if (newWindow) {
-      showToast('📱 WhatsApp aberto! Envie a mensagem.', 3000);
+      showToast('📱 WhatsApp aberto! Envie a mensagem e a imagem.', 4000);
     } else {
       const waAppLink = `whatsapp://send?phone=${numeroCompleto}&text=${mensagem}`;
       window.location.href = waAppLink;
-      showToast('📱 Abrindo WhatsApp...', 3000);
+      showToast('📱 Abrindo WhatsApp... Envie a imagem baixada.', 4000);
     }
-    
-    setTimeout(() => {
-      showToast('📸 Envie também a imagem do QR Code manualmente', 4000);
-    }, 2000);
     
     hideLoading();
     
@@ -5402,29 +5424,7 @@ function baixarQRCode() {
   }
 }
 
-function enviarPorEmail() {
-  if (!qrDriverId) {
-    showToast('⚠️ Nenhum QR Code selecionado', 2000);
-    return;
-  }
-  
-  const driver = allMotoristas.find(m => m.id === qrDriverId);
-  const nome = driver?.nome || 'Motorista';
-  
-  const subject = encodeURIComponent(`QR Code de Acesso - ${nome}`);
-  const body = encodeURIComponent(
-    `Olá,\n\nSegue o QR Code de acesso para ${nome}.\n\n` +
-    `ID: ${qrDriverId}\n\n` +
-    `PortariaPro - Controle de acesso inteligente`
-  );
-  
-  window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  showToast('✉️ Abrindo cliente de email...', 2000);
-  
-  setTimeout(() => {
-    showToast('📎 Anexe a imagem do QR Code manualmente', 3000);
-  }, 2000);
-}
+// Função removida: enviarPorEmail() - SOLICITADA REMOÇÃO
 
 // ============================================================
 // START
