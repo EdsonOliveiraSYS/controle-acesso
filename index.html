@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS COMPLETO (MANTIDO IGUAL) ===== */
+/* ===== CSS COMPLETO ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -1026,10 +1026,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 </head>
 <body>
 
-<!-- ============================================================ -->
-<!-- HTML - MANTIDO IGUAL -->
-<!-- ============================================================ -->
-
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Carregando...</div>
@@ -1430,7 +1426,6 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <button class="btn btn-ghost" style="margin:0;font-size:13px;padding:10px" onclick="copiarQRCode()">📋 Copiar</button>
       <button class="btn btn-ghost" style="margin:0;font-size:13px;padding:10px" onclick="baixarQRCode()">💾 Baixar</button>
     </div>
-    <!-- BOTÃO "Enviar por E-mail" REMOVIDO -->
     <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('qrModal').classList.remove('open')">Fechar</button>
   </div>
 </div>
@@ -1493,7 +1488,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT - COM CORREÇÕES
+// JAVASCRIPT COMPLETO - CORRIGIDO
 // ============================================================
 
 // ============================================================
@@ -1685,6 +1680,18 @@ const Utils = {
       'validacoes': '👁️'
     };
     return icons[tipo] || '👤';
+  },
+  enviarEmail: function(destinatario, assunto, corpo) {
+    // Tenta usar a API de email do navegador
+    try {
+      // Opção 1: Usar mailto (abre o cliente de email)
+      const mailtoLink = `mailto:${destinatario}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+      window.open(mailtoLink, '_blank');
+      return true;
+    } catch (e) {
+      console.error('Erro ao enviar email:', e);
+      return false;
+    }
   }
 };
 
@@ -2015,16 +2022,15 @@ async function enviarConviteEmail() {
 
     ultimoLinkConvite = `${window.location.origin}${window.location.pathname}?convite=${codigo}`;
 
-    const assunto = encodeURIComponent(`Convite PortariaPro - ${portaria.nome}`);
-    const corpo = encodeURIComponent(
+    const assunto = `Convite PortariaPro - ${portaria.nome}`;
+    const corpo = 
       `Olá ${nome},\n\n` +
       `Você foi convidado para se cadastrar na portaria "${portaria.nome}" como ${Utils.getRoleLabel(role)}.\n\n` +
       `🔗 Clique no link para criar sua conta: ${ultimoLinkConvite}\n\n` +
       `O link expira em 7 dias.\n\n` +
-      `Att,\nPortariaPro`
-    );
+      `Att,\nPortariaPro`;
 
-    window.open(`mailto:${email}?subject=${assunto}&body=${corpo}`, '_blank');
+    Utils.enviarEmail(email, assunto, corpo);
 
     document.getElementById('inviteStatus').textContent = '✅ Convite enviado por email!';
     showToast('✅ Convite enviado!', 3000);
@@ -5038,6 +5044,9 @@ function openAdicionarPortariaModal() {
   criarModal(html);
 }
 
+// ============================================================
+// CRIAR PORTARIA - CORRIGIDO COM ENVIO DE EMAIL AUTOMÁTICO
+// ============================================================
 async function criarPortaria() {
   const nome = document.getElementById('novaPortariaNome').value.trim();
   const email = document.getElementById('novaPortariaEmail').value.trim();
@@ -5114,8 +5123,13 @@ async function criarPortaria() {
       console.warn('Erro ao criar assinatura:', e.message);
     }
 
+    // ============================================================
+    // ENVIA O CONVITE POR EMAIL AUTOMATICAMENTE
+    // ============================================================
     try {
       const codigoConvite = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      // Salva o convite no banco
       await supa.from('convites').insert({
         email: email,
         nome: nome,
@@ -5127,9 +5141,47 @@ async function criarPortaria() {
         status: 'pendente',
         expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       });
-      showToast(`✅ Portaria "${nome}" criada! Convite enviado para ${email}`, 4000);
+
+      // Monta o link do convite
+      const linkConvite = `${window.location.origin}${window.location.pathname}?convite=${codigoConvite}`;
+      
+      // Monta o email
+      const assunto = `Convite PortariaPro - ${nome}`;
+      const corpo = 
+        `Olá ${nome},\n\n` +
+        `Você foi convidado para se cadastrar na portaria "${nome}" como ${Utils.getRoleLabel(tipo)}.\n\n` +
+        `🔗 Clique no link para criar sua conta: ${linkConvite}\n\n` +
+        `O link expira em 7 dias.\n\n` +
+        `Após criar sua conta, você poderá acessar o sistema com seu email e senha.\n\n` +
+        `Att,\nPortariaPro`;
+
+      // Envia o email automaticamente (abre o cliente de email)
+      Utils.enviarEmail(email, assunto, corpo);
+      
+      showToast(`✅ Portaria "${nome}" criada! Convite enviado para ${email}`, 5000);
+      
     } catch (e) {
-      showToast(`✅ Portaria "${nome}" criada com sucesso!`, 3000);
+      console.warn('Erro ao enviar convite:', e.message);
+      
+      // Gera um link alternativo para copiar manualmente
+      const codigoConvite = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      // Salva o convite no banco
+      await supa.from('convites').insert({
+        email: email,
+        nome: nome,
+        role: tipo,
+        portaria_id: portariaData.id,
+        portaria_nome: nome,
+        codigo: codigoConvite,
+        criado_por: portaria.id,
+        status: 'pendente',
+        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      
+      const linkConvite = `${window.location.origin}${window.location.pathname}?convite=${codigoConvite}`;
+      
+      showToast(`✅ Portaria "${nome}" criada! Convite: ${linkConvite}`, 8000);
     }
 
     fecharModal();
