@@ -21,7 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ===== CSS COMPLETO CORRIGIDO ===== */
+/* ===== CSS - SOMENTE CORREÇÃO NOS PAGES ===== */
 :root {
   --primary: #0B3B4A;
   --primary-dark: #072A35;
@@ -146,6 +146,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; transition: background-color 0.3s ease, color 0.3s ease; }
 
+/* ===== APP ===== */
 .app { 
   display: flex; 
   flex-direction: column; 
@@ -242,6 +243,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   scrollbar-width: thin; 
   scrollbar-color: var(--border2) transparent; 
   position: relative;
+  height: 100%;
 }
 
 .pages::-webkit-scrollbar { 
@@ -257,9 +259,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   border-radius: var(--radius-full); 
 }
 
-/* CORREÇÃO: SEM !important PARA NÃO CONFLITAR COM AS CLASSES DE ROLE */
+/* CORREÇÃO PRINCIPAL: Forçar display none/block com !important */
 .page { 
-  display: none; 
+  display: none !important; 
   padding: var(--page-padding); 
   width: 100%;
   height: 100%;
@@ -268,7 +270,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 }
 
 .page.active { 
-  display: block; 
+  display: block !important; 
 }
 
 @keyframes fadeIn { 
@@ -341,20 +343,16 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .nav-btn:active { transform: scale(0.95); }
 .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* ===== CLASSES DE ROLE (sem !important para não conflitar) ===== */
-.admin-only { display: none; }
-.portaria-only { display: none; }
-.operador-only { display: none; }
-.validacoes-only { display: none; }
-
-.role-administrador .admin-only { display: block; }
-.role-administrador .nav-btn.admin-only { display: flex; }
-.role-portaria .portaria-only { display: block; }
-.role-portaria .nav-btn.portaria-only { display: flex; }
-.role-operador .operador-only { display: block; }
-.role-operador .nav-btn.operador-only { display: flex; }
-.role-validacoes .validacoes-only { display: block; }
-.role-validacoes .nav-btn.validacoes-only { display: flex; }
+/* ===== RESPONSIVIDADE MÍNIMA ===== */
+@media (max-width: 420px) {
+  .nav-btn { font-size: 8px; min-width: 36px; max-width: 56px; }
+  .nav-btn svg { width: 18px; height: 18px; }
+  .nav { min-height: 50px; padding: 6px 2px 4px; }
+  .header { padding: 10px 14px 8px; min-height: 48px; }
+  .header-title { font-size: 14px; }
+  .header-sub { font-size: 10px; }
+  .page { padding: 14px 12px 16px; }
+}
 
 /* ============================================================ */
 /* O RESTANTE DO CSS PERMANECE IGUAL */
@@ -629,6 +627,60 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .dir-btn.entrada:hover { background:rgba(64, 212, 224, 0.15); }
 .dir-btn.saida { background:var(--bg3); color:var(--text2); border-color:var(--border2); }
 .dir-btn.saida:hover { border-color:var(--text3); color:var(--text); }
+
+.admin-only { display:none !important; }
+.portaria-only { display:none !important; }
+.operador-only { display:none !important; }
+.validacoes-only { display:none !important; }
+
+
+/* CORREÇÃO DE PERMISSÕES - NÃO SOBREPOR PÁGINAS */
+.role-administrador .nav-btn.admin-only,
+.role-administrador .btn-update.admin-only,
+.role-administrador .card.admin-only,
+.role-administrador .section.admin-only {
+  display:block !important;
+}
+.role-administrador .nav-btn.admin-only { display:flex !important; }
+
+.role-portaria .nav-btn.portaria-only,
+.role-portaria .btn-update.portaria-only,
+.role-portaria .card.portaria-only,
+.role-portaria .section.portaria-only {
+  display:block !important;
+}
+.role-portaria .nav-btn.portaria-only { display:flex !important; }
+
+.role-operador .nav-btn.operador-only,
+.role-operador .btn-update.operador-only,
+.role-operador .card.operador-only,
+.role-operador .section.operador-only {
+  display:block !important;
+}
+.role-operador .nav-btn.operador-only { display:flex !important; }
+
+.role-validacoes .nav-btn.validacoes-only,
+.role-validacoes .btn-update.validacoes-only,
+.role-validacoes .card.validacoes-only,
+.role-validacoes .section.validacoes-only {
+  display:block !important;
+}
+.role-validacoes .nav-btn.validacoes-only { display:flex !important; }
+
+.role-administrador .page,
+.role-portaria .page,
+.role-operador .page,
+.role-validacoes .page {
+  display:none !important;
+}
+
+.role-administrador .page.active,
+.role-portaria .page.active,
+.role-operador .page.active,
+.role-validacoes .page.active {
+  display:block !important;
+}
+
 
 #btnEnviarWhats { display:none; width:100%; padding:13px; background:#25D366; color:#fff; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; transition:all var(--transition-fast); }
 #btnEnviarWhats:hover { transform:scale(1.02); box-shadow:0 4px 16px rgba(37,211,102,0.3); }
@@ -994,22 +1046,12 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   .portaria-card .actions { justify-content: flex-start; }
   .modal-content { padding: 16px; }
 }
-
-@media (max-width: 420px) {
-  .nav-btn { font-size: 8px; min-width: 36px; max-width: 56px; }
-  .nav-btn svg { width: 18px; height: 18px; }
-  .nav { min-height: 50px; padding: 6px 2px 4px; }
-  .header { padding: 10px 14px 8px; min-height: 48px; }
-  .header-title { font-size: 14px; }
-  .header-sub { font-size: 10px; }
-  .page { padding: 14px 12px 16px; }
-}
 </style>
 </head>
 <body>
 
 <!-- ============================================================ -->
-<!-- HTML COMPLETO - MANTIDO IGUAL -->
+<!-- O HTML PERMANECE IGUAL - NÃO ALTERADO -->
 <!-- ============================================================ -->
 
 <div class="loading-overlay" id="loadingOverlay">
@@ -1335,7 +1377,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 </div>
 
 <!-- ============================================================ -->
-<!-- MODAIS - MANTIDOS IGUAIS -->
+<!-- MODAIS E JAVASCRIPT PERMANECEM IGUAIS - NÃO ALTERADOS -->
 <!-- ============================================================ -->
 
 <!-- RESET MODAL -->
@@ -1475,7 +1517,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT - MANTIDO IGUAL AO ORIGINAL
+// JAVASCRIPT - PERMANECE IGUAL - NÃO ALTERADO
 // ============================================================
 
 // ============================================================
@@ -2599,7 +2641,7 @@ async function verificarSessao() {
 }
 
 // ============================================================
-// PERMISSÕES
+// PERMISSÕES - NOVO SISTEMA
 // ============================================================
 function getRole() {
   const user = getPortaria();
@@ -2735,9 +2777,6 @@ async function iniciarApp() {
   }
 }
 
-// ============================================================
-// showPage - CORRIGIDA
-// ============================================================
 function showPage(id) {
   // Verifica permissão
   if (!podeAcessar(id)) {
@@ -2793,10 +2832,6 @@ function showPage(id) {
     document.getElementById('fotoPreview').innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
   }
 }
-
-// ============================================================
-// O RESTANTE DO JAVASCRIPT PERMANECE IGUAL
-// ============================================================
 
 // ============================================================
 // FUNÇÕES DE CADASTRO E LISTA DE MOTORISTAS
