@@ -1170,7 +1170,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <div class="stats" id="statsRow"></div>
         <div class="search-wrap">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="busca" placeholder="Buscar por nome ou placa..." oninput="renderLista()" class="field" style="margin:0">
+          <input type="text" id="busca" placeholder="Buscar por nome ou placa..." oninput="renderListaDebounced()" class="field" style="margin:0">
         </div>
         <div class="card" id="listaMotoristas"></div>
         <div id="scrollTrigger" style="height:20px;"></div>
@@ -1644,6 +1644,15 @@ const Utils = {
   },
   validateCNH: (cnh) => cnh.replace(/\D/g,'').length === 11,
   isOnline: () => navigator.onLine,
+  escapeHtml: (str) => {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
   debounce: (fn, delay = 300) => {
     let timer;
     return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
@@ -2809,10 +2818,38 @@ async function carregarTodosMotoristas() {
   } catch (e) { return []; }
 }
 
+// Template único do card de motorista (evita duplicação e escapa dados do usuário)
+function driverCardHTML(m) {
+  const nomeSeguro = Utils.escapeHtml(m.nome);
+  const placaSeguro = Utils.escapeHtml(m.placa || 'Sem placa');
+  const empresaSeguro = Utils.escapeHtml(m.empresa || 'Sem empresa');
+  const nomeQR = (m.nome || '').replace(/'/g, "\\'").replace(/</g, '');
+  const placaQR = (m.placa || '').replace(/'/g, "\\'").replace(/</g, '');
+  const empresaQR = (m.empresa || '').replace(/'/g, "\\'").replace(/</g, '');
+  const whatsQR = (m.whatsapp || '').replace(/'/g, "\\'").replace(/</g, '');
+  return `
+    <div class="driver-item" onclick="openDetail('${m.id}')">
+      <div class="avatar">${m.foto_url ? `<img class="detail-photo" src="${Utils.escapeHtml(m.foto_url)}">` : Utils.initials(m.nome)}</div>
+      <div class="driver-info">
+        <div class="driver-name">${nomeSeguro}</div>
+        <div class="driver-sub">${placaSeguro} · ${empresaSeguro}</div>
+      </div>
+      <span class="badge ${m.status === 'autorizado' ? 'badge-green' : m.status === 'bloqueado' ? 'badge-red' : 'badge-amber'}">${Utils.escapeHtml(m.status)}</span>
+      <button class="icon-btn" onclick="event.stopPropagation();showQRFor('${m.id}','${nomeQR}','${placaQR}','${empresaQR}','${whatsQR}')" title="Ver QR Code">
+        <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></svg>
+      </button>
+    </div>
+  `;
+}
+
+function filtrarMotoristas() {
+  const busca = (document.getElementById('busca').value || '').toLowerCase();
+  return allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
+}
+
 function renderLista() {
   const div = document.getElementById('listaMotoristas');
-  const busca = (document.getElementById('busca').value || '').toLowerCase();
-  let filtrados = allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
+  let filtrados = filtrarMotoristas();
   const total = allMotoristas.length;
   const aut = allMotoristas.filter(x => x.status === 'autorizado').length;
   const bloq = allMotoristas.filter(x => x.status === 'bloqueado').length;
@@ -2833,19 +2870,7 @@ function renderLista() {
   const paginados = filtrados.slice(start, end);
   hasMoreData = end < filtrados.length;
   currentPage = 1;
-  div.innerHTML = paginados.map(m => `
-    <div class="driver-item" onclick="openDetail('${m.id}')">
-      <div class="avatar">${m.foto_url ? `<img class="detail-photo" src="${m.foto_url}">` : Utils.initials(m.nome)}</div>
-      <div class="driver-info">
-        <div class="driver-name">${m.nome}</div>
-        <div class="driver-sub">${m.placa || 'Sem placa'} · ${m.empresa || 'Sem empresa'}</div>
-      </div>
-      <span class="badge ${m.status === 'autorizado' ? 'badge-green' : m.status === 'bloqueado' ? 'badge-red' : 'badge-amber'}">${m.status}</span>
-      <button class="icon-btn" onclick="event.stopPropagation();showQRFor('${m.id}','${(m.nome||'').replace(/'/g,"\\'")}','${m.placa||''}','${m.empresa||''}','${m.whatsapp||''}')" title="Ver QR Code">
-        <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></svg>
-      </button>
-    </div>
-  `).join('');
+  div.innerHTML = paginados.map(driverCardHTML).join('');
   if (hasMoreData) {
     const loadMoreDiv = document.createElement('div');
     loadMoreDiv.id = 'loadMoreIndicator';
@@ -2854,6 +2879,9 @@ function renderLista() {
     div.appendChild(loadMoreDiv);
   }
 }
+
+// Versão com debounce para não filtrar a cada tecla digitada
+const renderListaDebounced = Utils.debounce(renderLista, 250);
 
 function setupInfiniteScroll() {
   const trigger = document.getElementById('scrollTrigger');
@@ -2871,8 +2899,7 @@ function setupInfiniteScroll() {
 async function carregarMais() {
   if (isLoadingMore || !hasMoreData) return;
   isLoadingMore = true;
-  const busca = (document.getElementById('busca').value || '').toLowerCase();
-  const filtrados = allMotoristas.filter(m => m.nome.toLowerCase().includes(busca) || (m.placa||'').toLowerCase().includes(busca) || (m.empresa||'').toLowerCase().includes(busca));
+  const filtrados = filtrarMotoristas();
   const start = currentPage * PAGE_SIZE;
   const end = Math.min(start + PAGE_SIZE, filtrados.length);
   if (start >= filtrados.length) { hasMoreData = false; isLoadingMore = false; return; }
@@ -2882,23 +2909,9 @@ async function carregarMais() {
   const div = document.getElementById('listaMotoristas');
   const loadIndicator = document.getElementById('loadMoreIndicator');
   if (loadIndicator) loadIndicator.remove();
-  mais.forEach(m => {
-    const item = document.createElement('div');
-    item.className = 'driver-item';
-    item.onclick = () => openDetail(m.id);
-    item.innerHTML = `
-      <div class="avatar">${m.foto_url ? `<img class="detail-photo" src="${m.foto_url}">` : Utils.initials(m.nome)}</div>
-      <div class="driver-info">
-        <div class="driver-name">${m.nome}</div>
-        <div class="driver-sub">${m.placa || 'Sem placa'} · ${m.empresa || 'Sem empresa'}</div>
-      </div>
-      <span class="badge ${m.status === 'autorizado' ? 'badge-green' : m.status === 'bloqueado' ? 'badge-red' : 'badge-amber'}">${m.status}</span>
-      <button class="icon-btn" onclick="event.stopPropagation();showQRFor('${m.id}','${(m.nome||'').replace(/'/g,"\\'")}','${m.placa||''}','${m.empresa||''}','${m.whatsapp||''}')" title="Ver QR Code">
-        <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></svg>
-      </button>
-    `;
-    div.appendChild(item);
-  });
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = mais.map(driverCardHTML).join('');
+  while (wrapper.firstChild) div.appendChild(wrapper.firstChild);
   if (hasMoreData) {
     const loadMoreDiv = document.createElement('div');
     loadMoreDiv.id = 'loadMoreIndicator';
@@ -5337,7 +5350,7 @@ async function salvarPlano() {
         throw new Error('Já existe um plano com esta chave');
       }
       if (error.message.includes('row-level security')) {
-        throw new Error('Permissão negada. Execute: ALTER TABLE planos DISABLE ROW LEVEL SECURITY;');
+        throw new Error('Permissão negada pela política de segurança (RLS) da tabela "planos". Crie uma policy que permita esta operação para o usuário master em vez de desabilitar o RLS.');
       }
       throw error;
     }
