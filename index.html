@@ -1143,9 +1143,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <div class="page admin-only portaria-only operador-only" id="page-cadastro">
         <p class="section-title" id="cadastroTitle">Novo motorista</p>
         <div class="card">
-          <div class="field"><label>NOME COMPLETO *</label><input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off"></div>
-          <div class="field"><label>CPF *</label><input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off"></div>
-          <div class="field"><label>NÚMERO DA CNH (11 dígitos)</label><input type="tel" id="f-cnh" placeholder="00000000000" maxlength="11" autocomplete="off"></div>
+          <div class="field"><label>NOME COMPLETO *</label><input type="text" id="f-nome" placeholder="João da Silva" autocomplete="off"><span class="error-msg" id="err-nome">Informe o nome completo.</span></div>
+          <div class="field"><label>CPF *</label><input type="tel" id="f-cpf" placeholder="000.000.000-00" maxlength="14" autocomplete="off"><span class="error-msg" id="err-cpf">CPF inválido.</span></div>
+          <div class="field"><label>NÚMERO DA CNH (11 dígitos)</label><input type="tel" id="f-cnh" placeholder="00000000000" maxlength="11" autocomplete="off"><span class="error-msg" id="err-cnh">CNH inválida.</span></div>
           <div class="field"><label>PLACA DO VEÍCULO</label><input type="text" id="f-placa" placeholder="ABC-1234" maxlength="8" autocomplete="off"></div>
           <div class="field"><label>EMPRESA / TRANSPORTADORA</label><input type="text" id="f-empresa" placeholder="Nome da empresa" autocomplete="off"></div>
           <div class="field"><label>WHATSAPP (com DDD)</label><input type="tel" id="f-whats" placeholder="(62) 99999-9999" autocomplete="off" inputmode="numeric"></div>
@@ -1474,9 +1474,9 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     <div class="handle"></div>
     <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">✏️ Editar motorista</h3>
     <div id="editForm">
-      <div class="field"><label>NOME COMPLETO *</label><input type="text" id="e-nome" autocomplete="off"></div>
-      <div class="field"><label>CPF *</label><input type="tel" id="e-cpf" maxlength="14" autocomplete="off"></div>
-      <div class="field"><label>CNH (11 dígitos)</label><input type="tel" id="e-cnh" maxlength="11" autocomplete="off"></div>
+      <div class="field"><label>NOME COMPLETO *</label><input type="text" id="e-nome" autocomplete="off"><span class="error-msg" id="err-e-nome">Informe o nome completo.</span></div>
+      <div class="field"><label>CPF *</label><input type="tel" id="e-cpf" maxlength="14" autocomplete="off"><span class="error-msg" id="err-e-cpf">CPF inválido.</span></div>
+      <div class="field"><label>CNH (11 dígitos)</label><input type="tel" id="e-cnh" maxlength="11" autocomplete="off"><span class="error-msg" id="err-e-cnh">CNH inválida.</span></div>
       <div class="field"><label>PLACA</label><input type="text" id="e-placa" maxlength="8" autocomplete="off"></div>
       <div class="field"><label>EMPRESA</label><input type="text" id="e-empresa" autocomplete="off"></div>
       <div class="field"><label>WHATSAPP</label><input type="tel" id="e-whats" autocomplete="off" inputmode="numeric"></div>
@@ -3105,7 +3105,10 @@ async function processQR(id) {
 
 function selecionarServico(tipo) {
   selectedServico = tipo;
-  document.querySelectorAll('.servico-btn').forEach(btn => btn.classList.toggle('selected', btn.textContent.toLowerCase().includes(tipo)));
+  document.querySelectorAll('.servico-btn').forEach(btn => {
+    const btnTipo = (btn.getAttribute('onclick').match(/selecionarServico\('([a-z]+)'\)/) || [])[1];
+    btn.classList.toggle('selected', btnTipo === tipo);
+  });
 }
 
 function selecionarTipoRegistro(tipo) {
