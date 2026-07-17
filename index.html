@@ -3076,21 +3076,26 @@ async function processQR(id) {
         <h3 style="color:${corStatus}">${m.status === 'autorizado' ? 'Motorista autorizado' : 'Status pendente'}</h3>
         <p class="result-name">${m.nome}</p>
         <p class="result-sub">${m.placa || '—'} · ${m.empresa || '—'}</p>
-        <div class="field" style="margin-top:12px;">
-          <label>A SERVIÇO DE:</label>
-          <input type="text" id="servicoEmpresa" placeholder="Nome da empresa" style="width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:14px;">
+        <div class="dir-btns" id="dirBtnsContainer">
+          <button class="dir-btn entrada" onclick="selecionarTipoRegistro('entrada')">↓ Entrada</button>
+          <button class="dir-btn saida" onclick="selecionarTipoRegistro('saida')">↑ Saída</button>
         </div>
-        <div class="field">
-          <label>TIPO DE SERVIÇO:</label>
-          <div class="servico-options">
-            <button class="servico-btn" onclick="selecionarServico('carga')">📦 Carga</button>
-            <button class="servico-btn" onclick="selecionarServico('descarga')">📤 Descarga</button>
-            <button class="servico-btn" onclick="selecionarServico('pernoite')">🌙 Pernoite</button>
+        <div id="entradaFields" style="display:none;">
+          <div class="field" style="margin-top:12px;">
+            <label>A SERVIÇO DE:</label>
+            <input type="text" id="servicoEmpresa" placeholder="Nome da empresa" style="width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:14px;">
           </div>
-        </div>
-        <div class="dir-btns">
-          <button class="dir-btn entrada" onclick="registrarDirecao('entrada')">↓ Entrada</button>
-          <button class="dir-btn saida" onclick="registrarDirecao('saida')">↑ Saída</button>
+          <div class="field">
+            <label>TIPO DE SERVIÇO:</label>
+            <div class="servico-options">
+              <button class="servico-btn" onclick="selecionarServico('carga')">📦 Carga</button>
+              <button class="servico-btn" onclick="selecionarServico('descarga')">📤 Descarga</button>
+              <button class="servico-btn" onclick="selecionarServico('pernoite')">🌙 Pernoite</button>
+            </div>
+          </div>
+          <div class="dir-btns">
+            <button class="dir-btn entrada" style="flex:1 1 100%;" onclick="registrarDirecao('entrada')">✓ Confirmar Entrada</button>
+          </div>
         </div>
       </div>`;
   } catch (e) {
@@ -3101,6 +3106,17 @@ async function processQR(id) {
 function selecionarServico(tipo) {
   selectedServico = tipo;
   document.querySelectorAll('.servico-btn').forEach(btn => btn.classList.toggle('selected', btn.textContent.toLowerCase().includes(tipo)));
+}
+
+function selecionarTipoRegistro(tipo) {
+  if (tipo === 'saida') {
+    registrarDirecao('saida');
+    return;
+  }
+  const entradaFields = document.getElementById('entradaFields');
+  const dirBtnsContainer = document.getElementById('dirBtnsContainer');
+  if (entradaFields) entradaFields.style.display = 'block';
+  if (dirBtnsContainer) dirBtnsContainer.style.display = 'none';
 }
 
 async function registrarDirecao(tipo) {
@@ -3136,6 +3152,50 @@ async function registrarDirecao(tipo) {
 }
 
 // ============================================================
+// CÁLCULO DE TEMPO DE PERMANÊNCIA
+// ============================================================
+function formatarDuracao(ms) {
+  if (ms == null || ms < 0) return '';
+  const totalMin = Math.round(ms / 60000);
+  const dias = Math.floor(totalMin / 1440);
+  const horas = Math.floor((totalMin % 1440) / 60);
+  const min = totalMin % 60;
+  let partes = [];
+  if (dias > 0) partes.push(`${dias}d`);
+  if (horas > 0) partes.push(`${horas}h`);
+  if (min > 0 || partes.length === 0) partes.push(`${min}min`);
+  return partes.join(' ');
+}
+
+// Recebe a lista de validações (qualquer ordem) e retorna um Map
+// da chave (dt do registro de saída) -> duração em ms desde a entrada correspondente do mesmo motorista.
+function calcularTemposPermanencia(data) {
+  const permanencias = new Map();
+  const porMotorista = {};
+  data.forEach(v => {
+    if (!v.motorista_id) return;
+    if (!porMotorista[v.motorista_id]) porMotorista[v.motorista_id] = [];
+    porMotorista[v.motorista_id].push(v);
+  });
+  Object.values(porMotorista).forEach(registros => {
+    registros.sort((a, b) => new Date(a.dt) - new Date(b.dt));
+    let entradaAtual = null;
+    registros.forEach(r => {
+      if (r.tipo === 'entrada' && r.ok) {
+        entradaAtual = r;
+      } else if (r.tipo === 'saida' && r.ok) {
+        if (entradaAtual) {
+          const ms = new Date(r.dt) - new Date(entradaAtual.dt);
+          permanencias.set(r, ms);
+        }
+        entradaAtual = null;
+      }
+    });
+  });
+  return permanencias;
+}
+
+// ============================================================
 // FUNÇÕES DE RELATÓRIOS
 // ============================================================
 async function exportarLogCSV() {
@@ -3158,14 +3218,16 @@ async function exportarLogCSV() {
       return;
     }
     
-    let csv = 'Data,Horário,Motorista,Placa,Empresa,Tipo,Status,Portaria\n';
+    let csv = 'Data,Horário,Motorista,Placa,Empresa,Tipo,Status,Tempo de Permanência,Portaria\n';
+    const permanencias = calcularTemposPermanencia(data);
     data.forEach(item => {
       const dt = new Date(item.dt);
       const dataStr = dt.toLocaleDateString('pt-BR');
       const horaStr = dt.toLocaleTimeString('pt-BR');
       const status = item.ok ? 'Autorizado' : 'Negado';
       const tipo = item.tipo || '—';
-      csv += `"${dataStr}","${horaStr}","${item.motorista_nome || '—'}","${item.motorista_placa || '—'}","${item.motorista_empresa || '—'}","${tipo}","${status}","${item.portaria_nome || '—'}"\n`;
+      const permanencia = permanencias.has(item) ? formatarDuracao(permanencias.get(item)) : '';
+      csv += `"${dataStr}","${horaStr}","${item.motorista_nome || '—'}","${item.motorista_placa || '—'}","${item.motorista_empresa || '—'}","${tipo}","${status}","${permanencia}","${item.portaria_nome || '—'}"\n`;
     });
     
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -3212,9 +3274,11 @@ async function exportarLogPDF() {
     doc.setFontSize(10);
     doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
     
-    const headers = [['Data', 'Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Status', 'Portaria']];
+    const headers = [['Data', 'Hora', 'Motorista', 'Placa', 'Empresa', 'Tipo', 'Status', 'Permanência', 'Portaria']];
+    const permanencias = calcularTemposPermanencia(data);
     const rows = data.slice(0, 100).map(item => {
       const dt = new Date(item.dt);
+      const permanencia = permanencias.has(item) ? formatarDuracao(permanencias.get(item)) : '';
       return [
         dt.toLocaleDateString('pt-BR'),
         dt.toLocaleTimeString('pt-BR'),
@@ -3223,6 +3287,7 @@ async function exportarLogPDF() {
         item.motorista_empresa || '—',
         item.tipo || '—',
         item.ok ? 'Autorizado' : 'Negado',
+        permanencia || '—',
         item.portaria_nome || '—'
       ];
     });
@@ -3430,11 +3495,14 @@ async function renderLog() {
       return;
     }
     
+    const permanencias = calcularTemposPermanencia(data);
     div.innerHTML = filtrados.slice(0, 50).map(l => {
       const dirLabel = l.tipo === 'entrada' ? 'Entrada' : l.tipo === 'saida' ? 'Saída' : '';
       const servicoLabel = l.servico ? ` · ${l.servico.charAt(0).toUpperCase() + l.servico.slice(1)}` : '';
       
       const portariaLabel = (isAdministrador() && l.portaria_nome) ? ` · ${l.portaria_nome}` : '';
+      const permanenciaMs = permanencias.get(l);
+      const permanenciaLabel = permanenciaMs != null ? `<br><span style="color:var(--cyan)">⏱ ${formatarDuracao(permanenciaMs)}</span>` : '';
       
       return `<div class="log-item">
         <div class="log-dot" style="background:${l.ok ? 'var(--green)' : 'var(--red)'}"></div>
@@ -3442,7 +3510,7 @@ async function renderLog() {
           <div class="log-name">${l.motorista_nome} ${dirLabel ? `<span style="color:var(--text2);font-weight:400">· ${dirLabel}</span>` : ''}${servicoLabel}</div>
           <div class="log-sub">${l.motorista_placa||''} ${l.motorista_empresa ? '· '+l.motorista_empresa : ''}${portariaLabel}</div>
         </div>
-        <div class="log-time">${new Date(l.dt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}<br>${new Date(l.dt).toLocaleDateString('pt-BR')}</div>
+        <div class="log-time">${new Date(l.dt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}<br>${new Date(l.dt).toLocaleDateString('pt-BR')}${permanenciaLabel}</div>
       </div>`;
     }).join('');
     
