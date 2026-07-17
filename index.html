@@ -617,26 +617,38 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .role-administrador .nav-btn.admin-only,
 .role-administrador .btn-update.admin-only,
 .role-administrador .card.admin-only,
-.role-administrador .section.admin-only {
+.role-administrador .section.admin-only,
+.role-administrador .status-btns.admin-only,
+.role-administrador .qr-mini-btn.admin-only,
+.role-administrador .btn.admin-only {
   display:block !important;
 }
 .role-administrador .nav-btn.admin-only { display:flex !important; }
+.role-administrador .status-btns.admin-only { display:flex !important; }
 
 .role-portaria .nav-btn.portaria-only,
 .role-portaria .btn-update.portaria-only,
 .role-portaria .card.portaria-only,
-.role-portaria .section.portaria-only {
+.role-portaria .section.portaria-only,
+.role-portaria .status-btns.portaria-only,
+.role-portaria .qr-mini-btn.portaria-only,
+.role-portaria .btn.portaria-only {
   display:block !important;
 }
 .role-portaria .nav-btn.portaria-only { display:flex !important; }
+.role-portaria .status-btns.portaria-only { display:flex !important; }
 
 .role-operador .nav-btn.operador-only,
 .role-operador .btn-update.operador-only,
 .role-operador .card.operador-only,
-.role-operador .section.operador-only {
+.role-operador .section.operador-only,
+.role-operador .status-btns.operador-only,
+.role-operador .qr-mini-btn.operador-only,
+.role-operador .btn.operador-only {
   display:block !important;
 }
 .role-operador .nav-btn.operador-only { display:flex !important; }
+.role-operador .status-btns.operador-only { display:flex !important; }
 
 .role-validacoes .nav-btn.validacoes-only,
 .role-validacoes .btn-update.validacoes-only,
@@ -3508,7 +3520,7 @@ async function cadastrar() {
     document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
     document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
     showToast('Motorista cadastrado com sucesso ✓');
-    showQRFor(data.id, data.nome);
+    showQRFor(data.id, data.nome, data.placa, data.empresa, data.whatsapp);
     await carregarTodosMotoristas();
     renderLista();
   } catch (e) {
