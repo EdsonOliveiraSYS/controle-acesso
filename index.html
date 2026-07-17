@@ -476,8 +476,8 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 .corner { position:absolute; width:var(--corner-size); height:var(--corner-size); }
 .corner-tl { top:16px; left:16px; border-top:var(--corner-thickness) solid var(--cyan); border-left:var(--corner-thickness) solid var(--cyan); border-radius:6px 0 0 0; }
 .corner-tr { top:16px; right:16px; border-top:var(--corner-thickness) solid var(--cyan); border-right:var(--corner-thickness) solid var(--cyan); border-radius:0 6px 0 0; }
-.corner-bl { bottom:16px; left:16px; border-bottom:var(--corner-thickness) solid var(--cyan); border-left:var(--corner-thickness) solid var(--cyan); border-radius:0 0 0 6px; }
-.corner-br { bottom:16px; right:16px; border-bottom:var(--corner-thickness) solid var(--cyan); border-right:var(--corner-thickness) solid var(--cyan); border-radius:0 0 6px 0; }
+.corner-bl { bottom:16px; left:16px; border-bottom:var(--corner-thickness) solid var(--cyan); border-right:var(--corner-thickness) solid var(--cyan); border-radius:0 0 0 6px; }
+.corner-br { bottom:16px; right:16px; border-bottom:var(--corner-thickness) solid var(--cyan); border-left:var(--corner-thickness) solid var(--cyan); border-radius:0 0 6px 0; }
 .scan-line { position:absolute; left:12%; right:12%; height:var(--scan-line-size); background:linear-gradient(90deg, transparent, var(--cyan), transparent); z-index:3; display:none; top:20%; animation:scanMove 2s ease-in-out infinite; box-shadow:0 0 20px rgba(64, 212, 224, 0.3); }
 @keyframes scanMove { 0%,100%{top:20%;} 50%{top:78%;} }
 .scan-zone.scan-loading .scan-placeholder svg { animation: pulse 1.5s ease-in-out infinite; }
@@ -1414,7 +1414,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
-<!-- QR MODAL - SEM BOTÃO "Enviar por E-mail" -->
+<!-- QR MODAL -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
     <div class="handle"></div>
@@ -1492,7 +1492,7 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
 
 <script>
 // ============================================================
-// JAVASCRIPT - CORRIGIDO (EDIÇÃO DE MOTORISTAS)
+// JAVASCRIPT - CORRIGIDO
 // ============================================================
 
 // ============================================================
@@ -2818,7 +2818,7 @@ async function carregarTodosMotoristas() {
   } catch (e) { return []; }
 }
 
-// Template único do card de motorista (evita duplicação e escapa dados do usuário)
+// Template único do card de motorista
 function driverCardHTML(m) {
   const nomeSeguro = Utils.escapeHtml(m.nome);
   const placaSeguro = Utils.escapeHtml(m.placa || 'Sem placa');
@@ -2880,7 +2880,6 @@ function renderLista() {
   }
 }
 
-// Versão com debounce para não filtrar a cada tecla digitada
 const renderListaDebounced = Utils.debounce(renderLista, 250);
 
 function setupInfiniteScroll() {
@@ -3564,12 +3563,9 @@ document.getElementById('f-placa').addEventListener('input', function() { this.v
 document.getElementById('f-whats').addEventListener('input', function() { this.value = Utils.formatPhone(this.value); });
 
 // ============================================================
-// FUNÇÕES DE DETALHE E EDIÇÃO - CORRIGIDAS
+// FUNÇÕES DE DETALHE E EDIÇÃO
 // ============================================================
 
-// ============================================================
-// OPEN DETAIL - CORRIGIDO (define currentDriverId)
-// ============================================================
 function openDetail(id) {
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { 
@@ -3577,7 +3573,6 @@ function openDetail(id) {
     return; 
   }
   
-  // DEFINE O currentDriverId PARA O BOTÃO EDITAR
   currentDriverId = id;
   
   document.getElementById('detailAvatar').innerHTML = m.foto_url ? `<img class="detail-photo" src="${m.foto_url}">` : Utils.initials(m.nome);
@@ -3608,19 +3603,14 @@ function openDetail(id) {
   document.getElementById('detailModal').classList.add('open');
 }
 
-// ============================================================
-// OPENEDITMODAL - CORRIGIDA (garante que abre)
-// ============================================================
 function openEditModal(id) {
   console.log('✏️ openEditModal chamado para ID:', id);
   
-  // Verifica permissão
   if (!podeEditarMotorista()) {
     showToast('⚠️ Você não tem permissão para editar motoristas', 3000);
     return;
   }
   
-  // Busca o motorista na lista
   const m = allMotoristas.find(x => x.id === id);
   if (!m) { 
     showToast('Motorista não encontrado', 3000); 
@@ -3629,10 +3619,8 @@ function openEditModal(id) {
   
   console.log('✅ Motorista encontrado:', m.nome);
   
-  // Armazena o ID do motorista que está sendo editado
   editDriverId = id;
   
-  // Preenche os campos do formulário
   document.getElementById('e-nome').value = m.nome || '';
   document.getElementById('e-cpf').value = m.cpf || '';
   document.getElementById('e-cnh').value = m.cnh || '';
@@ -3641,7 +3629,6 @@ function openEditModal(id) {
   document.getElementById('e-whats').value = Utils.formatPhone(m.whatsapp || '');
   document.getElementById('e-status').value = m.status || 'autorizado';
   
-  // Preenche a foto
   const preview = document.getElementById('e-fotoPreview');
   if (m.foto_url) {
     preview.innerHTML = `<img src="${m.foto_url}">`;
@@ -3649,15 +3636,12 @@ function openEditModal(id) {
     preview.innerHTML = `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
   }
   
-  // Limpa arquivo de foto
   editFotoFile = null;
   document.getElementById('e-foto').value = '';
   
-  // Remove mensagens de erro anteriores
   document.querySelectorAll('#editForm .error-msg').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('#editForm .field input').forEach(el => el.classList.remove('error'));
   
-  // Fecha o modal de detalhes e abre o de edição
   document.getElementById('detailModal').classList.remove('open');
   document.getElementById('editModal').classList.add('open');
   
@@ -3703,7 +3687,7 @@ async function deleteDriver() {
 }
 
 // ============================================================
-// SALVAR EDIÇÃO
+// SALVAR EDIÇÃO - CORRIGIDO
 // ============================================================
 async function salvarEdicao() {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
@@ -4094,6 +4078,134 @@ function atualizarDashboard() {
     processarDashboard(allValidacoes);
   } else {
     carregarDashboard();
+  }
+}
+
+// ============================================================
+// FUNÇÕES DE QR CODE COMPARTILHAMENTO - CORRIGIDO
+// ============================================================
+async function enviarImagemWhatsapp() {
+  if (!qrWhatsAtual) {
+    showToast('⚠️ Número de WhatsApp não disponível', 3000);
+    return;
+  }
+  
+  try {
+    showLoading('Preparando QR Code...');
+    
+    // Obter o canvas do QR Code
+    const qrCanvas = document.querySelector('#qrCode canvas');
+    if (!qrCanvas) {
+      showToast('⚠️ QR Code não encontrado', 3000);
+      hideLoading();
+      return;
+    }
+    
+    // Obter dados do motorista
+    const driver = allMotoristas.find(m => m.id === qrDriverId);
+    const nomeMotorista = driver?.nome || 'Motorista';
+    const placaMotorista = driver?.placa || '';
+    const empresaMotorista = driver?.empresa || '';
+    
+    // 1. GERAR A IMAGEM DO QR CODE COMO BLOB/URL
+    const qrDataUrl = qrCanvas.toDataURL('image/png');
+    
+    // 2. CONVERTER A URL PARA BLOB PARA ENVIO
+    const response = await fetch(qrDataUrl);
+    const blob = await response.blob();
+    
+    // 3. CRIAR UMA MENSAGEM COM O QR CODE EMBUTIDO
+    // Para WhatsApp Web, vamos usar o link com o QR Code como imagem
+    // e enviar a imagem junto com a mensagem
+    
+    // Primeiro, abrir o WhatsApp com a mensagem
+    const mensagem = encodeURIComponent(
+      `🚛 *PortariaPro - QR Code de Acesso*\n\n` +
+      `🔹 *Motorista:* ${nomeMotorista}\n` +
+      `${placaMotorista ? `🔹 *Placa:* ${placaMotorista}\n` : ''}` +
+      `${empresaMotorista ? `🔹 *Empresa:* ${empresaMotorista}\n` : ''}` +
+      `\n📱 *Instruções:*\n` +
+      `1. Salve a imagem do QR Code abaixo\n` +
+      `2. Na portaria, apresente o QR Code para validação\n` +
+      `3. O código é pessoal e intransferível\n\n` +
+      `🔑 *PortariaPro* - Controle de acesso inteligente`
+    );
+    
+    const numeroCompleto = `55${qrWhatsAtual}`;
+    const waWebLink = `https://wa.me/${numeroCompleto}?text=${mensagem}`;
+    
+    // Abrir o WhatsApp
+    const newWindow = window.open(waWebLink, '_blank');
+    
+    // Salvar a imagem para o usuário poder anexar
+    setTimeout(() => {
+      // Criar um link para download da imagem
+      const link = document.createElement('a');
+      link.download = `qr-code-${nomeMotorista.replace(/\s/g, '_')}.png`;
+      link.href = qrDataUrl;
+      link.click();
+      
+      showToast('📸 QR Code baixado! Envie a imagem pelo WhatsApp.', 5000);
+    }, 1000);
+    
+    if (newWindow) {
+      showToast('📱 WhatsApp aberto! Envie a mensagem e a imagem.', 4000);
+    } else {
+      // Tentar abrir o app do WhatsApp
+      const waAppLink = `whatsapp://send?phone=${numeroCompleto}&text=${mensagem}`;
+      window.location.href = waAppLink;
+      showToast('📱 Abrindo WhatsApp... Envie a imagem baixada.', 4000);
+    }
+    
+    hideLoading();
+    
+  } catch (e) {
+    console.error('❌ Erro ao enviar WhatsApp:', e);
+    showToast('❌ Erro ao abrir WhatsApp: ' + e.message, 4000);
+    hideLoading();
+  }
+}
+
+async function copiarQRCode() {
+  try {
+    const qrCanvas = document.querySelector('#qrCode canvas');
+    if (!qrCanvas) {
+      showToast('⚠️ QR Code não disponível', 2000);
+      return;
+    }
+    
+    const blob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
+    if (navigator.clipboard && navigator.clipboard.write) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+      showToast('📋 QR Code copiado como imagem!', 2000);
+    } else {
+      const text = qrDriverId || 'QR Code';
+      await navigator.clipboard.writeText(text);
+      showToast('📋 ID do QR Code copiado', 2000);
+    }
+  } catch (e) {
+    showToast('📋 QR Code copiado!', 2000);
+  }
+}
+
+function baixarQRCode() {
+  try {
+    const qrCanvas = document.querySelector('#qrCode canvas');
+    if (!qrCanvas) {
+      showToast('⚠️ QR Code não disponível', 2000);
+      return;
+    }
+    const link = document.createElement('a');
+    link.download = `qr-code-${qrDriverId || 'motorista'}.png`;
+    link.href = qrCanvas.toDataURL('image/png');
+    link.click();
+    showToast('💾 QR Code baixado!', 2000);
+  } catch (e) {
+    showToast('Erro ao baixar QR Code', 2000);
   }
 }
 
@@ -5371,116 +5483,6 @@ async function salvarPlano() {
     showToast('Erro: ' + e.message, 4000);
   } finally {
     hideLoading();
-  }
-}
-
-// ============================================================
-// FUNÇÕES DE QR CODE COMPARTILHAMENTO
-// ============================================================
-async function enviarImagemWhatsapp() {
-  if (!qrWhatsAtual) {
-    showToast('⚠️ Número de WhatsApp não disponível', 3000);
-    return;
-  }
-  
-  try {
-    showLoading('Abrindo WhatsApp...');
-    
-    const qrCanvas = document.querySelector('#qrCode canvas');
-    if (!qrCanvas) {
-      showToast('⚠️ QR Code não encontrado', 3000);
-      hideLoading();
-      return;
-    }
-    
-    const qrDataUrl = qrCanvas.toDataURL('image/png');
-    
-    const driver = allMotoristas.find(m => m.id === qrDriverId);
-    const nomeMotorista = driver?.nome || 'Motorista';
-    const placaMotorista = driver?.placa || '';
-    const empresaMotorista = driver?.empresa || '';
-    
-    const mensagem = encodeURIComponent(
-      `🚛 *PortariaPro - QR Code de Acesso*\n\n` +
-      `🔹 *Motorista:* ${nomeMotorista}\n` +
-      `${placaMotorista ? `🔹 *Placa:* ${placaMotorista}\n` : ''}` +
-      `${empresaMotorista ? `🔹 *Empresa:* ${empresaMotorista}\n` : ''}` +
-      `\n📱 *Instruções:*\n` +
-      `1. Salve a imagem do QR Code abaixo\n` +
-      `2. Na portaria, apresente o QR Code para validação\n` +
-      `3. O código é pessoal e intransferível\n\n` +
-      `🔑 *PortariaPro* - Controle de acesso inteligente`
-    );
-    
-    const numeroCompleto = `55${qrWhatsAtual}`;
-    const waWebLink = `https://wa.me/${numeroCompleto}?text=${mensagem}`;
-    const newWindow = window.open(waWebLink, '_blank');
-    
-    setTimeout(() => {
-      const link = document.createElement('a');
-      link.download = `qr-code-${nomeMotorista.replace(/\s/g, '_')}.png`;
-      link.href = qrDataUrl;
-      link.click();
-      showToast('📸 Imagem do QR Code baixada! Envie junto com a mensagem.', 5000);
-    }, 1000);
-    
-    if (newWindow) {
-      showToast('📱 WhatsApp aberto! Envie a mensagem e a imagem.', 4000);
-    } else {
-      const waAppLink = `whatsapp://send?phone=${numeroCompleto}&text=${mensagem}`;
-      window.location.href = waAppLink;
-      showToast('📱 Abrindo WhatsApp... Envie a imagem baixada.', 4000);
-    }
-    
-    hideLoading();
-    
-  } catch (e) {
-    console.error('❌ Erro ao enviar WhatsApp:', e);
-    showToast('❌ Erro ao abrir WhatsApp: ' + e.message, 4000);
-    hideLoading();
-  }
-}
-
-async function copiarQRCode() {
-  try {
-    const qrCanvas = document.querySelector('#qrCode canvas');
-    if (!qrCanvas) {
-      showToast('⚠️ QR Code não disponível', 2000);
-      return;
-    }
-    
-    const blob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
-    if (navigator.clipboard && navigator.clipboard.write) {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          [blob.type]: blob
-        })
-      ]);
-      showToast('📋 QR Code copiado como imagem!', 2000);
-    } else {
-      const text = qrDriverId || 'QR Code';
-      await navigator.clipboard.writeText(text);
-      showToast('📋 ID do QR Code copiado', 2000);
-    }
-  } catch (e) {
-    showToast('📋 QR Code copiado!', 2000);
-  }
-}
-
-function baixarQRCode() {
-  try {
-    const qrCanvas = document.querySelector('#qrCode canvas');
-    if (!qrCanvas) {
-      showToast('⚠️ QR Code não disponível', 2000);
-      return;
-    }
-    const link = document.createElement('a');
-    link.download = `qr-code-${qrDriverId || 'motorista'}.png`;
-    link.href = qrCanvas.toDataURL('image/png');
-    link.click();
-    showToast('💾 QR Code baixado!', 2000);
-  } catch (e) {
-    showToast('Erro ao baixar QR Code', 2000);
   }
 }
 
