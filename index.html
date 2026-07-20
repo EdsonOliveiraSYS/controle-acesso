@@ -1059,10 +1059,10 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     <div class="auth-error" id="loginError"></div>
     <div class="auth-form">
       <div class="field">
-        <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" value="admin@portariapro.com">
+        <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email">
       </div>
       <div class="field">
-        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" value="Admin@2024">
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
       </div>
       <button class="btn btn-primary" onclick="fazerLoginAuth()" id="btnLogin">Entrar</button>
       <div class="auth-loading" id="loginLoading"></div>
@@ -1790,7 +1790,7 @@ async function criarUsuarioAdministrador() {
     console.log('👑 Verificando usuário administrador...');
     
     const { data: loginData, error: loginError } = await supa.auth.signInWithPassword({
-      email: 'admin@portariapro.com',
+      email: 'portariapro@proton.me',
       password: 'Admin@2024'
     });
 
@@ -1801,7 +1801,7 @@ async function criarUsuarioAdministrador() {
 
     console.log('👑 Criando usuário administrador...');
     const { data: authData, error: authError } = await supa.auth.signUp({
-      email: 'admin@portariapro.com',
+      email: 'portariapro@proton.me',
       password: 'Admin@2024',
       options: {
         data: {
@@ -1815,7 +1815,7 @@ async function criarUsuarioAdministrador() {
       if (authError.message.includes('already registered')) {
         console.log('⚠️ Usuário já registrado');
         const { data: retryLogin, error: retryError } = await supa.auth.signInWithPassword({
-          email: 'admin@portariapro.com',
+          email: 'portariapro@proton.me',
           password: 'Admin@2024'
         });
         if (!retryError && retryLogin?.user) {
@@ -1835,7 +1835,7 @@ async function criarUsuarioAdministrador() {
       await supa.from('portarias').insert({
         id: authData.user.id,
         nome: 'Sistema Administrador',
-        email: 'admin@portariapro.com',
+        email: 'portariapro@proton.me',
         tipo: 'administrador',
         plano: 'enterprise',
         codigo: 'ADMIN_' + Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -1845,7 +1845,7 @@ async function criarUsuarioAdministrador() {
     }
 
     console.log('✅ Usuário administrador criado com sucesso!');
-    console.log('📧 Email: admin@portariapro.com');
+    console.log('📧 Email: portariapro@proton.me');
     console.log('🔑 Senha: Admin@2024');
     return true;
 
@@ -2342,7 +2342,7 @@ async function fazerCadastro() {
         nome: nome,
         email: email,
         tipo: 'portaria',
-        plano: 'basico',
+        plano: 'trial',
         codigo: 'PORT_' + Math.random().toString(36).substring(2, 8).toUpperCase()
       });
 
@@ -2350,7 +2350,19 @@ async function fazerCadastro() {
       throw new Error('Erro ao criar perfil: ' + portariaError.message);
     }
 
-    showToast('✅ Conta criada! Faça login para continuar.', 5000);
+    try {
+      await supa.from('assinaturas').insert({
+        portaria_id: authData.user.id,
+        plano: 'trial',
+        status: 'trial',
+        valor_mensal: 0,
+        data_vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      });
+    } catch (e) {
+      console.log('⚠️ Erro ao criar assinatura trial:', e.message);
+    }
+
+    showToast('✅ Conta criada! Você tem 7 dias de teste grátis. Faça login para continuar.', 5000);
     mostrarLogin();
     document.getElementById('loginEmail').value = email;
 
@@ -2394,26 +2406,12 @@ async function fazerLoginAuth() {
     });
     
     if (error) {
-      if (error.message.includes('Invalid login credentials')) {
-        console.log('⚠️ Credenciais inválidas. Tentando criar usuário administrador...');
-        await criarUsuarioAdministrador();
-        const { data: retryData, error: retryError } = await supa.auth.signInWithPassword({ 
-          email, 
-          password 
-        });
-        if (retryError) throw retryError;
-        if (!retryData || !retryData.user) throw new Error('Usuário não encontrado');
-        if (!retryData.session) throw new Error('Sessão não criada');
-        
-        currentUser = retryData.user;
-      } else {
-        throw error;
-      }
-    } else {
-      if (!data || !data.user) throw new Error('Usuário não encontrado');
-      if (!data.session) throw new Error('Sessão não criada');
-      currentUser = data.user;
+      throw error;
     }
+
+    if (!data || !data.user) throw new Error('Usuário não encontrado');
+    if (!data.session) throw new Error('Sessão não criada');
+    currentUser = data.user;
 
     console.log('✅ Sessão criada para:', currentUser.email);
 
@@ -2445,6 +2443,17 @@ async function fazerLoginAuth() {
           .single();
         portaria = newPortaria;
       }
+    }
+
+    const bloqueado = await verificarBloqueioAssinatura(portaria);
+    if (bloqueado) {
+      await supa.auth.signOut();
+      localStorage.removeItem('portaria_atual');
+      currentUser = null;
+      currentPortaria = null;
+      document.getElementById('loginError').textContent = 'Seu período de teste expirou ou sua assinatura está vencida. Contate o administrador para reativar seu acesso.';
+      showToast('⚠️ Acesso bloqueado. Fale com o administrador.', 5000);
+      return;
     }
 
     currentPortaria = portaria;
@@ -2549,6 +2558,47 @@ async function logoutAuth() {
 }
 
 // ============================================================
+// VERIFICAR BLOQUEIO DE ASSINATURA (TRIAL / VENCIDA)
+// ============================================================
+async function verificarBloqueioAssinatura(portaria) {
+  try {
+    if (!portaria || portaria.tipo === 'administrador') return false;
+
+    const { data: assinatura, error } = await supa
+      .from('assinaturas')
+      .select('*')
+      .eq('portaria_id', portaria.id)
+      .maybeSingle();
+
+    if (error || !assinatura) return false;
+
+    if (assinatura.status === 'vencida' || assinatura.status === 'cancelada') {
+      return true;
+    }
+
+    if (assinatura.status === 'trial' && assinatura.data_vencimento) {
+      const venceu = new Date(assinatura.data_vencimento).getTime() < Date.now();
+      if (venceu) {
+        try {
+          await supa.from('assinaturas').update({
+            status: 'vencida',
+            updated_at: new Date().toISOString()
+          }).eq('portaria_id', portaria.id);
+        } catch (e) {
+          console.log('⚠️ Erro ao marcar trial como vencido:', e.message);
+        }
+        return true;
+      }
+    }
+
+    return false;
+  } catch (e) {
+    console.error('❌ Erro ao verificar bloqueio de assinatura:', e);
+    return false;
+  }
+}
+
+// ============================================================
 // VERIFICAR SESSÃO
 // ============================================================
 async function verificarSessao() {
@@ -2602,6 +2652,18 @@ async function verificarSessao() {
 
     if (portaria) {
       console.log('✅ Portaria encontrada:', portaria.nome);
+
+      const bloqueado = await verificarBloqueioAssinatura(portaria);
+      if (bloqueado) {
+        console.warn('🔒 Acesso bloqueado: trial expirado ou assinatura vencida/cancelada');
+        await supa.auth.signOut();
+        localStorage.removeItem('portaria_atual');
+        currentUser = null;
+        currentPortaria = null;
+        showToast('⚠️ Seu período de teste expirou. Contate o administrador.', 5000);
+        return false;
+      }
+
       currentPortaria = portaria;
       localStorage.setItem('portaria_atual', JSON.stringify({
         id: portaria.id,
@@ -5609,7 +5671,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (!initSupabase()) return;
   
-  await criarUsuarioAdministrador();
   await criarPlanosPadrao();
   
   await new Promise(r => setTimeout(r, 500));
