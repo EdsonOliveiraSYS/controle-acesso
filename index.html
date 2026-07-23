@@ -1131,9 +1131,16 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
         <button class="btn-update" id="btnTheme" title="Alternar tema">🌙</button>
         <button class="btn-update admin-only portaria-only" id="btnInvite" title="Convidar usuário">📧</button>
         <button class="btn-update admin-only" id="btnUsers" title="Gerenciar usuários">👥</button>
+        <button class="btn-update portaria-only" id="btnUnidades" title="Gerenciar unidades">🏢</button>
         <button class="btn-update" onclick="forceUpdate()" title="Forçar atualização">🔄</button>
         <div class="header-badge" onclick="logoutAuth()" title="Sair">Sair</div>
       </div>
+    </div>
+
+    <div id="unidadeBar" style="display:none; align-items:center; gap:8px; padding:8px 16px; font-size:13px; border-bottom:1px solid var(--border);">
+      <span style="color:var(--text2);">🏢 Unidade:</span>
+      <select id="selectUnidadeAtiva" style="display:none; flex:1; max-width:240px;" onchange="trocarUnidadeAtiva(this.value)"></select>
+      <span id="unidadeAtivaLabel" style="display:none; font-weight:500;"></span>
     </div>
 
     <div class="pages">
@@ -1417,11 +1424,15 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
     <div class="field">
       <label>NÍVEL DE ACESSO</label>
-      <select id="inviteRole">
+      <select id="inviteRole" onchange="atualizarCampoUnidadeConvite()">
         <option value="portaria">🛠️ Portaria (gestor da portaria)</option>
         <option value="operador">🚦 Operador (cadastra/edita/valida)</option>
         <option value="validacoes">👁️ Validações (somente valida)</option>
       </select>
+    </div>
+    <div class="field" id="inviteUnidadeField" style="display:none;">
+      <label>UNIDADE VINCULADA</label>
+      <select id="inviteUnidade"></select>
     </div>
     <div class="invite-options">
       <button class="btn btn-primary" onclick="enviarConviteEmail()">✉️ Email</button>
@@ -1471,6 +1482,24 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
       <div class="auth-loading" id="editUserLoading"></div>
       <button class="btn btn-ghost" style="margin-top:8px" onclick="fecharEditUserModal()">Cancelar</button>
     </div>
+  </div>
+</div>
+
+<!-- UNIDADES MODAL -->
+<div class="users-modal" id="unidadesModal" onclick="closeUnidadesModal(event)">
+  <div class="users-sheet">
+    <div class="handle"></div>
+    <h3>🏢 Unidades</h3>
+    <p id="unidadesClienteNome">Filiais/portões desta portaria</p>
+    <div id="unidadesList"></div>
+    <div class="auth-form" style="margin-top:12px;">
+      <div class="field">
+        <input type="text" id="novaUnidadeNome" placeholder="Nome da nova unidade (ex: Filial Centro)">
+      </div>
+      <button class="btn btn-primary" onclick="salvarNovaUnidade()" id="btnNovaUnidade">Adicionar unidade</button>
+      <div class="auth-loading" id="unidadesLoading"></div>
+    </div>
+    <button class="btn btn-ghost" style="margin-top:12px" onclick="document.getElementById('unidadesModal').classList.remove('open')">Fechar</button>
   </div>
 </div>
 
@@ -1763,6 +1792,8 @@ let supa = null;
 let currentUser = null;
 let currentPortaria = null;
 let modoRecuperacaoSenha = false;
+let minhasUnidades = [];
+let unidadeAtivaId = null;
 let allUsers = [];
 let currentDriverId = null;
 let editDriverId = null;
@@ -2069,13 +2100,24 @@ async function enviarConviteEmail() {
     }
 
     const codigo = 'CONV_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-    
+
+    if ((role === 'operador' || role === 'validacoes')) {
+      const unidadeSelecionada = document.getElementById('inviteUnidade').value;
+      if (!unidadeSelecionada) {
+        throw new Error('Cadastre e selecione uma unidade para vincular este usuário');
+      }
+    }
+    const unidadeConvite = (role === 'operador' || role === 'validacoes')
+      ? document.getElementById('inviteUnidade').value
+      : null;
+
     await supa.from('convites').insert({
       email: email,
       nome: nome,
       role: role,
       portaria_id: portaria.id,
       portaria_nome: portaria.nome,
+      unidade_id: unidadeConvite,
       codigo: codigo,
       criado_por: portaria.id,
       status: 'pendente',
@@ -2399,6 +2441,7 @@ async function fazerCadastro() {
         email: convite.email,
         tipo: convite.role,
         portaria_id: convite.portaria_id,
+        unidade_id: convite.unidade_id || null,
         plano: 'basico'
       });
 
@@ -2856,6 +2899,16 @@ function podeConvidar() {
   return ['administrador', 'portaria'].includes(getRole());
 }
 
+function atualizarCampoUnidadeConvite() {
+  const role = document.getElementById('inviteRole').value;
+  const campo = document.getElementById('inviteUnidadeField');
+  const precisaUnidade = (role === 'operador' || role === 'validacoes');
+  campo.style.display = precisaUnidade ? 'block' : 'none';
+  if (precisaUnidade && !minhasUnidades.length) {
+    showToast('⚠️ Cadastre uma unidade antes de convidar operador/validações', 4000);
+  }
+}
+
 function podeVerUsuarios() {
   return ['administrador', 'portaria'].includes(getRole());
 }
@@ -2874,6 +2927,196 @@ function podeVerPainelMaster() {
 
 function podeValidar() {
   return ['administrador', 'portaria', 'operador', 'validacoes'].includes(getRole());
+}
+
+// ============================================================
+// UNIDADES (múltiplos portões/locais por cliente)
+// ============================================================
+function getUnidadeAtivaId() {
+  const p = getPortaria();
+  if (!p) return null;
+  if (p.tipo === 'operador' || p.tipo === 'validacoes') {
+    return p.unidade_id || null;
+  }
+  return unidadeAtivaId;
+}
+
+function filtrarPorUnidade(query) {
+  const uid = getUnidadeAtivaId();
+  if (!isAdministrador() && uid) {
+    return query.eq('unidade_id', uid);
+  }
+  return query;
+}
+
+async function carregarUnidades() {
+  const p = getPortaria();
+  if (!p) return;
+
+  if (p.tipo === 'administrador') {
+    minhasUnidades = [];
+    return;
+  }
+
+  try {
+    const { data, error } = await supa.from('unidades').select('*').order('nome');
+    if (error) throw error;
+    minhasUnidades = data || [];
+  } catch (e) {
+    console.log('⚠️ Erro ao carregar unidades:', e.message);
+    minhasUnidades = [];
+  }
+
+  if (p.tipo === 'operador' || p.tipo === 'validacoes') {
+    unidadeAtivaId = p.unidade_id || null;
+  } else {
+    const salva = localStorage.getItem('unidade_ativa_id');
+    if (salva && minhasUnidades.some(u => u.id === salva)) {
+      unidadeAtivaId = salva;
+    } else {
+      unidadeAtivaId = minhasUnidades[0]?.id || null;
+    }
+  }
+
+  atualizarUnidadeBar();
+}
+
+function atualizarUnidadeBar() {
+  const p = getPortaria();
+  const bar = document.getElementById('unidadeBar');
+  const select = document.getElementById('selectUnidadeAtiva');
+  const label = document.getElementById('unidadeAtivaLabel');
+  if (!p || p.tipo === 'administrador') {
+    bar.style.display = 'none';
+    return;
+  }
+
+  if (p.tipo === 'portaria') {
+    if (!minhasUnidades.length) {
+      bar.style.display = 'flex';
+      select.style.display = 'none';
+      label.style.display = 'inline';
+      label.textContent = 'Nenhuma unidade cadastrada — toque em 🏢 para criar';
+      return;
+    }
+    bar.style.display = 'flex';
+    label.style.display = 'none';
+    select.style.display = 'inline-block';
+    select.innerHTML = minhasUnidades.map(u => `<option value="${u.id}" ${u.id === unidadeAtivaId ? 'selected' : ''}>${u.nome}</option>`).join('');
+  } else {
+    const unidade = minhasUnidades.find(u => u.id === unidadeAtivaId);
+    bar.style.display = 'flex';
+    select.style.display = 'none';
+    label.style.display = 'inline';
+    label.textContent = unidade ? unidade.nome : 'Nenhuma unidade vinculada';
+  }
+}
+
+function trocarUnidadeAtiva(id) {
+  unidadeAtivaId = id;
+  localStorage.setItem('unidade_ativa_id', id);
+  renderLog();
+  carregarDashboard();
+  showToast('🏢 Unidade alterada', 2000);
+}
+
+let unidadesModalClienteId = null;
+let unidadesModalLista = [];
+
+async function abrirUnidadesModal(clienteId, clienteNome) {
+  unidadesModalClienteId = clienteId || currentUser.id;
+  const labelEl = document.getElementById('unidadesClienteNome');
+  labelEl.dataset.nome = clienteNome || '';
+  labelEl.textContent = clienteNome
+    ? `Filiais/portões de "${clienteNome}"`
+    : 'Filiais/portões desta portaria';
+  document.getElementById('unidadesModal').classList.add('open');
+  document.getElementById('novaUnidadeNome').value = '';
+
+  try {
+    const { data, error } = await supa
+      .from('unidades')
+      .select('*')
+      .eq('cliente_id', unidadesModalClienteId)
+      .order('nome');
+    if (error) throw error;
+    unidadesModalLista = data || [];
+  } catch (e) {
+    console.log('⚠️ Erro ao carregar unidades:', e.message);
+    unidadesModalLista = [];
+  }
+
+  renderUnidadesList();
+}
+
+function closeUnidadesModal(e) {
+  if (e.target === document.getElementById('unidadesModal')) {
+    document.getElementById('unidadesModal').classList.remove('open');
+  }
+}
+
+function renderUnidadesList() {
+  const list = document.getElementById('unidadesList');
+  if (!unidadesModalLista.length) {
+    list.innerHTML = '<p style="text-align:center;color:var(--text3);padding:12px 0;">Nenhuma unidade cadastrada ainda</p>';
+    return;
+  }
+  list.innerHTML = unidadesModalLista.map(u => `
+    <div class="user-item">
+      <div><strong>${u.nome}</strong></div>
+      <div class="user-actions">
+        <button class="danger" onclick="removerUnidade('${u.id}')" title="Remover">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function salvarNovaUnidade() {
+  const nome = document.getElementById('novaUnidadeNome').value.trim();
+  const loadingDiv = document.getElementById('unidadesLoading');
+  if (!nome) { showToast('⚠️ Digite o nome da unidade', 3000); return; }
+
+  const btn = document.getElementById('btnNovaUnidade');
+  btn.disabled = true;
+  loadingDiv.textContent = 'Salvando...';
+
+  try {
+    const { error } = await supa.from('unidades').insert({
+      cliente_id: unidadesModalClienteId,
+      nome: nome
+    });
+    if (error) throw error;
+
+    showToast('✅ Unidade criada!', 3000);
+    document.getElementById('novaUnidadeNome').value = '';
+    await abrirUnidadesModal(unidadesModalClienteId, document.getElementById('unidadesClienteNome').dataset.nome);
+    if (unidadesModalClienteId === currentUser.id) {
+      await carregarUnidades();
+      atualizarUnidadeBar();
+    }
+  } catch (e) {
+    showToast('Erro ao criar unidade: ' + e.message, 4000);
+  } finally {
+    btn.disabled = false;
+    loadingDiv.textContent = '';
+  }
+}
+
+async function removerUnidade(id) {
+  if (!confirm('Remover esta unidade? O histórico de validações vinculado a ela deixará de aparecer.')) return;
+  try {
+    const { error } = await supa.from('unidades').delete().eq('id', id);
+    if (error) throw error;
+    showToast('Unidade removida', 3000);
+    unidadesModalLista = unidadesModalLista.filter(u => u.id !== id);
+    renderUnidadesList();
+    if (unidadesModalClienteId === currentUser.id) {
+      await carregarUnidades();
+      atualizarUnidadeBar();
+    }
+  } catch (e) {
+    showToast('Erro ao remover: ' + e.message, 4000);
+  }
 }
 
 // ============================================================
@@ -2903,6 +3146,9 @@ async function iniciarApp() {
     
     document.getElementById('btnInvite').style.display = podeConvidar() ? 'flex' : 'none';
     document.getElementById('btnUsers').style.display = podeVerUsuarios() ? 'flex' : 'none';
+    document.getElementById('btnUnidades').style.display = isPortaria() ? 'flex' : 'none';
+
+    await carregarUnidades();
     
     document.querySelectorAll('.nav-btn').forEach(btn => {
       const pageId = btn.id.replace('nav-', '');
@@ -3275,7 +3521,7 @@ async function processQR(id) {
     if (error || !m) {
       div.innerHTML = `<div class="result-box fail"><svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><h3 style="color:var(--red)">QR Code inválido</h3></div>`;
       playSom('negado');
-      await supa.from('validacoes').insert({ motorista_id: null, motorista_nome: 'QR inválido', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
+      await supa.from('validacoes').insert({ motorista_id: null, motorista_nome: 'QR inválido', portaria_id: portaria.id, portaria_nome: portaria.nome, unidade_id: getUnidadeAtivaId(), ok: false, dt });
       return;
     }
     
@@ -3287,7 +3533,7 @@ async function processQR(id) {
       if (new Date() > dataExpiracao) {
         div.innerHTML = `<div class="result-box fail">${foto}<svg viewBox="0 0 24 24" style="stroke:var(--amber);fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3 style="color:var(--amber)">QR Code expirado</h3><p class="result-name">${m.nome}</p><p class="result-sub">Validade: ${diasValidade} dias</p></div>`;
         playSom('negado');
-        await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
+        await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, unidade_id: getUnidadeAtivaId(), ok: false, dt });
         return;
       }
     }
@@ -3295,7 +3541,7 @@ async function processQR(id) {
     if (m.status === 'bloqueado') {
       div.innerHTML = `<div class="result-box fail">${foto}<svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3 style="color:var(--red)">Acesso negado</h3><p class="result-name">${m.nome}</p><p class="result-sub">Status: bloqueado</p></div>`;
       playSom('negado');
-      await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
+      await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, unidade_id: getUnidadeAtivaId(), ok: false, dt });
       return;
     }
     pendingValidation = { motorista: m, portaria, ok: m.status === 'autorizado' };
@@ -3365,7 +3611,7 @@ async function registrarDirecao(tipo) {
   try {
     await supa.from('validacoes').insert({
       motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'',
-      portaria_id: portaria.id, portaria_nome: portaria.nome, tipo, servico, empresa_servico: servicoEmpresa||null, ok, dt
+      portaria_id: portaria.id, portaria_nome: portaria.nome, unidade_id: getUnidadeAtivaId(), tipo, servico, empresa_servico: servicoEmpresa||null, ok, dt
     });
     const corStatus = ok ? 'var(--green)' : 'var(--amber)';
     const foto = m.foto_url ? `<img class="result-photo" src="${m.foto_url}">` : '';
@@ -3440,9 +3686,7 @@ async function exportarLogCSV() {
     if (!portaria) throw new Error('Sessão expirada');
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false });
-    if (!isAdministrador()) {
-      query = query.eq('portaria_id', portaria.id);
-    }
+    query = filtrarPorUnidade(query);
     
     const { data, error } = await query;
     if (error) throw error;
@@ -3488,9 +3732,7 @@ async function exportarLogPDF() {
     if (!portaria) throw new Error('Sessão expirada');
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(500);
-    if (!isAdministrador()) {
-      query = query.eq('portaria_id', portaria.id);
-    }
+    query = filtrarPorUnidade(query);
     
     const { data, error } = await query;
     if (error) throw error;
@@ -3782,10 +4024,7 @@ async function renderLog() {
   if (!portaria) { div.innerHTML = '<p style="color:var(--red)">Sessão expirada</p>'; return; }
   try {
     let query = supa.from('validacoes').select('*').order('dt',{ascending:false}).limit(100);
-    
-    if (!isAdministrador()) {
-      query = query.eq('portaria_id', portaria.id);
-    }
+    query = filtrarPorUnidade(query);
     
     const { data, error } = await query;
     if (error) throw new Error(error.message);
@@ -4193,10 +4432,7 @@ async function carregarDashboard() {
     console.log('📊 Carregando dashboard...');
     
     let query = supa.from('validacoes').select('*').order('dt', { ascending: false }).limit(500);
-    
-    if (!isAdministrador()) {
-      query = query.eq('portaria_id', portaria.id);
-    }
+    query = filtrarPorUnidade(query);
     
     const { data, error } = await query;
     if (error) throw new Error(error.message);
@@ -5478,6 +5714,7 @@ function abrirEditarPortaria(portariaId) {
         </div>
 
         <button class="btn btn-primary" onclick="salvarEdicaoPortaria('${portariaId}')">💾 Salvar</button>
+        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove(); abrirUnidadesModal('${portariaId}', '${(portaria.nome || '').replace(/'/g, "\\'")}')">🏢 Gerenciar Unidades</button>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
       </div>
     </div>
@@ -5884,6 +6121,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnInvite) {
     btnInvite.addEventListener('click', function() {
       if (podeConvidar()) {
+        const selectUnidade = document.getElementById('inviteUnidade');
+        selectUnidade.innerHTML = minhasUnidades.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+        atualizarCampoUnidadeConvite();
         document.getElementById('inviteModal').classList.add('open');
       } else {
         showToast('⚠️ Você não tem permissão para convidar', 3000);
@@ -5898,6 +6138,17 @@ document.addEventListener('DOMContentLoaded', function() {
         abrirListaUsuarios();
       } else {
         showToast('⚠️ Você não tem permissão para ver usuários', 3000);
+      }
+    });
+  }
+
+  const btnUnidades = document.getElementById('btnUnidades');
+  if (btnUnidades) {
+    btnUnidades.addEventListener('click', function() {
+      if (isPortaria() || isAdministrador()) {
+        abrirUnidadesModal();
+      } else {
+        showToast('⚠️ Você não tem permissão para gerenciar unidades', 3000);
       }
     });
   }
