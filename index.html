@@ -1101,6 +1101,24 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
     </div>
   </div>
 
+  <!-- TELA DE DEFINIR NOVA SENHA (link de recuperação) -->
+  <div class="auth-screen" id="novaSenhaScreen" style="display:none">
+    <span class="auth-logo">🔑</span>
+    <h1>Definir nova senha</h1>
+    <p class="subtitle">Escolha uma nova senha para sua conta</p>
+    <div class="auth-error" id="novaSenhaError"></div>
+    <div class="auth-form">
+      <div class="field">
+        <input type="password" id="novaSenhaInput" placeholder="Nova senha (mínimo 6 caracteres)" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <input type="password" id="novaSenhaConfirmInput" placeholder="Confirmar nova senha" autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary" onclick="salvarNovaSenha()" id="btnNovaSenha">Salvar nova senha</button>
+      <div class="auth-loading" id="novaSenhaLoading"></div>
+    </div>
+  </div>
+
   <!-- APP PRINCIPAL -->
   <div id="mainApp" style="display:none; flex-direction:column; height:100%">
     <div class="header">
@@ -1714,6 +1732,7 @@ const Utils = {
 let supa = null;
 let currentUser = null;
 let currentPortaria = null;
+let modoRecuperacaoSenha = false;
 let allUsers = [];
 let currentDriverId = null;
 let editDriverId = null;
@@ -2201,6 +2220,7 @@ async function processarConvite() {
 function mostrarLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('registerScreen').style.display = 'none';
+  document.getElementById('novaSenhaScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('loginError').textContent = '';
   document.getElementById('registerError').textContent = '';
@@ -2209,9 +2229,62 @@ function mostrarLogin() {
 function mostrarCadastro() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('registerScreen').style.display = 'flex';
+  document.getElementById('novaSenhaScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('loginError').textContent = '';
   document.getElementById('registerError').textContent = '';
+}
+
+function mostrarNovaSenhaScreen() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('registerScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('novaSenhaScreen').style.display = 'flex';
+  document.getElementById('novaSenhaError').textContent = '';
+  document.getElementById('novaSenhaInput').value = '';
+  document.getElementById('novaSenhaConfirmInput').value = '';
+}
+
+async function salvarNovaSenha() {
+  const novaSenha = document.getElementById('novaSenhaInput').value;
+  const confirmacao = document.getElementById('novaSenhaConfirmInput').value;
+  const errorDiv = document.getElementById('novaSenhaError');
+  const btn = document.getElementById('btnNovaSenha');
+  const loadingDiv = document.getElementById('novaSenhaLoading');
+
+  errorDiv.textContent = '';
+
+  if (!novaSenha || novaSenha.length < 6) {
+    errorDiv.textContent = 'A senha deve ter no mínimo 6 caracteres';
+    return;
+  }
+  if (novaSenha !== confirmacao) {
+    errorDiv.textContent = 'As senhas não coincidem';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Salvando...';
+  loadingDiv.textContent = 'Atualizando senha...';
+
+  try {
+    const { error } = await supa.auth.updateUser({ password: novaSenha });
+    if (error) throw error;
+
+    await supa.auth.signOut();
+    currentUser = null;
+    currentPortaria = null;
+    localStorage.removeItem('portaria_atual');
+
+    showToast('✅ Senha atualizada! Faça login com a nova senha.', 4000);
+    mostrarLogin();
+  } catch (e) {
+    errorDiv.textContent = 'Erro ao salvar senha: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar nova senha';
+    loadingDiv.textContent = '';
+  }
 }
 
 function mostrarResetSenha() {
@@ -2604,7 +2677,12 @@ async function verificarBloqueioAssinatura(portaria) {
 async function verificarSessao() {
   try {
     console.log('🔍 Verificando sessão...');
-    
+
+    if (modoRecuperacaoSenha) {
+      console.log('🔑 Sessão de recuperação de senha — aguardando definição de nova senha');
+      return false;
+    }
+
     const { data: { session }, error: sessionError } = await supa.auth.getSession();
     
     if (sessionError) {
@@ -3097,6 +3175,63 @@ async function loadZxingLibrary() {
   });
 }
 
+// ============================================================
+// SONS DE ACESSO LIBERADO / NEGADO
+// ============================================================
+let audioCtxSom = null;
+function vibrar(padrao) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(padrao);
+  } catch (e) { /* navegador não suporta */ }
+}
+
+function playSom(tipo) {
+  try {
+    if (!audioCtxSom) audioCtxSom = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtxSom.state === 'suspended') audioCtxSom.resume();
+    const ctx = audioCtxSom;
+
+    if (tipo === 'liberado') {
+      // Acorde ascendente estilo "sino" (3 notas), som positivo e claro
+      const notas = [523.25, 659.25, 783.99]; // Dó, Mi, Sol
+      notas.forEach((freq, i) => {
+        const inicio = ctx.currentTime + i * 0.09;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, inicio);
+        gain.gain.setValueAtTime(0.0001, inicio);
+        gain.gain.exponentialRampToValueAtTime(0.28, inicio + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, inicio + 0.35);
+        osc.start(inicio);
+        osc.stop(inicio + 0.36);
+      });
+      vibrar(120);
+    } else {
+      // Dois bipes graves e curtos, som de alerta/negado
+      [0, 0.18].forEach((delay) => {
+        const inicio = ctx.currentTime + delay;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, inicio);
+        gain.gain.setValueAtTime(0.0001, inicio);
+        gain.gain.exponentialRampToValueAtTime(0.25, inicio + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, inicio + 0.16);
+        osc.start(inicio);
+        osc.stop(inicio + 0.17);
+      });
+      vibrar([120, 80, 120]);
+    }
+  } catch (e) {
+    console.log('⚠️ Não foi possível tocar o som:', e.message);
+  }
+}
+
 async function processQR(id) {
   if (!Utils.isOnline()) { showToast('Sem conexão com a internet'); return; }
   const div = document.getElementById('scanResult');
@@ -3109,6 +3244,7 @@ async function processQR(id) {
     const foto = (m && m.foto_url) ? `<img class="result-photo" src="${m.foto_url}">` : '';
     if (error || !m) {
       div.innerHTML = `<div class="result-box fail"><svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><h3 style="color:var(--red)">QR Code inválido</h3></div>`;
+      playSom('negado');
       await supa.from('validacoes').insert({ motorista_id: null, motorista_nome: 'QR inválido', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
       return;
     }
@@ -3120,6 +3256,7 @@ async function processQR(id) {
       dataExpiracao.setDate(dataExpiracao.getDate() + diasValidade);
       if (new Date() > dataExpiracao) {
         div.innerHTML = `<div class="result-box fail">${foto}<svg viewBox="0 0 24 24" style="stroke:var(--amber);fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3 style="color:var(--amber)">QR Code expirado</h3><p class="result-name">${m.nome}</p><p class="result-sub">Validade: ${diasValidade} dias</p></div>`;
+        playSom('negado');
         await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
         return;
       }
@@ -3127,10 +3264,12 @@ async function processQR(id) {
     
     if (m.status === 'bloqueado') {
       div.innerHTML = `<div class="result-box fail">${foto}<svg viewBox="0 0 24 24" style="stroke:var(--red);fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3 style="color:var(--red)">Acesso negado</h3><p class="result-name">${m.nome}</p><p class="result-sub">Status: bloqueado</p></div>`;
+      playSom('negado');
       await supa.from('validacoes').insert({ motorista_id: m.id, motorista_nome: m.nome, motorista_placa: m.placa||'', motorista_empresa: m.empresa||'', portaria_id: portaria.id, portaria_nome: portaria.nome, ok: false, dt });
       return;
     }
     pendingValidation = { motorista: m, portaria, ok: m.status === 'autorizado' };
+    playSom('liberado');
     const corStatus = m.status === 'autorizado' ? 'var(--green)' : 'var(--amber)';
     div.innerHTML = `
       <div class="result-box ok">
@@ -5670,7 +5809,14 @@ document.addEventListener('DOMContentLoaded', function() {
   carregarTema();
   
   if (!initSupabase()) return;
-  
+
+  supa.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      modoRecuperacaoSenha = true;
+      mostrarNovaSenhaScreen();
+    }
+  });
+
   await criarPlanosPadrao();
   
   await new Promise(r => setTimeout(r, 500));
@@ -5678,7 +5824,7 @@ document.addEventListener('DOMContentLoaded', function() {
   await processarConvite();
   
   const logado = await verificarSessao();
-  if (!logado) {
+  if (!logado && !modoRecuperacaoSenha) {
     mostrarLogin();
   }
 })();
