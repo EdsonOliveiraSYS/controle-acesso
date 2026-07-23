@@ -1444,6 +1444,36 @@ html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--b
   </div>
 </div>
 
+<!-- EDITAR USUÁRIO MODAL -->
+<div class="users-modal" id="editUserModal" onclick="closeEditUserModal(event)">
+  <div class="users-sheet">
+    <div class="handle"></div>
+    <h3>✏️ Editar Usuário</h3>
+    <div class="auth-error" id="editUserError"></div>
+    <div class="auth-form">
+      <div class="field">
+        <label>NOME</label>
+        <input type="text" id="editUserNome" placeholder="Nome completo">
+      </div>
+      <div class="field">
+        <label>E-MAIL</label>
+        <input type="email" id="editUserEmail" disabled style="opacity:0.6">
+      </div>
+      <div class="field">
+        <label>FUNÇÃO</label>
+        <select id="editUserRole">
+          <option value="portaria">🛠️ Portaria (gestor)</option>
+          <option value="operador">🚦 Operador (cadastra/edita/valida)</option>
+          <option value="validacoes">👁️ Validações (somente valida)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="salvarEdicaoUsuario()" id="btnSalvarEditUser">Salvar</button>
+      <div class="auth-loading" id="editUserLoading"></div>
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="fecharEditUserModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- QR MODAL -->
 <div class="qr-modal" id="qrModal" onclick="closeQR(event)" role="dialog" aria-label="QR Code do motorista">
   <div class="qr-sheet">
@@ -3548,7 +3578,7 @@ async function abrirListaUsuarios() {
       const roleClass = user.tipo || '';
 
       const isCurrentUser = user.id === currentUser?.id;
-      const canDelete = user.tipo !== 'administrador' && !isCurrentUser && (isAdministrador() || isPortaria());
+      const canManage = user.tipo !== 'administrador' && !isCurrentUser && (isAdministrador() || isPortaria());
 
       return `
         <div class="user-item">
@@ -3560,7 +3590,8 @@ async function abrirListaUsuarios() {
             ${user.plano ? `<div style="font-size:10px;color:var(--text3);">📋 ${user.plano}</div>` : ''}
           </div>
           <div class="user-actions">
-            ${canDelete ? `<button class="danger" onclick="removerUsuario('${user.id}')" title="Remover">🗑️</button>` : ''}
+            ${canManage ? `<button onclick="abrirEditarUsuario('${user.id}')" title="Editar">✏️</button>` : ''}
+            ${canManage ? `<button class="danger" onclick="removerUsuario('${user.id}')" title="Remover">🗑️</button>` : ''}
           </div>
         </div>
       `;
@@ -3602,6 +3633,73 @@ async function removerUsuario(userId) {
 function closeUsersModal(e) {
   if (e.target === document.getElementById('usersModal')) {
     document.getElementById('usersModal').classList.remove('open');
+  }
+}
+
+let usuarioEmEdicaoId = null;
+
+function abrirEditarUsuario(userId) {
+  const user = allUsers.find(u => u.id === userId);
+  if (!user) { showToast('Usuário não encontrado'); return; }
+
+  usuarioEmEdicaoId = userId;
+  document.getElementById('editUserNome').value = user.nome || '';
+  document.getElementById('editUserEmail').value = user.email || '';
+  document.getElementById('editUserRole').value = user.tipo || 'operador';
+  document.getElementById('editUserError').textContent = '';
+  document.getElementById('editUserModal').classList.add('open');
+}
+
+function fecharEditUserModal() {
+  document.getElementById('editUserModal').classList.remove('open');
+  usuarioEmEdicaoId = null;
+}
+
+function closeEditUserModal(e) {
+  if (e.target === document.getElementById('editUserModal')) {
+    fecharEditUserModal();
+  }
+}
+
+async function salvarEdicaoUsuario() {
+  if (!usuarioEmEdicaoId) return;
+
+  const nome = document.getElementById('editUserNome').value.trim();
+  const tipo = document.getElementById('editUserRole').value;
+  const errorDiv = document.getElementById('editUserError');
+  const btn = document.getElementById('btnSalvarEditUser');
+  const loadingDiv = document.getElementById('editUserLoading');
+
+  errorDiv.textContent = '';
+
+  if (!nome) {
+    errorDiv.textContent = 'Digite o nome do usuário';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Salvando...';
+  loadingDiv.textContent = 'Salvando alterações...';
+
+  try {
+    const { error } = await supa
+      .from('portarias')
+      .update({ nome, tipo })
+      .eq('id', usuarioEmEdicaoId);
+
+    if (error) throw error;
+
+    showToast('✅ Usuário atualizado!', 3000);
+    fecharEditUserModal();
+    await abrirListaUsuarios();
+
+  } catch (e) {
+    console.error('❌ Erro ao editar usuário:', e);
+    errorDiv.textContent = 'Erro ao salvar: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar';
+    loadingDiv.textContent = '';
   }
 }
 
